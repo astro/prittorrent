@@ -248,7 +248,7 @@ process_message(<<?REQUEST, Piece:32/big,
     MessageLength = 1 + 4 + 4 + Length,
     gen_tcp:send(Sock, <<MessageLength:32/big, ?PIECE,
 			 Piece:32/big, Offset:32/big>>),
-    send_piece(Sock, FileRanges),
+    send_piece(FileRanges, State),
     State;
 
 process_message(Msg, State) ->
@@ -281,21 +281,22 @@ build_bitfield(0) ->
     %% case for byte alignedness
     [].
 
-send_piece(Sock, FileRanges) ->
+send_piece(FileRanges, State) ->
     lists:foreach(
       fun({Path, Offset, Length}) ->
 	      io:format("open(~p)~n", [Path]),
 	      {ok, F} = file:open(Path, [read, binary]),
 	      io:format("position(~p, ~p)~n", [F, Offset]),
 	      {ok, Offset} = file:position(F, Offset),
-	      send_piece1(Sock, F, Length),
+	      send_piece1(F, Length, State),
 	      file:close(F)
       end, FileRanges).
 
 -define(CHUNK_SIZE, 8192).
-send_piece1(_, _, 0) ->
+send_piece1(_, 0, _) ->
     ok;
-send_piece1(Sock, F, Length) ->
+send_piece1(F, Length, #state{sock = Sock,
+			      info_hash = InfoHash} = State) ->
     Length1 = if Length >= ?CHUNK_SIZE -> ?CHUNK_SIZE;
 		 true -> Length
 	      end,
@@ -303,4 +304,5 @@ send_piece1(Sock, F, Length) ->
     {ok, Data} = file:read(F, Length1),
     io:format("read ~B bytes~n", [size(Data)]),
     gen_tcp:send(Sock, Data),
-    send_piece1(Sock, F, Length - Length1).
+    torrentdb:inc_uploaded(InfoHash, size(Data)),
+    send_piece1(F, Length - Length1, State).

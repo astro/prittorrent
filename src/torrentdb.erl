@@ -1,6 +1,6 @@
 -module(torrentdb).
 
--export([init/0, seedlist/0, add_torrent/2, rm_torrent/1, register_peer/1, peer_id/0, tracker_loop/2]).
+-export([init/0, seedlist/0, add_torrent/2, rm_torrent/1, register_peer/1, inc_uploaded/2, peer_id/0, tracker_loop/2]).
 
 -record(torrent, {info_hash,
 		  torrent_file,
@@ -108,6 +108,18 @@ rm_torrent(TorrentFile) ->
       fun(TLPid) ->
 	      exit(TLPid, normal)
       end, TLPids).
+
+inc_uploaded(InfoHash, Delta) ->
+    {atomic, _} =
+	mnesia:transaction(
+	  fun() ->
+		  case mnesia:read(torrent, InfoHash) of
+		      [#torrent{uploaded = Uploaded} = Torrent] ->
+			  mnesia:write(Torrent#torrent{uploaded = Uploaded + Delta});
+		      _ ->
+			  ignore
+		  end
+	  end).
 
 peer_id() ->
     {ok, MyPeerId} = application:get_env(servtorrent, peer_id),
