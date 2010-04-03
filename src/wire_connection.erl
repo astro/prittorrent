@@ -37,7 +37,6 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Sock) ->
-    io:format("wire_connection:start_link(~p)~n", [Sock]),
     {ok, Pid} = gen_server:start_link(?MODULE, [Sock], []),
     {ok, Pid}.
 
@@ -104,7 +103,6 @@ handle_cast(go, #state{sock = Sock} = State) ->
 %%--------------------------------------------------------------------
 handle_info({tcp, Sock, Data}, #state{sock = Sock,
 				      buffer = Buffer} = State1) ->
-    io:format("wire_connection:handle_info({tcp, ~p, ~p})~n", [Sock, Data]),
     State2 = State1#state{buffer = list_to_binary([Buffer, Data])},
     State3 = process_input(State2),
 
@@ -284,9 +282,7 @@ build_bitfield(0) ->
 send_piece(FileRanges, State) ->
     lists:foreach(
       fun({Path, Offset, Length}) ->
-	      io:format("open(~p)~n", [Path]),
 	      {ok, F} = file:open(Path, [read, binary]),
-	      io:format("position(~p, ~p)~n", [F, Offset]),
 	      {ok, Offset} = file:position(F, Offset),
 	      send_piece1(F, Length, State),
 	      file:close(F)
@@ -300,9 +296,7 @@ send_piece1(F, Length, #state{sock = Sock,
     Length1 = if Length >= ?CHUNK_SIZE -> ?CHUNK_SIZE;
 		 true -> Length
 	      end,
-    io:format("read(~p, ~p)~n", [F, Length1]),
     {ok, Data} = file:read(F, Length1),
-    io:format("read ~B bytes~n", [size(Data)]),
     gen_tcp:send(Sock, Data),
     torrentdb:inc_uploaded(InfoHash, size(Data)),
     send_piece1(F, Length - Length1, State).
