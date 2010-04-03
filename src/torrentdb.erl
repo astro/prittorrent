@@ -75,14 +75,15 @@ info_files(InfoDict) ->
 	 {value, {_, Length}},
 	 _} ->
 	    [{Name, Length}];
-	{_, _, FileList} ->
+	{_, _, {value, {_, FileList}}} ->
 	    lists:map(
 	      fun(FileDict) ->
 		      {value, {_, PathList}} =
 			  lists:keysearch(<<"path">>, 1, FileDict),
 		      {value, {_, Length}} =
 			  lists:keysearch(<<"length">>, 1, FileDict),
-		      Path = string:join(PathList, "/"),
+		      Path = string:join([binary_to_list(P)
+					  || P <- PathList], "/"),
 		      {Path, Length}
 	      end, FileList)
     end.
