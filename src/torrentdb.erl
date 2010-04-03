@@ -1,6 +1,6 @@
 -module(torrentdb).
 
--export([init/0, seedlist/0, add_torrent/2, rm_torrent/1, register_peer/1, inc_uploaded/2, peer_id/0, tracker_loop/2]).
+-export([init/0, apply_seedlist/1, add_torrent/2, rm_torrent/1, register_peer/1, inc_uploaded/2, peer_id/0, tracker_loop/2]).
 
 -record(torrent, {info_hash,
 		  torrent_file,
@@ -11,6 +11,7 @@
 init() ->
     mnesia:create_table(torrent,
 			[{attributes, record_info(fields, torrent)}]),
+    mnesia:add_table_index(torrent, torrent_file),
     case application:get_env(servtorrent, peer_id) of
 	{ok, _} -> fine;
 	undefined ->
@@ -22,18 +23,80 @@ register_peer(_InfoHash) ->
     %% TODO: chk InfoHash existence, add to supervisor
     ok.
 
-seedlist() ->
-    {atomic, L} =
+apply_seedlist(NewSeedList) ->
+    {atomic, {ToAdd, Removed}} =
 	mnesia:transaction(
 	  fun() ->
-		  mnesia:select(torrent,
-				[{#torrent{torrent_file = '$1',
-					   _ = '_'},
-				  [],
-				  ['$1']
-				 }])
+		  IsIn = fun(TorrentFile1, SeedList) ->
+				 lists:any(
+				   fun({TorrentFile2, _}) ->
+					   TorrentFile1 == TorrentFile2
+				   end, SeedList)
+			 end,
+		  OldSeedList = seedlist_t(),
+		  {_ToUpdate1, ToRemove} =
+		      lists:partition(
+			fun({TorrentFileOld, _}) ->
+				IsIn(TorrentFileOld, NewSeedList)
+			end, OldSeedList),
+		  {_ToUpdate2, ToAdd} =
+		      lists:partition(
+			fun({TorrentFileNew, _}) ->
+				IsIn(TorrentFileNew, OldSeedList)
+			end, NewSeedList),
+		  %% ToUpdate = lists:uniq(ToUpdate1 ++ ToUpdate2),
+		  %% lists:foreach(fun({TorrentFile, Dir}) ->
+		  %% 			InfoHash = case mnesia:read(torrent, 
+		  %% 			piecesdb:update_dir_t(InfoHash, Dir)
+		  %% 		end, ToUpdate)
+		  Removed =
+		      lists:map(
+			fun({TorrentFile, _}) ->
+				case mnesia:index_read(torrent, TorrentFile, #torrent.torrent_file) of
+				    [Torrent] ->
+					mnesia:delete_object(Torrent);
+				    _ ->
+					ignore
+				end
+			end, ToRemove),
+		  {ToAdd, Removed}
 	  end),
-    {ok, L}.
+    lists:foreach(
+      fun(#torrent{tl_pid = TLPid}) ->
+	      %% TODO: disconnect leechers, don't let them just die
+	      exit(TLPid, kill)
+      end, Removed),
+    
+    if
+	length(Removed) > 0 ->
+	    io:format("Removed ~B torrents~n", [length(Removed)]);
+	true -> quiet
+    end,
+    lists:foreach(fun({TorrentFile, Dir}) ->
+			  add_torrent(TorrentFile, Dir),
+			  io:format("Started seeding ~s~n", [TorrentFile])
+		  end, ToAdd),
+    ok.
+
+seedlist_t() ->
+    L1 =
+	mnesia:select(torrent,
+		      [{#torrent{info_hash = '$1',
+				 torrent_file = '$2',
+				 _ = '_'},
+			[],
+			[['$1', '$2']]
+		       }]),
+    io:format("L1: ~p~n", [L1]),
+    lists:foldl(
+      fun([InfoHash, TorrentFile], R) ->
+	      case piecesdb:get_dir_t(InfoHash) of
+		  {ok, Dir} ->
+		      [{TorrentFile, Dir} | R];
+		  _ ->
+		      R
+	      end
+      end, [], L1).
 
 add_torrent(TorrentFile, Dir) ->
     Parsed = benc:parse_file(TorrentFile),

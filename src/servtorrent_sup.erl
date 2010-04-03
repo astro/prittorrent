@@ -33,8 +33,11 @@ init([Port]) ->
     PeerSup = {peer_sup,
 	       {peer_sup, start_link, []},
 	       permanent, 2000, supervisor, [peer_sup]},
+    SeedList = {seedlist,
+		{seedlist, start_link, "seeds.xml"},
+		permanent, 2000, worker, [seedlist]},
 
-    {ok, {SupFlags, [WireListener, PeerSup]}}.
+    {ok, {SupFlags, [WireListener, PeerSup, SeedList]}}.
 
 %%%===================================================================
 %%% Internal functions
