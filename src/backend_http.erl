@@ -37,9 +37,8 @@ fold_file1(ReqId, Fold, AccIn) ->
 	    io:format("HTTP request error: ~p~n", [Err]),
 	    exit(Err);
 	{ibrowse_async_response, ReqId, Data} ->
-	    AccOut = Fold(Data, AccIn),
+	    AccOut = Fold(list_to_binary(Data), AccIn),
 	    fold_file1(ReqId, Fold, AccOut);
 	{ibrowse_async_response_end, ReqId} ->
-	    AccIn;
-	E -> exit({received, E})
+	    AccIn
     end.
