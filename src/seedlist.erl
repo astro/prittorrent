@@ -36,7 +36,8 @@ loop(Filename, ModTime1) ->
     end.
 
 load_seedlist(Filename) ->
-    {SeedsEl, _} = xmerl_scan:file(Filename),
+    File = backend:read_file(Filename),
+    {SeedsEl, _} = xmerl_scan:string(binary_to_list(File)),
     #xmlElement{content = SeedsChildren} = SeedsEl,
     lists:filter(
       fun({_, _}) -> true;
