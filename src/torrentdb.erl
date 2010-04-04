@@ -52,6 +52,7 @@ apply_seedlist(NewSeedList) ->
 		  Removed =
 		      lists:map(
 			fun({TorrentFile, _}) ->
+				%% TODO: doesn't work
 				case mnesia:index_read(torrent, TorrentFile, #torrent.torrent_file) of
 				    [Torrent] ->
 					mnesia:delete_object(Torrent);
@@ -137,7 +138,7 @@ info_files(InfoDict) ->
 	{{value, {_, Name}},
 	 {value, {_, Length}},
 	 _} ->
-	    [{Name, Length}];
+	    [{normalize_path(Name), Length}];
 	{_, _, {value, {_, FileList}}} ->
 	    lists:map(
 	      fun(FileDict) ->
@@ -147,9 +148,25 @@ info_files(InfoDict) ->
 			  lists:keysearch(<<"length">>, 1, FileDict),
 		      Path = string:join([binary_to_list(P)
 					  || P <- PathList], "/"),
-		      {Path, Length}
+		      {normalize_path(Path), Length}
 	      end, FileList)
     end.
+
+normalize_path([]) ->
+    exit(empty_path);
+normalize_path(PathList) ->
+    normalize_path(PathList, []).
+
+normalize_path(["." | PathList], R) ->
+    normalize_path(PathList, R);
+normalize_path([".." | PathList], [_Parent | R]) ->
+    normalize_path(PathList, R);
+normalize_path([".." | PathList], []) ->
+    normalize_path(PathList, []);
+normalize_path([Dir | PathList], R) ->
+    normalize_path(PathList, [Dir | R]);
+normalize_path([], R) ->
+    lists:reverse(R).
 
 rm_torrent(TorrentFile) ->
     {atomic, TLPids} =
