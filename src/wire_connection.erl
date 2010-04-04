@@ -279,24 +279,13 @@ build_bitfield(0) ->
     %% case for byte alignedness
     [].
 
-send_piece(FileRanges, State) ->
+send_piece(FileRanges, #state{sock = Sock,
+			      info_hash = InfoHash}) ->
     lists:foreach(
       fun({Path, Offset, Length}) ->
-	      {ok, F} = file:open(Path, [read, binary]),
-	      {ok, Offset} = file:position(F, Offset),
-	      send_piece1(F, Length, State),
-	      file:close(F)
+	      backend:fold_file(Path, Offset, Length,
+				fun(Data, _) ->
+					gen_tcp:send(Sock, Data),
+					torrentdb:inc_uploaded(InfoHash, size(Data))
+				end, nil)
       end, FileRanges).
-
--define(CHUNK_SIZE, 8192).
-send_piece1(_, 0, _) ->
-    ok;
-send_piece1(F, Length, #state{sock = Sock,
-			      info_hash = InfoHash} = State) ->
-    Length1 = if Length >= ?CHUNK_SIZE -> ?CHUNK_SIZE;
-		 true -> Length
-	      end,
-    {ok, Data} = file:read(F, Length1),
-    gen_tcp:send(Sock, Data),
-    torrentdb:inc_uploaded(InfoHash, size(Data)),
-    send_piece1(F, Length - Length1, State).
