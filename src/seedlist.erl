@@ -1,29 +1,38 @@
 -module(seedlist).
 
--export([start_link/1, loop/1, load_seedlist/1]).
+-export([start_link/1, loop/2, load_seedlist/1]).
 
 -include_lib("xmerl/include/xmerl.hrl").
+-include_lib("kernel/include/file.hrl").
+
 
 start_link(Filename) ->
     Pid = spawn_link(
 	    fun() ->
-		    loop(Filename)
+		    loop(Filename, nil)
 	    end),
     {ok, Pid}.
 
 -define(RELOAD_INTERVAL, 10).
-loop(Filename) ->
-    case (catch load_seedlist(Filename)) of
-	{'EXIT', Reason} ->
-	    io:format("Cannot load seedlist: ~p~n",
-		      [Filename, Reason]);
-	SeedList ->
-	    torrentdb:apply_seedlist(SeedList)
+loop(Filename, ModTime1) ->
+    ModTime2 = get_mtime(Filename),
+    if
+	ModTime2 =/= ModTime1 ->
+	    io:format("~s has been modified~n", [Filename]),
+	    case (catch load_seedlist(Filename)) of
+		{'EXIT', Reason} ->
+		    io:format("Cannot load seedlist ~s: ~p~n",
+			      [Filename, Reason]);
+		SeedList ->
+		    torrentdb:apply_seedlist(SeedList)
+	    end;
+	true ->
+	    not_modified
     end,
 
     receive
     after ?RELOAD_INTERVAL * 1000 ->
-	    ?MODULE:loop(Filename)
+	    ?MODULE:loop(Filename, ModTime2)
     end.
 
 load_seedlist(Filename) ->
@@ -59,3 +68,8 @@ get_el_text1(Name, [#xmlElement{name = Name,
 get_el_text1(Name, [_ | Els]) ->
     get_el_text1(Name, Els).
 
+
+get_mtime(Filename) ->
+    {ok, #file_info{mtime = ModTime}} =
+	file:read_file_info(Filename),
+    ModTime.
