@@ -5,7 +5,7 @@
 
 start() ->
     lists:foreach(fun application:start/1,
-		  [sasl, mnesia, inets]),
+		  [sasl, mnesia, inets, ibrowse]),
     start(o, o).
 
 start(_, _) ->
