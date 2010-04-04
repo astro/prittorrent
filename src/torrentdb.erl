@@ -138,7 +138,9 @@ info_files(InfoDict) ->
 	{{value, {_, Name}},
 	 {value, {_, Length}},
 	 _} ->
-	    [{normalize_path(Name), Length}];
+	    PathList = string:tokens(binary_to_list(Name), "/"),
+	    Path = string:join(normalize_path(PathList), "/"),
+	    [{Path, Length}];
 	{_, _, {value, {_, FileList}}} ->
 	    lists:map(
 	      fun(FileDict) ->
@@ -157,11 +159,11 @@ normalize_path([]) ->
 normalize_path(PathList) ->
     normalize_path(PathList, []).
 
-normalize_path(["." | PathList], R) ->
+normalize_path([<<".">> | PathList], R) ->
     normalize_path(PathList, R);
-normalize_path([".." | PathList], [_Parent | R]) ->
+normalize_path([<<"..">> | PathList], [_Parent | R]) ->
     normalize_path(PathList, R);
-normalize_path([".." | PathList], []) ->
+normalize_path([<<"..">> | PathList], []) ->
     normalize_path(PathList, []);
 normalize_path([Dir | PathList], R) ->
     normalize_path(PathList, [Dir | R]);
