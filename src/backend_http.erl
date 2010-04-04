@@ -28,7 +28,7 @@ fold_file1(ReqId, Fold, AccIn) ->
     ok = ibrowse:stream_next(ReqId),
     receive
 	{ibrowse_async_headers, ReqId, [$2, _, _], Headers} ->
-	    io:format("Recvd headers~n~p~n", [{ibrowse_async_headers, ReqId, Headers}]),
+	    %%io:format("Recvd headers~n~p~n", [{ibrowse_async_headers, ReqId, Headers}]),
 	    fold_file1(ReqId, Fold, AccIn);
 	{ibrowse_async_headers, ReqId, StatusS, _Headers} ->
 	    {Status, _} = string:to_integer(StatusS),

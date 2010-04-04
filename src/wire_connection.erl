@@ -13,7 +13,9 @@
 
 -record(state, {sock, buffer = <<>>,
 		mode = handshake, info_hash,
-		choked = true, interested = false}).
+		choked = true, interested = false,
+		queue = []}).
+-record(queued, {piece, offset, length}).
 
 -define(CHOKE, 0).
 -define(UNCHOKE, 1).
@@ -106,14 +108,27 @@ handle_info({tcp, Sock, Data}, #state{sock = Sock,
     State2 = State1#state{buffer = list_to_binary([Buffer, Data])},
     State3 = process_input(State2),
 
-    case {State3#state.mode,
-	  State3#state.choked} of
-	{run, true} ->
-	    send_message(Sock, <<?UNCHOKE>>),
-	    {noreply, State3#state{choked = false}};
-	_ ->
-	    {noreply, State3}
-    end;
+    State4 = case {State3#state.mode,
+		   State3#state.choked} of
+		 {run, true} ->
+		     send_message(Sock, <<?UNCHOKE>>),
+		     State3#state{choked = false};
+		 _ ->
+		     State3
+	     end,
+    Queue =
+	lists:filter(fun(Queued) ->
+			     case (catch send_queued(Queued, State4)) of
+				 {'EXIT', Reason} ->
+				     io:format("Cannot send ~p: ~p~n", [Queued, Reason]),
+				     %% Keep:
+				     true;
+				 (_) ->
+				     %% Ok, remove from queue
+				     false
+			     end
+		     end, State4#state.queue),
+    {noreply, State4#state{queue = Queue}};
 handle_info({tcp_closed, Sock}, #state{sock = Sock} = State) ->
     {stop, normal, State}.
 
@@ -240,16 +255,21 @@ process_message(<<?NOT_INTERESTED>>, State) ->
 
 process_message(<<?REQUEST, Piece:32/big,
 		  Offset:32/big, Length:32/big>>,
-		#state{sock = Sock,
-		       info_hash = InfoHash} = State) ->
-    FileRanges = piecesdb:map_files(InfoHash, Piece, Offset, Length),
-    MessageLength = 1 + 4 + 4 + Length,
-    gen_tcp:send(Sock, <<MessageLength:32/big, ?PIECE,
-			 Piece:32/big, Offset:32/big>>),
-    send_piece(FileRanges, State),
-    State;
+		#state{queue = Queue} = State) ->
+    State#state{queue = Queue ++ [#queued{piece = Piece,
+					  offset = Offset,
+					  length = Length}]};
 
-process_message(Msg, State) ->
+process_message(<<?CANCEL, Piece:32/big,
+		  Offset:32/big, Length:32/big>>,
+		#state{queue = Queue} = State) ->
+    State#state{queue = lists:filter(fun(Queued) ->
+					     Piece == Queued#queued.piece andalso
+						 Offset == Queued#queued.offset andalso
+						 Length == Queued#queued.length
+				     end, Queue)};
+
+process_message(_Msg, State) ->
     State.
 
 send_message(Sock, Msg) ->
@@ -278,6 +298,17 @@ build_bitfield(N) when N < 8 ->
 build_bitfield(0) ->
     %% case for byte alignedness
     [].
+
+send_queued(#queued{piece = Piece,
+		    offset = Offset,
+		    length = Length},
+	    #state{sock = Sock,
+		   info_hash = InfoHash} = State) ->
+    FileRanges = piecesdb:map_files(InfoHash, Piece, Offset, Length),
+    MessageLength = 1 + 4 + 4 + Length,
+    gen_tcp:send(Sock, <<MessageLength:32/big, ?PIECE,
+			 Piece:32/big, Offset:32/big>>),
+    send_piece(FileRanges, State).
 
 send_piece(FileRanges, #state{sock = Sock,
 			      info_hash = InfoHash}) ->
