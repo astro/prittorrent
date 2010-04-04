@@ -1,6 +1,6 @@
 -module(piecesdb).
 
--export([init/0, add_t/4, get_dir_t/1, piece_count/1, map_files/4]).
+-export([init/0, add_t/4, get_dir_t/1, set_dir_t/2, piece_count/1, map_files/4]).
 
 -record(pieces, {info_hash,
 		 dir,
@@ -23,6 +23,12 @@ get_dir_t(InfoHash) ->
 	_ ->
 	    not_found
     end.
+
+set_dir_t(InfoHash, Dir) ->
+    lists:foreach(fun(Pieces) ->
+			  mnesia:write(Pieces#pieces{dir = Dir})
+		  end, mnesia:read(pieces, InfoHash)).
+
 
 piece_count(InfoHash) ->
     {atomic, {PieceLength, Files}} =

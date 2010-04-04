@@ -19,7 +19,7 @@ init() ->
     end.
 
 register_peer(_InfoHash) ->
-    _I = self(),
+    %_I = self(),
     %% TODO: chk InfoHash existence, add to supervisor
     ok.
 
@@ -34,33 +34,39 @@ apply_seedlist(NewSeedList) ->
 				   end, SeedList)
 			 end,
 		  OldSeedList = seedlist_t(),
-		  {_ToUpdate1, ToRemove} =
+		  {ToUpdate1, ToRemove} =
 		      lists:partition(
 			fun({TorrentFileOld, _}) ->
 				IsIn(TorrentFileOld, NewSeedList)
 			end, OldSeedList),
-		  {_ToUpdate2, ToAdd} =
+		  {ToUpdate2, ToAdd} =
 		      lists:partition(
 			fun({TorrentFileNew, _}) ->
 				IsIn(TorrentFileNew, OldSeedList)
 			end, NewSeedList),
-		  %% ToUpdate = lists:uniq(ToUpdate1 ++ ToUpdate2),
-		  %% lists:foreach(fun({TorrentFile, Dir}) ->
-		  %% 			InfoHash = case mnesia:read(torrent, 
-		  %% 			piecesdb:update_dir_t(InfoHash, Dir)
-		  %% 		end, ToUpdate)
+		  ToUpdate = uniq_list(ToUpdate1 ++ ToUpdate2),
+		  lists:foreach(
+		    fun({TorrentFile, Dir}) ->
+			    case mnesia:index_read(torrent, TorrentFile, #torrent.torrent_file) of
+				[#torrent{info_hash = InfoHash}] ->
+				    piecesdb:set_dir_t(InfoHash, Dir);
+				_ ->
+				    ignore
+			    end
+		    end, ToUpdate),
 		  Removed =
 		      lists:map(
 			fun({TorrentFile, _}) ->
 				%% TODO: doesn't work
 				case mnesia:index_read(torrent, TorrentFile, #torrent.torrent_file) of
 				    [Torrent] ->
-					mnesia:delete_object(Torrent);
+					mnesia:delete_object(Torrent),
+					[Torrent];
 				    _ ->
-					ignore
+					[]
 				end
 			end, ToRemove),
-		  {ToAdd, Removed}
+		  {ToAdd, lists:append(Removed)}
 	  end),
     lists:foreach(
       fun(#torrent{tl_pid = TLPid}) ->
@@ -240,3 +246,11 @@ tracker_request(AnnounceUrl, InfoHash) ->
 			       Uploaded, 0, 0, empty),
     {value, {_, Interval}} = lists:keysearch(<<"interval">>, 1, Response),
     {ok, Interval}.
+
+uniq_list([]) ->
+    [];
+uniq_list([E | L]) ->
+    case lists:member(E, L) of
+	false -> [E | uniq_list(L)];
+	true -> uniq_list(L)
+    end.
