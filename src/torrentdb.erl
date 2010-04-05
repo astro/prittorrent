@@ -79,10 +79,15 @@ apply_seedlist(NewSeedList) ->
 	    io:format("Removed ~B torrents~n", [length(Removed)]);
 	true -> quiet
     end,
-    lists:foreach(fun({TorrentFile, Dir}) ->
-			  add_torrent(TorrentFile, Dir),
-			  io:format("Started seeding ~s~n", [TorrentFile])
-		  end, ToAdd),
+    lists:foreach(
+      fun({TorrentFile, Dir}) ->
+	      case (catch add_torrent(TorrentFile, Dir)) of
+		  {'EXIT', Reason} ->
+		      io:format("Cannot start seeding ~s~n~p~n", [TorrentFile, Reason]);
+		  _ ->
+		      io:format("Started seeding ~s~n", [TorrentFile])
+		  end
+      end, ToAdd),
     ok.
 
 seedlist_t() ->
