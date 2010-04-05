@@ -3,7 +3,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/1]).
+-export([start_link/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -14,13 +14,13 @@
 %%% API functions
 %%%===================================================================
 
-start_link(Port) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Port]).
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 %%%===================================================================
 %%% Supervisor callbacks
 %%%===================================================================
-init([Port]) ->
+init([]) ->
     RestartStrategy = one_for_one,
     MaxRestarts = 1000,
     MaxSecondsBetweenRestarts = 3600,
@@ -28,13 +28,13 @@ init([Port]) ->
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
     WireListener = {wire_listener,
-		    {wire_listener, start_link, [Port]},
+		    {wire_listener, start_link, []},
 		    permanent, brutal_kill, worker, [wire_listener]},
     PeerSup = {peer_sup,
 	       {peer_sup, start_link, []},
 	       permanent, 2000, supervisor, [peer_sup]},
     SeedList = {seedlist,
-		{seedlist, start_link, ["seeds.xml"]},
+		{seedlist, start_link, []},
 		permanent, 2000, worker, [seedlist]},
 
     {ok, {SupFlags, [WireListener, PeerSup, SeedList]}}.

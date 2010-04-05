@@ -2,7 +2,7 @@
 
 
 %% API
--export([get_port/0, start_link/1, loop/1]).
+-export([get_port/0, start_link/0, loop/1]).
 
 
 -define(SERVER, ?MODULE). 
@@ -17,28 +17,30 @@ get_port() ->
     application:get_env(servtorrent, wire_port).
     
 
-start_link(Port) ->
+start_link() ->
     io:format("start_link~n"),
     I = self(),
     Pid = spawn_link(fun() ->
-			     {ok, State} = init(Port),
+			     {ok, State} = init(),
 			     I ! {ok, self()},
+			     io:format("ok~n"),
 			     loop(State)
 		     end),
     receive
 	{ok, Pid1} when Pid == Pid1 ->
 	    register(?SERVER, Pid),
 	    {ok, Pid}
-    after 5000 ->
-	    exit(timeout)
+    after 1000 ->
+	    {error, timeout}
     end.
 
 %%%===================================================================
 %%%===================================================================
 
-init(Port) ->
+init() ->
     io:format("init~n"),
     %% TODO: inet6
+    {ok, Port} = get_port(),
     {ok, Sock} = gen_tcp:listen(Port, [binary, inet]),
     application:set_env(servtorrent, wire_port, Port),
     {ok, #state{sock = Sock}}.

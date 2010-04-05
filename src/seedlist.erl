@@ -1,12 +1,13 @@
 -module(seedlist).
 
--export([start_link/1, loop/2, load_seedlist/1]).
+-export([start_link/0, loop/2, load_seedlist/1]).
 
 -include_lib("xmerl/include/xmerl.hrl").
 -include_lib("kernel/include/file.hrl").
 
 
-start_link(Filename) ->
+start_link() ->
+    {ok, Filename} = application:get_env(servtorrent, seedlist),
     Pid = spawn_link(
 	    fun() ->
 		    loop(Filename, nil)
