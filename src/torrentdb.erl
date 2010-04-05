@@ -111,7 +111,8 @@ seedlist_t() ->
       end, [], L1).
 
 add_torrent(TorrentFile, Dir) ->
-    Parsed = benc:parse_file(TorrentFile),
+    Torrent = backend:read_file(TorrentFile),
+    Parsed = benc:parse(Torrent),
     {value, {_, InfoDict}} =
 	lists:keysearch(<<"info">>, 1, Parsed),
     InfoHash = benc:hash(InfoDict),
