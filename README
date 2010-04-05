@@ -1,0 +1,50 @@
+servtorrent
+===========
+
+Written on EH 2010 in Munich.
+
+
+Purpose
+-------
+
+Your Podcast is too popular for your web server? Your audience has
+Podcast clients that support downloading via BitTorent, e.g. Miro?
+
+servtorrent ensures that there's always a seeder by uploading
+transparently from any HTTP location that supports Range requests.
+
+
+Installation
+------------
+
+1. Install Erlang
+
+2. Install ibrowse (HTTP client library)
+  * git clone git://github.com/cmullaparthi/ibrowse.git
+  * cd ibrowse
+  * make
+  * sudo ln -s `pwd` /usr/lib*/erlang/lib/ibrowse
+
+
+Running
+-------
+
+1. Customize seeds.xml
+
+2. Make sure the port specified in servtorrent.app is reachable from
+   the Internet (servtorrent will not use peer info from tracker
+   responses)
+
+3. Compile and run by issuing: ./start.sh
+
+
+TODO
+----
+
+* Super-seeding
+* Slot queues
+* Implement connecting to other peers
+* Evaluate tracker responses
+* PEX
+* DHT support
+* Support Chaos Bay web-seeding
