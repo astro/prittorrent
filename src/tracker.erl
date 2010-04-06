@@ -99,7 +99,7 @@ url_escape(R, [C | S]) when C >= $A, C =< $Z ->
 url_escape(R, [C | S]) when C >= $a, C =< $z ->
     url_escape(R ++ [C], S);
 url_escape(R, [C | S]) ->
-    {ok, Escaped, _} = flatten(io_lib:format("%~2.16.0B", [C])),
+    Escaped = flatten(io_lib:format("%~2.16.0B", [C])),
     url_escape(R ++ Escaped, S);
 url_escape(R, Number) when is_integer(Number) ->
     R ++ io_lib:format("~B", [Number]);
