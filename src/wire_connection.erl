@@ -282,9 +282,7 @@ process_input(#state{mode = client,
 
 process_input(#state{mode = client,
 		     step = extensions,
-		     info_hash = InfoHash,
-		     buffer = Buffer,
-		     sock = Sock} = State)
+		     buffer = Buffer} = State)
   when size(Buffer) >= 8 ->
     {_, Rest} = split_binary(Buffer, 8),
     process_input(State#state{step = info_hash,
@@ -299,8 +297,7 @@ process_input(#state{mode = client,
 process_input(#state{mode = client,
 		     step = info_hash,
 		     info_hash = InfoHash,
-		     buffer = Buffer,
-		     sock = Sock} = State)
+		     buffer = Buffer} = State)
   when size(Buffer) >= 20 ->
     {PeerInfoHash, Rest} = split_binary(Buffer, 20),
     if
