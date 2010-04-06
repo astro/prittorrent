@@ -58,6 +58,8 @@ start_link(Param) ->
 %% @end
 %%--------------------------------------------------------------------
 init([{InfoHash, IP, Port}]) ->
+    {ok, TorrentFile} = torrentdb:get_torrent_file(InfoHash),
+    io:format("Connecting to ~p:~p for ~s~n", [IP, Port, TorrentFile]),
     Opts = case IP of
 	       {_, _, _, _, _, _, _, _} -> [inet6];
 	       _ -> []
@@ -224,6 +226,11 @@ process_input(#state{mode = server,
 		     sock = Sock} = State)
   when size(Buffer) >= 20 ->
     {InfoHash, Rest} = split_binary(Buffer, 20),
+
+    {ok, TorrentFile} = torrentdb:get_torrent_file(InfoHash),
+    {ok, {IP, Port}} = inet:peername(Sock),
+    io:format("Connecting to ~p:~p for ~s~n", [IP, Port, TorrentFile]),
+
     gen_tcp:send(Sock, InfoHash),
     process_input(State#state{step = peer_id,
 			      buffer = Rest,
@@ -347,7 +354,6 @@ process_input(#state{step = run,
     %% Read enough
     {Message, Rest} = split_binary(Buffer, Len),
     State2 = State1#state{buffer = Rest},
-    io:format("process_message(~p)~n", [Message]),
     State3 = process_message(Message, State2),
     process_input(State3);
 
@@ -387,24 +393,20 @@ process_message(_Msg, State) ->
     State.
 
 send_message(Sock, Msg) ->
-    io:format("send_message(~p, ~p)~n", [Sock, Msg]),
     Len = size(Msg),
     ok = gen_tcp:send(Sock,
 		      <<Len:32/big,
 			Msg/binary>>).
 
 send_handshake(#state{sock = Sock}) ->
-    io:format("send_handshake(~p)~n", [Sock]),
     ok = gen_tcp:send(Sock, <<19, "BitTorrent protocol">>).
 
 send_extensions(#state{sock = Sock}) ->
-    io:format("send_extensions(~p)~n", [Sock]),
     ok = gen_tcp:send(Sock, <<0, 0, 0, 0, 0, 0, 0, 0>>).
 
 
 send_bitfield(#state{sock = Sock,
 		     info_hash = InfoHash}) ->
-    io:format("send_bitfield(~p)~n", [Sock]),
     PieceCount = piecesdb:piece_count(InfoHash),
     Msg = list_to_binary(
 	    [?BITFIELD |
