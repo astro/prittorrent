@@ -12,7 +12,6 @@ init() ->
 
 %% From tracker response
 add_peers(InfoHash, Peers) ->
-io:format("Peers: ~p~n",[Peers]),
     {atomic, NewPeers} =
 	mnesia:transaction(
 	  fun() ->
@@ -34,12 +33,10 @@ io:format("Peers: ~p~n",[Peers]),
 		     end
 		     || {IP, Port} <- Peers])
 	  end),
-io:format("NewPeers: ~p~n",[NewPeers]),
     lists:foreach(
       fun({IP, Port}) ->
 	      peer_sup:start_peer({InfoHash, IP, Port})
-      %%end, NewPeers).
-      end, [{{127,0,0,1},65277}]).
+      end, NewPeers).
 
 register_peer(InfoHash, PeerId,
 	      IP, Port) ->
