@@ -58,7 +58,13 @@ start_link(Param) ->
 %% @end
 %%--------------------------------------------------------------------
 init([{InfoHash, IP, Port}]) ->
-    {ok, Sock} = gen_tcp:connect(IP, Port, [binary, {active, true}]),
+    Opts = case IP of
+	       {_, _, _, _, _, _, _, _} -> [inet6];
+	       _ -> []
+	   end,
+    {ok, Sock} = gen_tcp:connect(IP, Port, [binary,
+					    {active, true}
+					    | Opts]),
     State = #state{sock = Sock,
 		   info_hash = InfoHash,
 		   mode = client},
