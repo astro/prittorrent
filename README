@@ -43,8 +43,6 @@ TODO
 
 * Super-seeding
 * Slot queues
-* Implement connecting to other peers
-* Evaluate tracker responses
 * PEX
 * DHT support
 * Support Chaos Bay web-seeding
