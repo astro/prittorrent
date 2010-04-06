@@ -17,10 +17,10 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-start_peer(Sock) ->
+start_peer(Param) ->
     supervisor:start_child(?SERVER,
 			   {make_ref(),
-			    {wire_connection, start_link, [Sock]},
+			    {wire_connection, start_link, [Param]},
 			    temporary, 1000, worker,
 			    [wire_connection]}).
 

@@ -1,6 +1,6 @@
 -module(piecesdb).
 
--export([init/0, add_t/4, get_dir_t/1, set_dir_t/2, piece_count/1, map_files/4]).
+-export([init/0, add_t/4, rm_t/1, get_dir_t/1, set_dir_t/2, piece_count/1, map_files/4]).
 
 -record(pieces, {info_hash,
 		 dir,
@@ -15,6 +15,9 @@ add_t(InfoHash, Dir, PieceLength, Files) ->
 			 dir = Dir,
 			 piece_length = PieceLength,
 			 files = Files}).
+
+rm_t(InfoHash) ->
+    mnesia:delete(pieces, InfoHash).
 
 get_dir_t(InfoHash) ->
     case mnesia:read(pieces, InfoHash) of

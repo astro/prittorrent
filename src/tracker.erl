@@ -5,26 +5,26 @@
 -import(regexp, [gsub/3]).
 
 % Normal mode
-peer_list_from_info([{"peers", [Peers_1 | _]=Peers, _} | _])
-when is_list(Peers_1) ->
-    map(
-      fun(Peer) ->
-	      {value, {"ip", Ip, _}} = keysearch("ip", 1, Peer),
-	      {value, {"port", Port, _}} = keysearch("port", 1, Peer),
-	      {Ip, Port}
-      end,
-      Peers);
-% Compact mode
-peer_list_from_info([{"peers", Peers, _} | _]) ->
-    peers_list_from_compact(list_to_binary(Peers), []);
-peer_list_from_info([_ | Rest]) ->
-    peer_list_from_info(Rest).
+peer_list_from_info(InfoDict) ->
+    Peers4 =
+	case lists:keysearch(<<"peers">>, 1, InfoDict) of
+	    {value, {_, Peers}} when is_list(Peers) ->
+		lists:map(
+		  fun(Peer) ->
+			  {value, {"ip", Host, _}} = keysearch("ip", 1, Peer),
+			  {ok, IP} = inet_parse:address(Host),
+			  {value, {"port", Port, _}} = keysearch("port", 1, Peer),
+			  {IP, Port}
+		  end, Peers);
+	    {value, {_, Peers}} when is_binary(Peers) ->
+		peer_list_from_compact(Peers)
+	end.
 
-peers_list_from_compact(<<>>, Result) ->
-    reverse(Result);
-peers_list_from_compact(<<H1:8, H2:8, H3:8, H4:8, Port:16/big, Peers/binary>>, Result) ->
+peer_list_from_compact(<<H1:8, H2:8, H3:8, H4:8, Port:16/big, Peers/binary>>) ->
     Host = {H1, H2, H3, H4},
-    peers_list_from_compact(Peers, [{Host, Port} | Result]).
+    [{Host, Port} | peer_list_from_compact(Peers)];
+peer_list_from_compact(<<>>) ->
+    [].
 
 % This is one of the announcements done at regular intervals.
 is_event(empty)     -> ok;

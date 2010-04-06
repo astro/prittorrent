@@ -12,7 +12,7 @@
 -define(SERVER, ?MODULE). 
 
 -record(state, {sock, buffer = <<>>,
-		mode = handshake, info_hash,
+		mode, step = handshake, info_hash,
 		choked = true, interested = false,
 		queue = []}).
 -record(queued, {piece, offset, length}).
@@ -38,8 +38,8 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(Sock) ->
-    {ok, Pid} = gen_server:start_link(?MODULE, [Sock], []),
+start_link(Param) ->
+    {ok, Pid} = gen_server:start_link(?MODULE, [Param], []),
     {ok, Pid}.
 
 %%%===================================================================
@@ -57,9 +57,23 @@ start_link(Sock) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
+init([{InfoHash, IP, Port}]) ->
+    {ok, Sock} = gen_tcp:connect(IP, Port, [binary, {active, true}]),
+    State = #state{sock = Sock,
+		   info_hash = InfoHash,
+		   mode = client},
+    send_handshake(State),
+    send_extensions(State),
+    gen_tcp:send(Sock, InfoHash),
+    {ok, MyPeerId} = torrentdb:peer_id(),
+    gen_tcp:send(Sock, MyPeerId),
+    send_bitfield(State),
+    
+    {ok, State};
 init([Sock]) ->
     link(Sock),
-    {ok, #state{sock = Sock}}.
+    {ok, #state{sock = Sock,
+		mode = server}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -108,7 +122,7 @@ handle_info({tcp, Sock, Data}, #state{sock = Sock,
     State2 = State1#state{buffer = list_to_binary([Buffer, Data])},
     State3 = process_input(State2),
 
-    State4 = case {State3#state.mode,
+    State4 = case {State3#state.step,
 		   State3#state.choked} of
 		 {run, true} ->
 		     send_message(Sock, <<?UNCHOKE>>),
@@ -143,7 +157,9 @@ handle_info({tcp_closed, Sock}, #state{sock = Sock} = State) ->
 %% @spec terminate(Reason, State) -> void()
 %% @end
 %%--------------------------------------------------------------------
-terminate(_Reason, _State) ->
+terminate(_Reason, #state{info_hash = InfoHash, sock = Sock}) ->
+    peerdb:peer_died(InfoHash),
+    gen_tcp:close(Sock),
     ok.
 
 %%--------------------------------------------------------------------
@@ -158,75 +174,170 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%===================================================================
-%%% Internal functions
+%%% Server mode
 %%%===================================================================
 
 %% Waiting for handshake
 
-process_input(#state{mode = handshake,
+process_input(#state{mode = server,
+		     step = handshake,
 		     buffer = <<19,
 				"BitTorrent protocol",
-				Buffer/binary>>,
-		     sock = Sock
+				Buffer/binary>>
 		    } = State) ->
-    gen_tcp:send(Sock, <<19, "BitTorrent protocol">>),
-    process_input(State#state{mode = extensions,
+    send_handshake(State),
+    process_input(State#state{step = extensions,
 			      buffer = Buffer});
 
-process_input(#state{mode = handshake,
+process_input(#state{mode = server,
+		     step = handshake,
 		     buffer = Buffer} = State)
   when size(Buffer) < 20 ->
     State;
 
 %% Waiting for extensions
 
-process_input(#state{mode = extensions,
-		     buffer = Buffer,
-		     sock = Sock} = State)
+process_input(#state{mode = server,
+		     step = extensions,
+		     buffer = Buffer} = State)
   when size(Buffer) >= 8 ->
     {_, Rest} = split_binary(Buffer, 8),
-    gen_tcp:send(Sock, <<0, 0, 0, 0, 0, 0, 0, 0>>),
-    process_input(State#state{mode = info_hash,
+    send_extensions(State),
+    process_input(State#state{step = info_hash,
 			      buffer = Rest});
 
-process_input(#state{mode = extensions} = State) ->
+process_input(#state{mode = server,
+		     step = extensions} = State) ->
     State;
 
 %% Waiting for info_hash
 
-process_input(#state{mode = info_hash,
+process_input(#state{mode = server,
+		     step = info_hash,
 		     buffer = Buffer,
 		     sock = Sock} = State)
   when size(Buffer) >= 20 ->
     {InfoHash, Rest} = split_binary(Buffer, 20),
-    ok = torrentdb:register_peer(InfoHash),
     gen_tcp:send(Sock, InfoHash),
-    process_input(State#state{mode = peer_id,
+    process_input(State#state{step = peer_id,
 			      buffer = Rest,
 			      info_hash = InfoHash});
 
-process_input(#state{mode = info_hash} = State) ->
+process_input(#state{mode = server,
+		     step = info_hash} = State) ->
     State;
 
 %% Waiting for peer_id
 
-process_input(#state{mode = peer_id,
+process_input(#state{mode = server,
+		     step = peer_id,
 		     buffer = Buffer,
-		     sock = Sock} = State)
+		     sock = Sock,
+		     info_hash = InfoHash} = State)
   when size(Buffer) >= 20 ->
-    {_PeerId, Rest} = split_binary(Buffer, 20),
+    {PeerId, Rest} = split_binary(Buffer, 20),
+    {ok, {IP, Port}} = inet:peername(Sock),
+    peerdb:register_peer(InfoHash,
+			 PeerId,
+			 IP, Port),
+
     {ok, MyPeerId} = torrentdb:peer_id(),
     gen_tcp:send(Sock, MyPeerId),
     send_bitfield(State),
-    process_input(State#state{mode = run,
+    process_input(State#state{step = run,
 			      buffer = Rest});
 
-process_input(#state{mode = peer_id} = State) ->
+process_input(#state{mode = server,
+		     step = peer_id} = State) ->
     State;
+
+%%%===================================================================
+%%% Client mode
+%%%===================================================================
+
+%% Waiting for handshake
+
+process_input(#state{mode = client,
+		     step = handshake,
+		     buffer = <<19,
+				"BitTorrent protocol",
+				Buffer/binary>>
+		    } = State) ->
+    process_input(State#state{step = extensions,
+			      buffer = Buffer});
+
+process_input(#state{mode = client,
+		     step = handshake,
+		     buffer = Buffer} = State)
+  when size(Buffer) < 20 ->
+    State;
+
+%% Waiting for extensions
+
+process_input(#state{mode = client,
+		     step = extensions,
+		     info_hash = InfoHash,
+		     buffer = Buffer,
+		     sock = Sock} = State)
+  when size(Buffer) >= 8 ->
+    {_, Rest} = split_binary(Buffer, 8),
+    process_input(State#state{step = info_hash,
+			      buffer = Rest});
+
+process_input(#state{mode = client,
+		     step = extensions} = State) ->
+    State;
+
+%% Waiting for info_hash
+
+process_input(#state{mode = client,
+		     step = info_hash,
+		     info_hash = InfoHash,
+		     buffer = Buffer,
+		     sock = Sock} = State)
+  when size(Buffer) >= 20 ->
+    {PeerInfoHash, Rest} = split_binary(Buffer, 20),
+    if
+	InfoHash =/= PeerInfoHash ->
+	    exit(info_hashes_differ);
+	true -> ok
+    end,
+    process_input(State#state{step = peer_id,
+			      buffer = Rest,
+			      info_hash = InfoHash});
+
+process_input(#state{mode = client,
+		     step = info_hash} = State) ->
+    State;
+
+%% Waiting for peer_id
+
+process_input(#state{mode = client,
+		     step = peer_id,
+		     sock = Sock,
+		     buffer = Buffer,
+		     info_hash = InfoHash} = State)
+  when size(Buffer) >= 20 ->
+    {PeerId, Rest} = split_binary(Buffer, 20),
+    {ok, {IP, Port}} = inet:peername(Sock),
+    peerdb:register_peer(InfoHash,
+			 PeerId,
+			 IP, Port),
+
+    process_input(State#state{step = run,
+			      buffer = Rest});
+
+process_input(#state{mode = client,
+		     step = peer_id} = State) ->
+    State;
+
+%%%===================================================================
+%%% Server & client mode
+%%%===================================================================
 
 %% Waiting for any message
 
-process_input(#state{mode = run,
+process_input(#state{step = run,
 		     buffer = <<Len:32/big, Buffer/binary>>
 		    } = State1)
   when size(Buffer) >= Len ->
@@ -237,7 +348,7 @@ process_input(#state{mode = run,
     State3 = process_message(Message, State2),
     process_input(State3);
 
-process_input(#state{mode = run} = State) ->
+process_input(#state{step = run} = State) ->
     %% Read not enough or processed all so far
     State.
 
@@ -273,13 +384,24 @@ process_message(_Msg, State) ->
     State.
 
 send_message(Sock, Msg) ->
+    io:format("send_message(~p, ~p)~n", [Sock, Msg]),
     Len = size(Msg),
     ok = gen_tcp:send(Sock,
 		      <<Len:32/big,
 			Msg/binary>>).
 
+send_handshake(#state{sock = Sock}) ->
+    io:format("send_handshake(~p)~n", [Sock]),
+    ok = gen_tcp:send(Sock, <<19, "BitTorrent protocol">>).
+
+send_extensions(#state{sock = Sock}) ->
+    io:format("send_extensions(~p)~n", [Sock]),
+    ok = gen_tcp:send(Sock, <<0, 0, 0, 0, 0, 0, 0, 0>>).
+
+
 send_bitfield(#state{sock = Sock,
 		     info_hash = InfoHash}) ->
+    io:format("send_bitfield(~p)~n", [Sock]),
     PieceCount = piecesdb:piece_count(InfoHash),
     Msg = list_to_binary(
 	    [?BITFIELD |

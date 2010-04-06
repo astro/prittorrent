@@ -10,4 +10,5 @@ start() ->
 start(_, _) ->
     torrentdb:init(),
     piecesdb:init(),
+    peerdb:init(),
     servtorrent_sup:start_link().

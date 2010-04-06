@@ -1,6 +1,6 @@
 -module(torrentdb).
 
--export([init/0, apply_seedlist/1, add_torrent/2, rm_torrent/1, register_peer/1, inc_uploaded/2, peer_id/0, tracker_loop/2]).
+-export([init/0, apply_seedlist/1, add_torrent/2, rm_torrent/1, inc_uploaded/2, peer_id/0, tracker_loop/2]).
 
 -record(torrent, {info_hash,
 		  torrent_file,
@@ -17,11 +17,6 @@ init() ->
 	undefined ->
 	    application:set_env(servtorrent, peer_id, generate_peer_id())
     end.
-
-register_peer(_InfoHash) ->
-    %_I = self(),
-    %% TODO: chk InfoHash existence, add to supervisor
-    ok.
 
 apply_seedlist(NewSeedList) ->
     {atomic, {ToAdd, Removed}} =
@@ -194,8 +189,10 @@ rm_torrent(TorrentFile) ->
 					{const, TorrentFile}}],
 				      ['$_']}]),
 		  lists:map(
-		    fun(#torrent{tl_pid = TLPid} = Torrent) ->
+		    fun(#torrent{info_hash = InfoHash,
+				 tl_pid = TLPid} = Torrent) ->
 			    mnesia:delete_object(Torrent),
+			    piecesdb:rm_t(InfoHash),
 			    TLPid
 		    end, Torrents)
 	  end),
@@ -251,7 +248,18 @@ tracker_request(AnnounceUrl, InfoHash) ->
     Response = tracker:request(AnnounceUrl, InfoHash, PeerId, Port,
 			       Uploaded, 0, 0, empty),
     {value, {_, Interval}} = lists:keysearch(<<"interval">>, 1, Response),
+    case (catch connect_by_tracker_response(InfoHash, Response)) of
+	{'EXIT', Reason} ->
+	    error_logger:error_msg("Cannot connect_by_tracker_response(~p, ~p):~n~p~n",
+				   [InfoHash, Response, Reason]);
+	_ -> ok
+    end,
     {ok, Interval}.
+
+connect_by_tracker_response(InfoHash, Response) ->
+io:format("Response: ~p~n", [Response]),
+    Peers = tracker:peer_list_from_info(Response),
+    peerdb:add_peers(InfoHash, Peers).
 
 uniq_list([]) ->
     [];
