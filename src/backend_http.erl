@@ -6,7 +6,7 @@
 -behaviour(backend).
 
 fold_file(URL, Offset, Length, Fold, AccIn) ->
-    io:format("URL: ~p~n", [URL]),
+    io:format("URL: ~p (~p+~p)~n", [URL, Offset, Length]),
     Headers =
 	if
 	    is_integer(Offset),
@@ -27,7 +27,7 @@ fold_file(URL, Offset, Length, Fold, AccIn) ->
 fold_file1(ReqId, Fold, AccIn) ->
     ok = ibrowse:stream_next(ReqId),
     receive
-	{ibrowse_async_headers, ReqId, [$2, _, _], Headers} ->
+	{ibrowse_async_headers, ReqId, [$2, _, _], _Headers} ->
 	    %%io:format("Recvd headers~n~p~n", [{ibrowse_async_headers, ReqId, Headers}]),
 	    fold_file1(ReqId, Fold, AccIn);
 	{ibrowse_async_headers, ReqId, StatusS, _Headers} ->
