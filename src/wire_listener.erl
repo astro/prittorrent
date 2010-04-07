@@ -49,7 +49,7 @@ init() ->
 loop(#state{sock = Sock} = State) ->
     io:format("loop~n"),
     {ok, Client} = gen_tcp:accept(Sock),
-    start_connection(Client),
+    catch start_connection(Client),
     ?MODULE:loop(State).
 
 %%%===================================================================
