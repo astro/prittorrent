@@ -14,6 +14,7 @@
 -record(state, {sock, buffer = <<>>,
 		mode, step = handshake, info_hash,
 		choked = true, interested = false,
+		has = sets:new(), has_updated = false,
 		queue = []}).
 -record(queued, {piece, offset, length}).
 
@@ -129,30 +130,48 @@ handle_info({tcp, Sock, Data}, #state{sock = Sock,
 				      buffer = Buffer} = State1) ->
     State2 = State1#state{buffer = list_to_binary([Buffer, Data])},
     State3 = process_input(State2),
+    after_handle_info(State3);
 
-    State4 = case {State3#state.step,
-		   State3#state.choked} of
-		 {run, true} ->
-		     send_message(Sock, <<?UNCHOKE>>),
-		     State3#state{choked = false};
-		 _ ->
-		     State3
-	     end,
-    Queue =
-	lists:filter(fun(Queued) ->
-			     case (catch send_queued(Queued, State4)) of
-				 {'EXIT', Reason} ->
-				     io:format("Cannot send ~p: ~p~n", [Queued, Reason]),
-				     %% Keep:
-				     true;
-				 (_) ->
-				     %% Ok, remove from queue
-				     false
-			     end
-		     end, State4#state.queue),
-    {noreply, State4#state{queue = Queue}};
 handle_info({tcp_closed, Sock}, #state{sock = Sock} = State) ->
     {stop, normal, State}.
+
+
+after_handle_info(#state{step = run,
+			 choked = true,
+			 sock = Sock} = State) ->
+    send_message(Sock, <<?UNCHOKE>>),
+    after_handle_info(State#state{choked = false});
+
+after_handle_info(#state{info_hash = InfoHash,
+			 has_updated = true,
+			 has = Has} = State) ->
+    case sets:size(Has) >= piecesdb:piece_count(InfoHash) of
+	%% This is a seeder now, terminate!
+	true ->
+	    {stop, normal, State};
+	%% Still a leecher
+	false ->
+	    after_handle_info(State#state{has_updated = false})
+    end;
+
+after_handle_info(#state{queue = [_ | _] = Queue1} = State) ->
+    Queue2 =
+	lists:filter(
+	  fun(Queued) ->
+		  case (catch send_queued(Queued, State)) of
+		      {'EXIT', Reason} ->
+			  io:format("Cannot send ~p: ~p~n", [Queued, Reason]),
+			  %% Keep:
+			  true;
+		      (_) ->
+			  %% Ok, remove from queue
+			  false
+		  end
+	  end, Queue1),
+    after_handle_info(State#state{queue = Queue2});
+
+after_handle_info(State) ->
+    {noreply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -373,6 +392,17 @@ process_message(<<?INTERESTED>>, State) ->
 process_message(<<?NOT_INTERESTED>>, State) ->
     State#state{interested = false};
 
+process_message(<<?BITFIELD, Bitfield/binary>>,
+		#state{has = Has1} = State) ->
+    Has2 = read_bitfield(Bitfield),
+    State#state{has = Has2,
+		has_updated = Has1 =/= Has2};
+
+process_message(<<?HAVE, Piece:32/big>>,
+		#state{has = Has} = State) ->
+    State#state{has = sets:add_element(Piece, Has),
+		has_updated = true};
+
 process_message(<<?REQUEST, Piece:32/big,
 		  Offset:32/big, Length:32/big>>,
 		#state{queue = Queue} = State) ->
@@ -425,6 +455,22 @@ build_bitfield(N) when N < 8 ->
 build_bitfield(0) ->
     %% case for byte alignedness
     [].
+
+read_bitfield(Bitfield) ->
+    read_bitfield(0, Bitfield, sets:new()).
+
+read_bitfield(N, <<C:8, Rest/binary>>, R) ->
+    read_bitfield(N + 8, Rest,
+		  lists:foldl(
+		    fun(I, R1) ->
+			    case C band (16#80 bsr I) of
+				0 -> R1;
+				_ -> sets:add_element(N + I, R1)
+			    end
+		    end, R, lists:seq(0, 7))
+		 );
+read_bitfield(_, <<>>, R) ->
+    R.
 
 send_queued(#queued{piece = Piece,
 		    offset = Offset,
