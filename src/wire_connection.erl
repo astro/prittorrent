@@ -229,7 +229,7 @@ process_input(#state{mode = server,
 
     {ok, TorrentFile} = torrentdb:get_torrent_file(InfoHash),
     {ok, {IP, Port}} = inet:peername(Sock),
-    io:format("Connecting to ~p:~p for ~s~n", [IP, Port, TorrentFile]),
+    io:format("Got connection from ~p:~p for ~s~n", [IP, Port, TorrentFile]),
 
     gen_tcp:send(Sock, InfoHash),
     process_input(State#state{step = peer_id,
