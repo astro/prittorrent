@@ -18,7 +18,8 @@ fold_file(URL, Offset, Length, Fold, AccIn) ->
 		 }];
 	    true ->
 		[]
-	end,
+	end ++
+	[{"User-Agent", "PritTorrent/0.1"}],
     {ibrowse_req_id, ReqId} =
 	ibrowse:send_req(URL, Headers, get, [],
 			 [{stream_to, {self(), once}}], 10000),
