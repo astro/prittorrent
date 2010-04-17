@@ -249,16 +249,22 @@ process_input(#state{mode = server,
 		     info_hash = InfoHash} = State)
   when size(Buffer) >= 20 ->
     {PeerId, Rest} = split_binary(Buffer, 20),
-    {ok, {IP, Port}} = inet:peername(Sock),
-    peerdb:register_peer(InfoHash,
-			 PeerId,
-			 IP, Port),
-
     {ok, MyPeerId} = torrentdb:peer_id(),
-    gen_tcp:send(Sock, MyPeerId),
-    send_bitfield(State),
-    process_input(State#state{step = run,
-			      buffer = Rest});
+    if
+	PeerId =/= MyPeerId ->
+	    {ok, {IP, Port}} = inet:peername(Sock),
+	    peerdb:register_peer(InfoHash,
+				 PeerId,
+				 IP, Port),
+
+	    {ok, MyPeerId} = torrentdb:peer_id(),
+	    gen_tcp:send(Sock, MyPeerId),
+	    send_bitfield(State),
+	    process_input(State#state{step = run,
+				      buffer = Rest});
+	true ->  %% Connected to myself
+	    exit(normal)
+    end;
 
 process_input(#state{mode = server,
 		     step = peer_id} = State) ->
@@ -329,13 +335,19 @@ process_input(#state{mode = client,
 		     info_hash = InfoHash} = State)
   when size(Buffer) >= 20 ->
     {PeerId, Rest} = split_binary(Buffer, 20),
-    {ok, {IP, Port}} = inet:peername(Sock),
-    peerdb:register_peer(InfoHash,
-			 PeerId,
-			 IP, Port),
-
-    process_input(State#state{step = run,
-			      buffer = Rest});
+    {ok, MyPeerId} = torrentdb:peer_id(),
+    if
+	PeerId =/= MyPeerId ->
+	    {ok, {IP, Port}} = inet:peername(Sock),
+	    peerdb:register_peer(InfoHash,
+				 PeerId,
+				 IP, Port),
+	    
+	    process_input(State#state{step = run,
+				      buffer = Rest});
+	true ->  %% Connected to myself
+	    exit(normal)
+    end;
 
 process_input(#state{mode = client,
 		     step = peer_id} = State) ->
