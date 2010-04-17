@@ -46,7 +46,7 @@ load_seedlist(Filename) ->
       end,
       lists:map(fun(#xmlElement{name = seed} = SeedEl) ->
 			try {get_el_text(torrent, SeedEl),
-			     get_el_text(dir, SeedEl)}
+			     get_el_text(data, SeedEl)}
 			catch _ ->
 				nil
 			end;

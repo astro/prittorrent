@@ -1,69 +1,69 @@
 <seeds>
   <seed>
     <torrent>/home/stephan/downloads/tmp/Range queries on structured overlay networks.pdf.torrent</torrent>
-    <dir>/home/stephan/downloads</dir>
+    <data>/home/stephan/downloads</data>
   </seed>
   <seed>
     <torrent>/home/stephan/downloads/XML.torrent</torrent>
-    <dir>/home/stephan/downloads/XML</dir>
+    <data>/home/stephan/downloads/XML</data>
   </seed>
 <!--
    Not yet implemented:
   <podcast href="http://chaosradio.ccc.de/everything.rss"
 	   filter="*.torrent">
-    <dir>http://chaosradio.ccc.de/archive/</dir>
+    <data>http://chaosradio.ccc.de/archive/</data>
   </podcast>
 -->
   <seed>
     <torrent>/home/stephan/downloads/pentacast-10-rechtsstaat.ogg.torrent</torrent>
-    <dir>http://ftp.c3d2.de/pentacast/</dir>
+    <data>http://ftp.c3d2.de/pentacast/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-alternate-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-alternate-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-desktop-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-desktop-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-server-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-server-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/9.10/</dir>
+    <data>http://releases.ubuntu.com/9.10/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-alternate-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-alternate-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-desktop-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-desktop-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-server-i386.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
   <seed>
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-server-amd64.iso.torrent</torrent>
-    <dir>http://releases.ubuntu.com/8.04.4/</dir>
+    <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
 </seeds>
