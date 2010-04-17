@@ -105,8 +105,13 @@ seedlist_t() ->
 	      end
       end, [], L1).
 
+-define(MAX_TORRENT_SIZE, 1024 * 1024).
+
 add_torrent(TorrentFile, Dir) ->
     Torrent = backend:read_file(TorrentFile),
+    if size(Torrent) > ?MAX_TORRENT_SIZE -> exit(torrent_file_too_big);
+       true -> ok
+    end,
     Parsed = benc:parse(Torrent),
     {value, {_, InfoDict}} =
 	lists:keysearch(<<"info">>, 1, Parsed),
