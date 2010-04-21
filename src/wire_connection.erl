@@ -425,6 +425,9 @@ send_bitfield(#state{sock = Sock,
 	     build_bitfield(PieceCount)]),
     send_message(Sock, Msg).
 
+build_bitfield(0) ->
+    %% case for byte alignedness
+    [];
 build_bitfield(N) when N >= 8 ->
     [16#FF | build_bitfield(N - 8)];
 build_bitfield(N) when N < 8 ->
@@ -434,9 +437,6 @@ build_bitfield(N) when N < 8 ->
 				 true -> 0
 			      end)
 		 end, 0, lists:seq(1, 8))];
-build_bitfield(0) ->
-    %% case for byte alignedness
-    [].
 
 send_queued(#queued{piece = Piece,
 		    offset = Offset,
