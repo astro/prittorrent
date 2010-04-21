@@ -436,7 +436,7 @@ build_bitfield(N) when N < 8 ->
 			     (if N >= I -> 1;
 				 true -> 0
 			      end)
-		 end, 0, lists:seq(1, 8))];
+		 end, 0, lists:seq(1, 8))].
 
 send_queued(#queued{piece = Piece,
 		    offset = Offset,
