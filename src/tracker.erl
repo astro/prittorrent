@@ -70,7 +70,8 @@ request(Url, InfoHash, PeerId, Port, Uploaded, Downloaded, Left, Event) ->
 	     {compact, 1}
     ],
     Url2 = flatten(io_lib:format("~s?~s", [Url, get_param(Param)])),
-    io:format("URL: ~p~n", [Url2]),
+    logger:log(control, debug,
+	       "Tracker request to: ~s", [Url2]),
 
     {ok,{{_,200,_},_,Body}} = http:request(Url2),
     benc:parse(list_to_binary(Body)).

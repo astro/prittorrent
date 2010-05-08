@@ -142,7 +142,9 @@ handle_info({tcp, Sock, Data}, #state{sock = Sock,
 	lists:filter(fun(Queued) ->
 			     case (catch send_queued(Queued, State4)) of
 				 {'EXIT', Reason} ->
-				     io:format("Cannot send ~p: ~p~n", [Queued, Reason]),
+				     logger:log(wire, warn,
+						"Cannot send ~p: ~p",
+						[Queued, Reason]),
 				     %% Keep:
 				     true;
 				 (_) ->
@@ -226,10 +228,6 @@ process_input(#state{mode = server,
 		     sock = Sock} = State)
   when size(Buffer) >= 20 ->
     {InfoHash, Rest} = split_binary(Buffer, 20),
-
-    {ok, TorrentFile} = torrentdb:get_torrent_file(InfoHash),
-    {ok, {IP, Port}} = inet:peername(Sock),
-    io:format("Got connection from ~p:~p for ~s~n", [IP, Port, TorrentFile]),
 
     gen_tcp:send(Sock, InfoHash),
     process_input(State#state{step = peer_id,

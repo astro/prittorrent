@@ -71,16 +71,20 @@ apply_seedlist(NewSeedList) ->
     
     if
 	length(Removed) > 0 ->
-	    io:format("Removed ~B torrents~n", [length(Removed)]);
+	    logger:log(control, warn,
+		       "Removed ~B torrents", [length(Removed)]);
 	true -> quiet
     end,
     lists:foreach(
       fun({TorrentFile, Dir}) ->
 	      case (catch add_torrent(TorrentFile, Dir)) of
 		  {'EXIT', Reason} ->
-		      io:format("Cannot start seeding ~s~n~p~n", [TorrentFile, Reason]);
+		      logger:log(control, error,
+				 "Cannot start seeding ~s~: ~p",
+				 [TorrentFile, Reason]);
 		  _ ->
-		      io:format("Started seeding ~s~n", [TorrentFile])
+		      logger:log(control, info,
+				 "Started seeding ~s", [TorrentFile])
 		  end
       end, ToAdd),
     ok.
@@ -94,7 +98,6 @@ seedlist_t() ->
 			[],
 			[['$1', '$2']]
 		       }]),
-    io:format("L1: ~p~n", [L1]),
     lists:foldl(
       fun([InfoHash, TorrentFile], R) ->
 	      case piecesdb:get_dir_t(InfoHash) of
@@ -246,8 +249,9 @@ tracker_loop(AnnounceUrl, InfoHash) ->
     Interval =
 	case (catch tracker_request(AnnounceUrl, InfoHash)) of
 	    {'EXIT', Reason} ->
-		io:format("Tracker request to ~s crashed: ~p~n",
-			  [AnnounceUrl, Reason]),
+		logger:log(control, error,
+			   "Tracker request to ~s crashed: ~p",
+			   [AnnounceUrl, Reason]),
 		600 + random:uniform(300);
 	    {ok, Interval1} ->
 		Interval1
@@ -269,8 +273,9 @@ tracker_request(AnnounceUrl, InfoHash) ->
     {value, {_, Interval}} = lists:keysearch(<<"interval">>, 1, Response),
     case (catch connect_by_tracker_response(InfoHash, Response)) of
 	{'EXIT', Reason} ->
-	    error_logger:error_msg("Cannot connect_by_tracker_response(~p, ~p):~n~p~n",
-				   [InfoHash, Response, Reason]);
+	    logger:log(wire, fatal,
+		       "Cannot connect_by_tracker_response(~p, ~p): ~p",
+		       [InfoHash, Response, Reason]);
 	_ -> ok
     end,
     {ok, Interval}.
