@@ -4,7 +4,9 @@
 
 
 start() ->
-    lists:foreach(fun application:start/1,
+    lists:foreach(fun(App) ->
+			  ok = application:start(App)
+		  end,
 		  [sasl, crypto, mnesia, inets, ibrowse, servtorrent]).
 
 start(_, _) ->

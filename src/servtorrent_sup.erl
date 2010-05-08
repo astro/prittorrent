@@ -27,6 +27,9 @@ init([]) ->
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
+    Logger = {logger,
+	      {logger, start_link, []},
+	      permanent, 2000, worker, [logger]},
     WireListener = {wire_listener,
 		    {wire_listener, start_link, []},
 		    permanent, brutal_kill, worker, [wire_listener]},
@@ -37,7 +40,7 @@ init([]) ->
 		{seedlist, start_link, []},
 		permanent, 2000, worker, [seedlist]},
 
-    {ok, {SupFlags, [WireListener, PeerSup, SeedList]}}.
+    {ok, {SupFlags, [Logger, WireListener, PeerSup, SeedList]}}.
 
 %%%===================================================================
 %%% Internal functions

@@ -58,8 +58,8 @@ start_link(Param) ->
 %% @end
 %%--------------------------------------------------------------------
 init([{InfoHash, IP, Port}]) ->
-    {ok, TorrentFile} = torrentdb:get_torrent_file(InfoHash),
-    io:format("Connecting to ~p:~p for ~s~n", [IP, Port, TorrentFile]),
+    logger:log(wire, info,
+	       "Connecting to ~p:~p for ~p~n", [IP, Port, InfoHash]),
     Opts = case IP of
 	       {_, _, _, _, _, _, _, _} -> [inet6];
 	       _ -> []
@@ -260,6 +260,8 @@ process_input(#state{mode = server,
 	    {ok, MyPeerId} = torrentdb:peer_id(),
 	    gen_tcp:send(Sock, MyPeerId),
 	    send_bitfield(State),
+	    logger:log(wire, debug,
+		       "Completed server-side handshake on socket ~p", [Sock]),
 	    process_input(State#state{step = run,
 				      buffer = Rest});
 	true ->  %% Connected to myself
@@ -343,6 +345,8 @@ process_input(#state{mode = client,
 				 PeerId,
 				 IP, Port),
 	    
+	    logger:log(wire, debug,
+		       "Completed client-side handshake on socket ~p", [Sock]),
 	    process_input(State#state{step = run,
 				      buffer = Rest});
 	true ->  %% Connected to myself
@@ -453,6 +457,8 @@ send_piece(FileRanges, #state{sock = Sock,
 			      info_hash = InfoHash}) ->
     lists:foreach(
       fun({Path, Offset, Length}) ->
+	      logger:log(wire, debug,
+			 "Sending ~B bytes to socket ~p", [Length, Sock]),
 	      backend:fold_file(Path, Offset, Length,
 				fun(Data, _) ->
 					gen_tcp:send(Sock, Data),

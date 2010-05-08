@@ -18,12 +18,10 @@ get_port() ->
     
 
 start_link() ->
-    io:format("start_link~n"),
     I = self(),
     Pid = spawn_link(fun() ->
 			     {ok, State} = init(),
 			     I ! {ok, self()},
-			     io:format("ok~n"),
 			     loop(State)
 		     end),
     receive
@@ -38,18 +36,23 @@ start_link() ->
 %%%===================================================================
 
 init() ->
-    io:format("init~n"),
     %% TODO: inet6
     {ok, Port} = get_port(),
     {ok, Sock} = gen_tcp:listen(Port, [binary, inet]),
     application:set_env(servtorrent, wire_port, Port),
+    logger:log(wire, info,
+	       "Listening on port ~B", [Port]),
     {ok, #state{sock = Sock}}.
 
 
 loop(#state{sock = Sock} = State) ->
-    io:format("loop~n"),
     {ok, Client} = gen_tcp:accept(Sock),
-    catch start_connection(Client),
+    case (catch start_connection(Client)) of
+	{'EXIT', _} ->
+	    logger:log(wire, error,
+		       "Cannot start connection on accepted socket ~p", [Client]);
+	_ -> ok
+    end,
     ?MODULE:loop(State).
 
 %%%===================================================================
@@ -57,7 +60,9 @@ loop(#state{sock = Sock} = State) ->
 %%%===================================================================
 
 start_connection(Client) ->
-    io:format("start_connection~n"),
+    {ok, {Address, Port}} = inet:peername(Client),
+    logger:log(wire, info,
+	       "Accepted connection from ~p:~B", [Address, Port]),
     {ok, Pid} = peer_sup:start_peer(Client),
     ok = gen_tcp:controlling_process(Client, Pid),
     gen_server:cast(Pid, go),
