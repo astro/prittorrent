@@ -77,6 +77,9 @@ apply_seedlist(NewSeedList) ->
     end,
     lists:foreach(
       fun({TorrentFile, Dir}) ->
+	      logger:log(control, debug,
+			 "Adding torrent ~s (~s)",
+			 [TorrentFile, Dir]),
 	      case (catch add_torrent(TorrentFile, Dir)) of
 		  {'EXIT', Reason} ->
 		      logger:log(control, error,
