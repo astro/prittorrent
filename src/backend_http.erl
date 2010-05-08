@@ -6,7 +6,8 @@
 -behaviour(backend).
 
 fold_file(URL, Offset, Length, Fold, AccIn) ->
-    io:format("URL: ~p (~p+~p)~n", [URL, Offset, Length]),
+    logger:log(backend_http, debug,
+	       "GET ~s (~p+~p)~n", [URL, Offset, Length]),
     Headers =
 	if
 	    is_integer(Offset),
@@ -29,13 +30,13 @@ fold_file1(ReqId, Fold, AccIn) ->
     ok = ibrowse:stream_next(ReqId),
     receive
 	{ibrowse_async_headers, ReqId, [$2, _, _], _Headers} ->
-	    %%io:format("Recvd headers~n~p~n", [{ibrowse_async_headers, ReqId, Headers}]),
 	    fold_file1(ReqId, Fold, AccIn);
 	{ibrowse_async_headers, ReqId, StatusS, _Headers} ->
 	    {Status, _} = string:to_integer(StatusS),
 	    exit({http, Status});
 	{ibrowse_async_response, ReqId, {error, Err}} ->
-	    io:format("HTTP request error: ~p~n", [Err]),
+	    logger:log(backend_http, warn,
+		       "HTTP request error: ~p", [Err]),
 	    exit(Err);
 	{ibrowse_async_response, ReqId, Data} ->
 	    AccOut = Fold(list_to_binary(Data), AccIn),
