@@ -66,4 +66,7 @@
     <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-server-amd64.iso.torrent</torrent>
     <data>http://releases.ubuntu.com/8.04.4/</data>
   </seed>
+  <!-- You may split this list into multiple files:
+       <include>seed-index.xml</include>
+    -->
 </seeds>
