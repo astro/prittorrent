@@ -25,7 +25,7 @@ loop(Filename, ModTimes) ->
 				 if
 				     CurrentTime > Time ->
 					 logger:log(control, info,
-						    "~s has been modified, mtime=~B", [Path, CurrentTime]),
+						    "~s has been modified, mtime=~p", [Path, CurrentTime]),
 					 true;
 				     true ->
 					 Modified
