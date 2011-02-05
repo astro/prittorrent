@@ -83,13 +83,12 @@ parse_str(Len, Str, <<C, Remaining/binary>>) ->
 %%%%%%%%%%%%%%%%%%%
 
 to_binary([{_, _} | _] = Dict) ->
-    Elements = [[to_binary(K), to_binary(V)] || {K, V} <- Dict],
-    Bin = list_to_binary(Elements),
+    Bin = << <<(to_binary(K))/binary, (to_binary(V))/binary>>
+	     || {K, V} <- Dict >>,
     <<"d", Bin/binary, "e">>;
 
 to_binary(List) when is_list(List) ->
-    Elements = [to_binary(E) || E <- List],
-    Bin = list_to_binary(Elements),
+    Bin = << <<(to_binary(E))/binary>> || E <- List >>,
     <<"l", Bin/binary, "e">>;
 
 to_binary(I) when is_integer(I) ->
