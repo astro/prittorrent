@@ -209,9 +209,7 @@ process_input(#state{mode = server,
 
 process_input(#state{mode = server,
 		     step = extensions,
-		     buffer = Buffer} = State)
-  when size(Buffer) >= 8 ->
-    {_, Rest} = split_binary(Buffer, 8),
+		     buffer = <<_Ignore:8/binary, Rest/binary>>} = State) ->
     send_extensions(State),
     process_input(State#state{step = info_hash,
 			      buffer = Rest});
@@ -224,11 +222,8 @@ process_input(#state{mode = server,
 
 process_input(#state{mode = server,
 		     step = info_hash,
-		     buffer = Buffer,
-		     sock = Sock} = State)
-  when size(Buffer) >= 20 ->
-    {InfoHash, Rest} = split_binary(Buffer, 20),
-
+		     buffer = <<InfoHash:20/binary, Rest/binary>>,
+		     sock = Sock} = State) ->
     gen_tcp:send(Sock, InfoHash),
     process_input(State#state{step = peer_id,
 			      buffer = Rest,
@@ -242,11 +237,9 @@ process_input(#state{mode = server,
 
 process_input(#state{mode = server,
 		     step = peer_id,
-		     buffer = Buffer,
+		     buffer = <<PeerId:20/binary, Rest/binary>>,
 		     sock = Sock,
-		     info_hash = InfoHash} = State)
-  when size(Buffer) >= 20 ->
-    {PeerId, Rest} = split_binary(Buffer, 20),
+		     info_hash = InfoHash} = State) ->
     {ok, MyPeerId} = torrentdb:peer_id(),
     if
 	PeerId =/= MyPeerId ->
@@ -295,9 +288,7 @@ process_input(#state{mode = client,
 
 process_input(#state{mode = client,
 		     step = extensions,
-		     buffer = Buffer} = State)
-  when size(Buffer) >= 8 ->
-    {_, Rest} = split_binary(Buffer, 8),
+		     buffer = <<_Ignore:8/binary, Rest/binary>>} = State) ->
     process_input(State#state{step = info_hash,
 			      buffer = Rest});
 
@@ -310,9 +301,8 @@ process_input(#state{mode = client,
 process_input(#state{mode = client,
 		     step = info_hash,
 		     info_hash = InfoHash,
-		     buffer = Buffer} = State)
-  when size(Buffer) >= 20 ->
-    {PeerInfoHash, Rest} = split_binary(Buffer, 20),
+		     buffer = <<PeerInfoHash:20/binary, Rest/binary>>}
+	      = State) ->
     if
 	InfoHash =/= PeerInfoHash ->
 	    exit(info_hashes_differ);
@@ -331,10 +321,8 @@ process_input(#state{mode = client,
 process_input(#state{mode = client,
 		     step = peer_id,
 		     sock = Sock,
-		     buffer = Buffer,
-		     info_hash = InfoHash} = State)
-  when size(Buffer) >= 20 ->
-    {PeerId, Rest} = split_binary(Buffer, 20),
+		     buffer = <<PeerId:20/binary, Rest/binary>>,
+		     info_hash = InfoHash} = State) ->
     {ok, MyPeerId} = torrentdb:peer_id(),
     if
 	PeerId =/= MyPeerId ->
@@ -362,11 +350,8 @@ process_input(#state{mode = client,
 %% Waiting for any message
 
 process_input(#state{step = run,
-		     buffer = <<Len:32/big, Buffer/binary>>
-		    } = State1)
-  when size(Buffer) >= Len ->
-    %% Read enough
-    {Message, Rest} = split_binary(Buffer, Len),
+		     buffer = <<Len:32/big, Message:Len/binary, Rest/binary>>
+		    } = State1) ->
     State2 = State1#state{buffer = Rest},
     State3 = process_message(Message, State2),
     process_input(State3);
