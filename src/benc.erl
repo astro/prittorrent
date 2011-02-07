@@ -39,7 +39,6 @@ parse_dict(Dict, <<$e, Remaining/binary>>) ->
 parse_dict(Dict, Remaining) ->
     {Key, Remaining2} = parse_value(Remaining),
     {Value, Remaining3} = parse_value(Remaining2),
-    {_Remaining2only, _} = split_binary(Remaining2, size(Remaining2) - size(Remaining3)),
     parse_dict([{Key, Value} | Dict], Remaining3).
 
 %%% parse_list %%%
