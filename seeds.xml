@@ -1,70 +1,7 @@
 <seeds>
   <seed>
-    <torrent>/home/stephan/downloads/tmp/Range queries on structured overlay networks.pdf.torrent</torrent>
-    <data>/home/stephan/downloads</data>
-  </seed>
-  <seed>
-    <torrent>/home/stephan/downloads/XML.torrent</torrent>
-    <data>/home/stephan/downloads/XML</data>
-  </seed>
-<!--
-   Not yet implemented:
-  <podcast href="http://chaosradio.ccc.de/everything.rss"
-	   filter="*.torrent">
-    <data>http://chaosradio.ccc.de/archive/</data>
-  </podcast>
--->
-  <seed>
-    <torrent>/home/stephan/downloads/pentacast-10-rechtsstaat.ogg.torrent</torrent>
-    <data>http://ftp.c3d2.de/pentacast/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-alternate-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-alternate-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-desktop-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-desktop-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-server-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/9.10/ubuntu-9.10-server-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/9.10/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-alternate-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-alternate-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-desktop-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-desktop-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-server-i386.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
-  </seed>
-  <seed>
-    <torrent>http://releases.ubuntu.com/8.04.4/ubuntu-8.04.4-server-amd64.iso.torrent</torrent>
-    <data>http://releases.ubuntu.com/8.04.4/</data>
+  	<torrent>data/torrents/erlang-the-movie.m4v.torrent</torrent>
+    <data>data/files</data>
   </seed>
   <!-- You may split this list into multiple files:
        <include>seed-index.xml</include>
