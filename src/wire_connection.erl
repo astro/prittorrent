@@ -440,8 +440,8 @@ send_piece(FileRanges, #state{sock = Sock,
 			      info_hash = InfoHash}) ->
     lists:foreach(
       fun({Path, Offset, Length}) ->
-	      logger:log(wire, debug,
-			 "Sending ~B bytes to socket ~p", [Length, Sock]),
+%%	      logger:log(wire, debug,
+%%			 "Sending ~B bytes to socket ~p", [Length, Sock]),
 	      backend:fold_file(Path, Offset, Length,
 				fun(Data, _) ->
 					gen_tcp:send(Sock, Data),
