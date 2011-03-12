@@ -7,7 +7,7 @@ start() ->
     lists:foreach(fun(App) ->
 			  ok = application:start(App)
 		  end,
-		  [sasl, crypto, mnesia, inets, ibrowse, servtorrent]).
+		  [sasl, crypto, mnesia, inets, servtorrent]).
 
 start(_, _) ->
     torrentdb:init(),

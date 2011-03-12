@@ -22,4 +22,4 @@
 		   ]}
 	]},
   {applications, [kernel, stdlib, crypto,
-		  sasl, mnesia, inets, ibrowse]}]}.
+		  sasl, mnesia, inets]}]}.
