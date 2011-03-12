@@ -39,7 +39,6 @@ parse_dict(Dict, <<$e, Remaining/binary>>) ->
 parse_dict(Dict, Remaining) ->
     {Key, Remaining2} = parse_value(Remaining),
     {Value, Remaining3} = parse_value(Remaining2),
-    {_Remaining2only, _} = split_binary(Remaining2, size(Remaining2) - size(Remaining3)),
     parse_dict([{Key, Value} | Dict], Remaining3).
 
 %%% parse_list %%%
@@ -83,22 +82,21 @@ parse_str(Len, Str, <<C, Remaining/binary>>) ->
 %%%%%%%%%%%%%%%%%%%
 
 to_binary([{_, _} | _] = Dict) ->
-    Elements = [[to_binary(K), to_binary(V)] || {K, V} <- Dict],
-    Bin = list_to_binary(Elements),
-    list_to_binary(["d", Bin, "e"]);
+    Bin = << <<(to_binary(K))/binary, (to_binary(V))/binary>>
+	     || {K, V} <- Dict >>,
+    <<"d", Bin/binary, "e">>;
 
 to_binary(List) when is_list(List) ->
-    Elements = [to_binary(E) || E <- List],
-    Bin = list_to_binary(Elements),
-    list_to_binary(["l", Bin, "e"]);
+    Bin = << <<(to_binary(E))/binary>> || E <- List >>,
+    <<"l", Bin/binary, "e">>;
 
 to_binary(I) when is_integer(I) ->
     Bin = list_to_binary(integer_to_list(I)),
-    list_to_binary(["i", Bin, "e"]);
+    <<"i", Bin/binary, "e">>;
 
 to_binary(<<String/binary>>) ->
     Length = list_to_binary(integer_to_list(size(String))),
-    list_to_binary([Length, $:, String]).
+    <<Length/binary, ":", String/binary>>.
 
      
 
