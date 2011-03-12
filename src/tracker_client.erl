@@ -1,4 +1,4 @@
--module(tracker).
+-module(tracker_client).
 -export([request/8, peer_list_from_info/1]).
 
 -import(lists, [reverse/1, map/2, keysearch/3, flatten/1]).

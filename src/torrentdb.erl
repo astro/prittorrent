@@ -271,7 +271,7 @@ tracker_request(AnnounceUrl, InfoHash) ->
 		   _ -> 0
 	       end,
     {ok, PeerId} = peer_id(),
-    Response = tracker:request(AnnounceUrl, InfoHash, PeerId, Port,
+    Response = tracker_client:request(AnnounceUrl, InfoHash, PeerId, Port,
 			       Uploaded, 0, 0, empty),
     {value, {_, Interval}} = lists:keysearch(<<"interval">>, 1, Response),
     case (catch connect_by_tracker_response(InfoHash, Response)) of
@@ -284,7 +284,7 @@ tracker_request(AnnounceUrl, InfoHash) ->
     {ok, Interval}.
 
 connect_by_tracker_response(InfoHash, Response) ->
-    Peers = tracker:peer_list_from_info(Response),
+    Peers = tracker_client:peer_list_from_info(Response),
     peerdb:add_peers(InfoHash, Peers).
 
 uniq_list([]) ->
