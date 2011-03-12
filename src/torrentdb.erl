@@ -127,6 +127,7 @@ add_torrent(TorrentFile, Dir) ->
     Files = info_files(InfoDict),
     {value, {_, AnnounceUrl}} =
 	lists:keysearch(<<"announce">>, 1, Parsed),
+    %% TODO: make supervised
     TLPid = spawn_link(
 	      fun() ->
 		      receive

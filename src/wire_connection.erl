@@ -57,6 +57,7 @@ start_link(Param) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
+%% Outgoing connections with IP/Port
 init([{InfoHash, IP, Port}]) ->
     logger:log(wire, info,
 	       "Connecting to ~p:~p for ~p~n", [IP, Port, InfoHash]),
@@ -78,6 +79,7 @@ init([{InfoHash, IP, Port}]) ->
     send_bitfield(State),
     
     {ok, State};
+%% Incoming connections, InfoHash to be received
 init([Sock]) ->
     link(Sock),
     {ok, #state{sock = Sock,
