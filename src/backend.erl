@@ -19,7 +19,5 @@ fold_file(Path, Offset, Length, F, AccIn) ->
     BE = backend(Path),
     BE:fold_file(Path, Offset, Length, F, AccIn).
 
-backend([$h, $t, $t, $p, $:, $/, $/ | _]) ->
-    backend_http;
 backend(_) ->
     backend_file.
