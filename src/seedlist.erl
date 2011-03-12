@@ -56,23 +56,27 @@ loop(Filename, ModTimes) ->
 
 load_seedlist(Filename) ->
     ModTime = {Filename, get_mtime(Filename)},
+    BasePath = filename:dirname(Filename),
     File = backend:read_file(Filename),
     {SeedsEl, _} = xmerl_scan:string(binary_to_list(File)),
     #xmlElement{content = SeedsChildren} = SeedsEl,
     lists:foldl(
       fun(#xmlElement{name = seed} = SeedEl,
 	  {ok, SeedList, ModTimes} = R) ->
-	      try {ok,
-		   [{get_el_text(torrent, SeedEl),
-		     get_el_text(data, SeedEl)} | SeedList],
-		   ModTimes}
+	      try
+		  TorrentFile = filename:join([BasePath, get_el_text(torrent, SeedEl)]),
+		  DataDir = filename:join([BasePath, get_el_text(data, SeedEl)]),
+		  {ok, [{TorrentFile, DataDir} | SeedList], ModTimes}
 	      catch _ ->
 		      R
 	      end;
 	 (#xmlElement{name = include} = IncludeEl,
 	  {ok, SeedList, ModTimes}) ->
 	      Filename1 = get_el_text(IncludeEl),
-	      {ok, SeedList1, ModTimes1} = load_seedlist(Filename1),
+	      %% Recurse:
+	      {ok, SeedList1, ModTimes1} =
+		  load_seedlist(
+		    filename:join([BasePath, Filename1])),
 	      {ok, SeedList1 ++ SeedList, ModTimes1 ++ ModTimes};
 	 (_, Result) ->
 	      Result
