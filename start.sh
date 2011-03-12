@@ -7,6 +7,5 @@ ENV=""
 erl -pa ebin -make && \
 erl +K true -smp auto \
     -pa ebin \
-    -noshell \
     -s servtorrent \
     $ENV
