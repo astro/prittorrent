@@ -12,6 +12,7 @@ start_link() ->
 	    fun() ->
 		    loop(Filename, [])
 	    end),
+    register(seedlist, Pid),
     {ok, Pid}.
 
 -define(RELOAD_INTERVAL, 10).
