@@ -81,6 +81,8 @@ init([{InfoHash, IP, Port}]) ->
     {ok, State};
 %% Incoming connections, InfoHash to be received
 init([Sock]) ->
+    logger:log(wire, info,
+	       "Connection from ~p~n", [Sock]),
     link(Sock),
     {ok, #state{sock = Sock,
 		mode = server}}.
@@ -284,6 +286,8 @@ process_input(#state{mode = client,
 		     step = handshake,
 		     buffer = Buffer} = State)
   when size(Buffer) < 20 ->
+    logger:log(wire, debug,
+	       "Client-side handshake mismatch on socket ~p", [Sock]),
     State;
 
 %% Waiting for extensions
