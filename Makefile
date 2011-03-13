@@ -1,6 +1,6 @@
 ERL=erl
 ERLC=erlc
-APP=prittorrent
+APP=servtorrent
 
 all: compile
 
@@ -16,3 +16,7 @@ docs:
 
 clean-docs:
 	rm -rf doc
+
+test: compile
+	@$(ERL) -pa ebin -eval "eunit:test({application,$(APP)})" \
+	-noshell -s init stop
