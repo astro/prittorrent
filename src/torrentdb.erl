@@ -1,6 +1,6 @@
 -module(torrentdb).
 
--export([init/0, apply_seedlist/1, add_torrent/2, rm_torrent/1, inc_uploaded/2, get_torrent_file/1, peer_id/0, tracker_loop/2]).
+-export([init/0, apply_seedlist/1, add_torrent/2, rm_torrent/1, inc_uploaded/2, get_torrent_file/1, peer_id/0, tracker_loop/3]).
 
 -record(torrent, {info_hash,
 		  torrent_file,
@@ -132,7 +132,7 @@ add_torrent(TorrentFile, Dir) ->
 	      fun() ->
 		      receive
 			  go ->
-			      tracker_loop(AnnounceUrl, InfoHash);
+			      tracker_loop(AnnounceUrl, InfoHash, 0);
 			  _ ->
 			      ok
 		      end
@@ -249,10 +249,14 @@ generate_peer_id() ->
 		       [random:uniform(256) - 1
 			|| _ <- lists:seq(1, 12)]).
 
-tracker_loop(AnnounceUrl, InfoHash) ->
+tracker_loop(AnnounceUrl, InfoHash, Counter) ->
     Interval =
 	try
-	    {ok, Interval1} = tracker_request(AnnounceUrl, InfoHash),
+	    Event = case Counter of
+			0 -> started;
+			_ -> empty
+		    end,
+	    {ok, Interval1} = tracker_request(AnnounceUrl, InfoHash, Event),
 	    Interval1
 	catch
 	    exit:Reason ->
@@ -268,7 +272,7 @@ tracker_loop(AnnounceUrl, InfoHash) ->
 	    ?MODULE:tracker_loop(AnnounceUrl, InfoHash)
     end.
 
-tracker_request(AnnounceUrl, InfoHash) ->
+tracker_request(AnnounceUrl, InfoHash, Event) ->
     {ok, Port} = wire_listener:get_port(),
     Uploaded = case mnesia:dirty_read(torrent, InfoHash) of
 		   [#torrent{uploaded = U}] -> U;
@@ -276,7 +280,7 @@ tracker_request(AnnounceUrl, InfoHash) ->
 	       end,
     {ok, PeerId} = peer_id(),
     Response = tracker_client:request(AnnounceUrl, InfoHash, PeerId, Port,
-			       Uploaded, 0, 0, empty),
+			       Uploaded, 0, 0, Event),
     {value, {_, Interval}} = lists:keysearch(<<"interval">>, 1, Response),
     case (catch connect_by_tracker_response(InfoHash, Response)) of
 	{'EXIT', Reason} ->

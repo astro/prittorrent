@@ -68,6 +68,10 @@ request(Url, InfoHash, PeerId, Port, Uploaded, Downloaded, Left, Event) ->
 	     {downloaded, Downloaded},
 	     {left, Left},
 	     {compact, 1}
+	     | case Event of
+		   empty -> [];
+		   _ -> [{event, atom_to_list(Event)}]
+	       end
     ],
     Url2 = flatten(io_lib:format("~s?~s", [Url, get_param(Param)])),
     logger:log(control, debug,
