@@ -35,7 +35,8 @@ loop(Req) ->
 			{ ok, AvailablePeers, Complete, Incomplete } = trackerdb:announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left),
 
 			Payload = << <<A,B,C,D,P:16/big>> || { _, {A,B,C,D}, P } <- AvailablePeers >>,
-			Response = benc:to_binary([{<<"peers">>, Payload}]),
+			{ok, Interval} = tracker_manager:get(interval),
+			Response = benc:to_binary([{<<"interval">>,Interval},{<<"peers">>, Payload}]),
 
 			io:format("~s~n", [Response]),
 	    	Req:ok({"text/plain", Response});
