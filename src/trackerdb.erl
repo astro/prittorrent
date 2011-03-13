@@ -14,13 +14,14 @@ init() ->
 			[{attributes, record_info(fields, pirate)}, {type, set}, {index, [info_hash]}]).
 
 announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left) ->
+	PrimaryPeerKey = { InfoHash, Ip, Port },
 	{atomic, Result} = mnesia:transaction(fun() -> 
 		AllPeers = mnesia:index_read(pirate, InfoHash, #pirate.info_hash),
 		Now = unix_seconds_since_epoch(),
-		PeerUpdate = case mnesia:read(pirate, { InfoHash, Ip, Port }) of
+		PeerUpdate = case mnesia:read(pirate, PrimaryPeerKey) of
 			[Peer = #pirate{ }] -> Peer#pirate { peer_id = PeerId, uploaded = Uploaded,
 												 	downloaded = Downloaded, left = Left, last_seen = Now };
-			[] -> #pirate{ id = {InfoHash, Ip, Port},
+			[] -> #pirate{ id = PrimaryPeerKey,
 							info_hash = InfoHash, ip = Ip, port = Port, peer_id = PeerId,
 							uploaded = Uploaded, downloaded = Downloaded, left = Left,
 							first_seen = Now, last_seen = Now }
@@ -28,7 +29,7 @@ announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left) ->
 		mnesia:write(PeerUpdate),
 		
 		AvailablePeers = [ { TmpPeerId, TmpIp, TmpPort } ||
-							#pirate{ peer_id = TmpPeerId, ip = TmpIp, port = TmpPort } <- AllPeers],
+							Peer = #pirate{ peer_id = TmpPeerId, ip = TmpIp, port = TmpPort } <- AllPeers, Peer#pirate.id =/= PrimaryPeerKey],
 		Complete = 0, Incomplete = 0,
 		{ ok, AvailablePeers, Complete, Incomplete }
 		end),

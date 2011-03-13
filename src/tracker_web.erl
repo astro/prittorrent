@@ -38,7 +38,7 @@ loop(Req) ->
 			{ok, Interval} = tracker_manager:get(interval),
 			Response = benc:to_binary([{<<"interval">>,Interval},{<<"peers">>, Payload}]),
 
-			io:format("~s~n", [Response]),
+			io:format("~p~s~n", [AvailablePeers,Response]),
 	    	Req:ok({"text/plain", Response});
 	    _ ->
 	        Req:respond({501, [{"Content-Type", "text/plain"}], "Malformed request."})
