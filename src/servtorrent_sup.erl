@@ -37,7 +37,7 @@ init([]) ->
 	       {peer_sup, start_link, []},
 	       permanent, 2000, supervisor, [peer_sup]},
     Tracker = {tracker_web,
-	       {tracker_web, start, [[{ip, "::"}, {port, 6969}]]},
+	       {tracker_web, start, [[{ip, "0.0.0.0"}, {port, 6969}]]},
 	       permanent, 2000, worker, [tracker_web]},
     SeedList = {seedlist,
 		{seedlist, start_link, []},
