@@ -287,7 +287,7 @@ process_input(#state{mode = client,
 		     buffer = Buffer} = State)
   when size(Buffer) < 20 ->
     logger:log(wire, debug,
-	       "Client-side handshake mismatch on socket ~p", [Sock]),
+	       "Client-side handshake mismatch"),
     State;
 
 %% Waiting for extensions
