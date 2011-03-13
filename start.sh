@@ -8,4 +8,5 @@ erl -pa ebin -make && \
 erl -config sasl +K true -smp auto \
     -pa ebin \
     -s servtorrent \
+    -s reloader \
     $ENV
