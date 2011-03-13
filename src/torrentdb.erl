@@ -127,6 +127,7 @@ add_torrent(TorrentFile, Dir) ->
     Files = info_files(InfoDict),
     {value, {_, AnnounceUrl}} =
 	lists:keysearch(<<"announce">>, 1, Parsed),
+    %% TODO: make supervised
     TLPid = spawn_link(
 	      fun() ->
 		      receive
@@ -250,15 +251,18 @@ generate_peer_id() ->
 
 tracker_loop(AnnounceUrl, InfoHash) ->
     Interval =
-	case (catch tracker_request(AnnounceUrl, InfoHash)) of
-	    {'EXIT', Reason} ->
+	try
+	    {ok, Interval1} = tracker_request(AnnounceUrl, InfoHash),
+	    Interval1
+	catch
+	    exit:Reason ->
 		logger:log(control, error,
 			   "Tracker request to ~s crashed: ~p",
 			   [AnnounceUrl, Reason]),
-		600 + random:uniform(300);
-	    {ok, Interval1} ->
-		Interval1
+		%% Backup interval:
+		600 + random:uniform(300)
 	end,
+    %% Wait the interval before next tracker request
     receive
     after Interval * 1000 ->
 	    ?MODULE:tracker_loop(AnnounceUrl, InfoHash)
