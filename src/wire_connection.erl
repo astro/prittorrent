@@ -35,7 +35,7 @@
 %% @doc
 %% Starts the server
 %%
-%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
+%% @spec start_link(Param) -> {ok, Pid}
 %% @end
 %%--------------------------------------------------------------------
 start_link(Param) ->
