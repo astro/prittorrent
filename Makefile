@@ -1,11 +1,11 @@
 ERL=erl
 ERLC=erlc
-APP=prittorrent
+APP=servtorrent
 
 all: compile
 
 compile:
-	@$(ERL) -make
+	@$(ERL) -pa ebin -make
 
 clean:
 	rm -f ebin/*.beam
@@ -16,3 +16,7 @@ docs:
 
 clean-docs:
 	rm -rf doc
+
+test: compile
+	@$(ERL) -pa ebin -eval "eunit:test({application,$(APP)})" \
+	-noshell -s init stop
