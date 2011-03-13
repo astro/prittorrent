@@ -51,6 +51,7 @@ loop(Req) ->
 									{<<"peers">>, PeersContent}])
 			end,
 			io:format("Response: ~s~n", [Response]),
+
 	    	Req:ok({"text/plain", Response});
 	    _ ->
 	        Req:respond({501, [{"Content-Type", "text/plain"}], "Malformed request."})

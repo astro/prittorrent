@@ -30,7 +30,12 @@ announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left) ->
 		
 		AvailablePeers = [ { TmpPeerId, TmpIp, TmpPort } ||
 							Peer = #pirate{ peer_id = TmpPeerId, ip = TmpIp, port = TmpPort } <- AllPeers, Peer#pirate.id =/= PrimaryPeerKey],
-		Complete = 0, Incomplete = 0,
+		{ Complete, Incomplete } = mnesia:foldl(
+			fun(#pirate{left = 0}, { CompleteAcc, IncompleteAcc} ) ->
+				{ CompleteAcc + 1, IncompleteAcc };
+			(_, { CompleteAcc, IncompleteAcc} ) ->
+				{ CompleteAcc , IncompleteAcc + 1 }
+			end, { 0, 0}, pirate),
 		{ ok, AvailablePeers, Complete, Incomplete }
 		end),
 	Result.
