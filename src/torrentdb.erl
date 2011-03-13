@@ -245,7 +245,7 @@ peer_id() ->
 
 %% http://www.bittorrent.org/beps/bep_0020.html
 generate_peer_id() ->
-    list_to_binary("-CR0000-" ++
+    list_to_binary("-PR0001-" ++
 		       [random:uniform(256) - 1
 			|| _ <- lists:seq(1, 12)]).
 
