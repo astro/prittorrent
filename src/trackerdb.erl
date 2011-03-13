@@ -16,7 +16,12 @@ init() ->
 announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left) ->
 	PrimaryPeerKey = { InfoHash, Ip, Port },
 	{atomic, Result} = mnesia:transaction(fun() -> 
-		AllPeers = mnesia:index_read(pirate, InfoHash, #pirate.info_hash),
+		AllPeers = case Left of 
+			0 -> % we are seeder
+				qlc:e(qlc:q([Pirate || Pirate <- mnesia:table(pirate), Pirate#pirate.left =/= 0]));
+			_ -> % we are leecher
+				mnesia:index_read(pirate, InfoHash, #pirate.info_hash)
+		end,
 		Now = unix_seconds_since_epoch(),
 		PeerUpdate = case mnesia:read(pirate, PrimaryPeerKey) of
 			[Peer = #pirate{ }] -> Peer#pirate { peer_id = PeerId, uploaded = Uploaded,

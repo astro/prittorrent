@@ -77,7 +77,7 @@ request(Url, InfoHash, PeerId, Port, Uploaded, Downloaded, Left, Event) ->
     logger:log(control, debug,
 	       "Tracker request to: ~s", [Url2]),
 
-    {ok,{{_,200,_},_,Body}} = http:request(Url2),
+    {ok,{{_,200,_},_,Body}} = httpc:request(Url2),
     benc:parse(list_to_binary(Body)).
 
 get_param([]) ->

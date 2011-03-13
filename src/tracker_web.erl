@@ -28,20 +28,30 @@ loop(Req) ->
 			Uploaded = list_to_integer(proplists:get_value("uploaded", Query, "0")),
 			Downloaded = list_to_integer(proplists:get_value("downloaded", Query, "0")),
 			Left = list_to_integer(proplists:get_value("left", Query, "0")),
-			_Compact = list_to_integer(proplists:get_value("compact", Query, "0")),
+			Event = proplists:get_value("event", Query, undefined),
+			Compact = list_to_integer(proplists:get_value("compact", Query, "0")),
 			_Crypto = list_to_integer(proplists:get_value("supportcrypto", Query, "0")),
 			_Key = list_to_binary(proplists:get_value("key", Query, "")),
 
-			{ ok, AvailablePeers, Complete, Incomplete } = trackerdb:announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left),
+			Response = case Event of 
+				"stopped" -> benc:to_binary(<<"stopped">>);
+				_ -> 
+					{ ok, AvailablePeers, Complete, Incomplete } = trackerdb:announce(InfoHash, Ip, Port, PeerId, Uploaded, Downloaded, Left),
+			
+					{ok, Interval} = tracker_manager:get(interval),
+					PeersContent = case Compact of
+						1 -> << <<A,B,C,D,P:16/big>> || { _, {A,B,C,D}, P } <- AvailablePeers >>;
+						0 -> [ [{<<"ip">>,list_to_binary(io_lib:format("~B.~B.~B.~B",[A,B,C,D]))},
+								{<<"peer id">>,TmpId},
+								{<<"port">>,TmpPort}] || {TmpId, {A,B,C,D}, TmpPort} <- AvailablePeers ]
+					end,
+					benc:to_binary([{<<"complete">>,Complete},
+									{<<"incomplete">>,Incomplete},
+									{<<"interval">>,Interval},
+									{<<"peers">>, PeersContent}])
+			end,
+			io:format("Response: ~s~n", [Response]),
 
-			Payload = << <<A,B,C,D,P:16/big>> || { _, {A,B,C,D}, P } <- AvailablePeers >>,
-			{ok, Interval} = tracker_manager:get(interval),
-			Response = benc:to_binary([ {<<"complete">>,Complete},
-										{<<"incomplete">>,Incomplete},
-										{<<"interval">>,Interval},
-										{<<"peers">>, Payload}]),
-
-			io:format("~p~s~n", [AvailablePeers,Response]),
 	    	Req:ok({"text/plain", Response});
 	    _ ->
 	        Req:respond({501, [{"Content-Type", "text/plain"}], "Malformed request."})
