@@ -3,7 +3,7 @@
   {vsn, "0.0.0"},
   {modules, [backend, peer_sup, servtorrent_sup,
 	     wire_listener, backend_file, piecesdb,
-	     torrentdb, seedlist,
+	     torrentdb, seedlist, tracker_web,
 	     tracker_client, benc, servtorrent,
 	     wire_connection
 	    ]},
