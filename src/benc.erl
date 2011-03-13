@@ -83,7 +83,7 @@ parse_str(Len, Str, <<C, Remaining/binary>>) ->
 
 to_binary([{_, _} | _] = Dict) ->
     Bin = << <<(to_binary(K))/binary, (to_binary(V))/binary>>
-	     || {K, V} <- Dict >>,
+	     || {K, V} <- lists:sort(Dict) >>,
     <<"d", Bin/binary, "e">>;
 
 to_binary(List) when is_list(List) ->
