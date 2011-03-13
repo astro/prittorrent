@@ -1,6 +1,5 @@
 ERL=erl
 ERLC=erlc
-APP_TITLE=PritTorrent
 APP=servtorrent
 
 all: compile
@@ -12,7 +11,7 @@ clean:
 	rm -f ebin/*.beam
 
 docs:
-	@$(ERL) -noshell -run edoc_run application '$(APP_TITLE)' '"."' \
+	@$(ERL) -noshell -run edoc_run application '$(APP)' '"."' \
 	'[{private, true}]'
 
 clean-docs:
