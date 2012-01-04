@@ -1,0 +1,19 @@
+{application, model,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, [pool_torrents, pool_tracker, pool_stats]},
+  {applications, [
+                  kernel,
+                  stdlib,
+		  epgsql
+                 ]},
+  {mod, {model_app, []}},
+  {env, [{pools,
+	  [{pool_torrents, [{pool_size, 4},
+			    {host, "localhost"},
+			    {user, "prittorrent"},
+			    {password, "1234"}]}
+	  ]}
+	]}
+ ]}.

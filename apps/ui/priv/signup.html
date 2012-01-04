@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prittorrent</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css"/>
+  </head>
+  <body>
+    <header>
+      <h1>Prittorrent</h1>
+    </header>
+
+    <form id="signup" method="POST" action="/signup">
+      <h2>Sign up</h2>
+      <div class="field">
+	<label for="user">User name:</label>
+	<input name="user" id="user" size="10"/>
+      </div>
+      <div class="field">
+	<label for="email">Email:</label>
+	<input name="email" id="email" size="10"/>
+      </div>
+      <div class="field">
+	<label for="password">Password:</label>
+	<input type="password" name="password" id="password" size="10"/>
+      </div>
+      <div class="field">
+	<label for="password2">Password:</label>
+	<input type="password" name="password2" id="password2" size="10"/>
+      </div>
+      <div class="center">
+	<input type="submit" value="Sign up"/>
+      </div>
+    </form>
+
+    <script src="/static/jquery-1.7.1.min.js">
+    </script>
+  </body>
+</html>
