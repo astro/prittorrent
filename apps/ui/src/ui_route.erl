@@ -62,15 +62,7 @@ handle_websocket(WS) ->
     route_websocket(WS, Path).
 
 route_websocket(WS, "/u") ->
-    receive
-	{browser, Data} ->
-	    io:format("From WS: ~p~n",[Data]);
-	closed ->
-	    io:format("WS closed~n")
-    after 10000 ->
-	    timeout
-    end.
-
+    ui_u:run(WS).
 
 
 priv_path(Tail) ->
