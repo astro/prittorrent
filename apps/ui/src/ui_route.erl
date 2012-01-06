@@ -44,7 +44,7 @@ route_http(Req, 'POST', "/signup") ->
 	Password =/= Password2 ->
 	    Req:respond(400, ?HTML_HEADERS, "Passwords don't match");
 	true ->
-	    %% TODO: model
+	    model_users:register(User, Email, Password),
 	    Req:respond(200, ?HTML_HEADERS, "Thanks, we'll be in contact.")
     end;
 
