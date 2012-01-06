@@ -6,12 +6,15 @@
   {applications, [
                   kernel,
                   stdlib,
+		  poolboy,
 		  epgsql
                  ]},
   {mod, {model_app, []}},
   {env, [{pools,
-	  [{pool_torrents, [{pool_size, 4},
+	  [{pool_torrents, [{size, 4},
+			    {max_overflow, 16},
 			    {host, "localhost"},
+			    {database, "prittorrent"},
 			    {user, "prittorrent"},
 			    {password, "1234"}]}
 	  ]}
