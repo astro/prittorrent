@@ -19,11 +19,11 @@ route_http(Req, 'GET', "/static/" ++ Path) ->
 	    %% traversal attacks.
 	    Req:respond(400, ?HTML_HEADERS, "What?\n");
 	false ->
-	    Req:file("priv/static/" ++ Path)
+	    Req:file(priv_path("static/" ++ Path))
     end;
 
 route_http(Req, 'GET', "/signup") ->
-    Req:file("priv/signup.html");
+    Req:file(priv_path("signup.html"));
 
 route_http(Req, 'POST', "/signup") ->
     Query = Req:parse_post(unicode),
@@ -49,7 +49,7 @@ route_http(Req, 'POST', "/signup") ->
     end;
 
 route_http(Req, 'GET', "/u") ->
-    Req:file("priv/u.html");
+    Req:file(priv_path("u.html"));
 
 route_http(Req, _, _Path) ->
     Req:respond(404, ?HTML_HEADERS, "Not found\n").
@@ -72,3 +72,9 @@ route_websocket(WS, "/u") ->
     end.
 
 
+
+priv_path(Tail) ->
+    filename:join([filename:dirname(?FILE),
+		   "..",
+		   "priv",
+		   Tail]).
