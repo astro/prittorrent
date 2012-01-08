@@ -6,7 +6,7 @@
 %% Internal
 -export([handle_user/1]).
 
--record(session, {ws, user}).
+-record(session, {ws, send, user}).
 
 
 run(WS) ->
@@ -18,8 +18,21 @@ wait_for_authentication(WS) ->
 	    {ok, {obj, Obj}, _} = rfc4627:decode(Data),
 	    User = proplists:get_value("user", Obj),
 	    Password = proplists:get_value("password", Obj),
+
+	    %% The user is successfully authenticated after this
+	    %% match:
 	    ok = model_users:authenticate(User, Password),
-	    handle_user(#session{user = User, ws = WS});
+
+	    Send = fun(Json) ->
+			   WS:send(rfc4627:encode(Json))
+		   end,
+
+	    UserFeeds = model_users:get_feeds(User),
+	    Send({obj, [{"feeds", UserFeeds}]}),
+
+	    handle_user(#session{user = User,
+				 ws = WS,
+				 send = Send});
 	closed ->
 	    io:format("WS closed~n")
     after 10000 ->

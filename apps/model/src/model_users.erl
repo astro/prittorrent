@@ -1,6 +1,7 @@
 -module(model_users).
 
--export([register/3, authenticate/2, activate/1]).
+-export([register/3, authenticate/2, activate/1,
+	 get_feeds/1]).
 
 
 -define(POOL, pool_users).
@@ -22,3 +23,9 @@ authenticate(Name, Password) ->
 activate(Name) ->
     ?Q("UPDATE users SET \"activated\"=TRUE WHERE \"name\"=$1",
        [Name]).
+
+
+get_feeds(Name) ->
+    {ok, _, Rows} = ?Q("SELECT feed FROM user_feeds WHERE \"user\"=$1",
+		       [Name]),
+    [Feed || {Feed} <- Rows].

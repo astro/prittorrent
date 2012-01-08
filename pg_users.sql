@@ -7,3 +7,7 @@ CREATE VIEW activated_users AS
        SELECT "name", "email", "password"
        FROM users
        WHERE "activated";
+
+CREATE TABLE user_feeds ("user" TEXT NOT NULL,
+       	     		 "feed" TEXT NOT NULL,
+			 PRIMARY KEY ("user", "feed"));

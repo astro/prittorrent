@@ -208,3 +208,54 @@ footer a {
   color: #777;
   font-weight: bold;
 }
+
+
+article.u {
+    display: none;  /* default */
+    padding: 1em 2em;
+}
+.userfeeds {
+    display: inline-block;
+    width: 20em;
+    overflow: auto;
+    margin: 0;
+    background-color: #eee;
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+}
+.userfeeds .buttons {
+    text-align: center;
+    font-size: 120%;
+}
+.userfeeds .buttons a {
+    margin: 0 1em;
+}
+.userfeeds .buttons a:hover {
+    text-decoration: none;
+    color: black;
+}
+.userfeeds ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0.2em 0;
+}
+.userfeeds li {
+    margin: 0;
+    padding: 0.5em 2em;
+}
+.userfeeds li.selected {
+    background-color: white;
+    color: #333;
+    font-weight: bold;
+}
+.userfeeds li:hover {
+    background-color: white;
+    cursor: pointer;
+}
+
+.userfeed {
+    display: inline-block;
+    margin: 0;
+    box-shadow: -4px 0 16px #aaa;
+    padding: 0.5em 2em;
+}
