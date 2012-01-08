@@ -256,6 +256,6 @@ article.u {
 .userfeed {
     display: inline-block;
     margin: 0;
-    box-shadow: -4px 0 16px #aaa;
+    box-shadow: -4px 2px 16px #aaa;
     padding: 0.5em 2em;
 }

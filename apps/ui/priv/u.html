@@ -45,8 +45,8 @@
 	<h2>Your Feeds</h2>
 	<div class="userfeeds">
 	  <p class="buttons">
-	    <a id="addfeed"href="#">+</a>
-	    <a id="rmfeed" href="#">-</a>
+	    <a id="addfeed" href="#" title="Add a feed">+</a>
+	    <a id="rmfeed" href="#" title="Remove selected feed">—</a>
 	  </p>
 	  <ul id="feedlist">
 	    <li>http://example.com/feed.xml</li>
@@ -57,11 +57,13 @@
 	</div>
 	<div id="addfeed" class="userfeed">
 	  <h3>Add Feed</h3>
-	  <dl>
-	    <dt><label for="addfeedurl">Feed URL:</label></dt>
-	    <dd><input id="addfeedurl" size="30"/></dd>
-	    <dd><input id="addfeedsubmit" type="submit" value="Add"/></dd>
-	  </dl>
+	  <form id="addfeedform">
+	    <dl>
+	      <dt><label for="addfeedurl">Feed URL:</label></dt>
+	      <dd><input id="addfeedurl" size="30"/></dd>
+	      <dd><input id="addfeedsubmit" type="submit" value="Add"/></dd>
+	    </dl>
+	  </form>
 	</div>
 	<div id="feeddetails" class="userfeed">
 	  <h3>Feed</h3>

@@ -1,4 +1,5 @@
 function restoreLogin() {
+    $('.u').hide();
     $('#login').slideDown(500);
 }
 
@@ -89,9 +90,14 @@ function AddFeedView(userfeeds, send) {
     $('#addfeed').show();
     $('#feeddetails').hide();
 
-    $('#addfeedsubmit').click(function() {
+    $('#addfeedform').submit(function(e) {
+	e.preventDefault();
+
 	var input = $('#addfeedurl');
+	console.log("#addfeedurl", input, input.val())
 	send({ addFeed: input.val() });
-	input.val("");
+	setTimeout(function() {
+	    input.val("");
+	}, 10);
     });
 }

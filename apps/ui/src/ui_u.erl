@@ -27,12 +27,11 @@ wait_for_authentication(WS) ->
 			   WS:send(rfc4627:encode(Json))
 		   end,
 
-	    UserFeeds = model_users:get_feeds(User),
-	    Send({obj, [{"feeds", UserFeeds}]}),
-
-	    handle_user(#session{user = User,
-				 ws = WS,
-				 send = Send});
+	    Session = #session{user = User,
+			       ws = WS,
+			       send = Send},
+	    push_feeds(Session),
+	    handle_user(Session);
 	closed ->
 	    io:format("WS closed~n")
     after 10000 ->
@@ -43,13 +42,25 @@ wait_for_authentication(WS) ->
 handle_user(Session) ->
     receive
 	{browser, Data} ->
-	    {ok, Value, _} = rfc4627:decode(Data),
-	    io:format("From WS: ~p~n",[Value]),
-	    Session2 = handle_data(Value, Session),
+	    {ok, {obj, Obj}, _} = rfc4627:decode(Data),
+	    io:format("From WS: ~p~n",[Obj]),
+	    Session2 = lists:foldl(fun handle_data/2,
+				   Session, Obj),
 	    ?MODULE:handle_user(Session2);
 	closed ->
 	    io:format("WS closed~n")
     end.    
 
+handle_data({"addFeed", Url}, #session{user = User} = Session) ->
+    model_users:add_feed(User, binary_to_list(Url)),
+    push_feeds(Session),
+    Session;
+
 handle_data(Value, Session) ->
+    io:format("Unhandled u value: ~p~n", [Value]),
     Session.
+
+push_feeds(#session{user = User, send = Send}) ->
+    UserFeeds = model_users:get_feeds(User),
+    Send({obj, [{"feeds", UserFeeds}]}).
+

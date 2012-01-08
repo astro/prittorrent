@@ -1,7 +1,7 @@
 -module(model_users).
 
 -export([register/3, authenticate/2, activate/1,
-	 get_feeds/1]).
+	 get_feeds/1, add_feed/2]).
 
 
 -define(POOL, pool_users).
@@ -21,11 +21,18 @@ authenticate(Name, Password) ->
     end.
 
 activate(Name) ->
-    ?Q("UPDATE users SET \"activated\"=TRUE WHERE \"name\"=$1",
-       [Name]).
+    {ok, 1} = ?Q("UPDATE users SET \"activated\"=TRUE WHERE \"name\"=$1",
+		 [Name]).
 
 
 get_feeds(Name) ->
     {ok, _, Rows} = ?Q("SELECT feed FROM user_feeds WHERE \"user\"=$1",
 		       [Name]),
     [Feed || {Feed} <- Rows].
+
+add_feed(Name, "http://" ++ _ = Url) ->
+    {ok, 1} = ?Q("INSERT INTO user_feeds (\"user\", \"feed\") VALUES ($1, $2)",
+		 [Name, Url]);
+add_feed(_, _) ->
+    exit(invalid_url).
+
