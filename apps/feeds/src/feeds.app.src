@@ -5,7 +5,9 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  ibrowse,
+                  erlsom
                  ]},
   {mod, { feeds_app, []}},
   {env, []}
