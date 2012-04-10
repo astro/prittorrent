@@ -28,9 +28,20 @@ fetch(Url) ->
     ok = exmpp_xml:stop_parser(Parser),
     io:format("Downloaded ~s - ~p~n",[Url,length(Els)]),
 
-    io:format("Title: ~p~n", [feeds_parse:title(RootEl)]).	    
+    io:format("Title: ~p~n", [feeds_parse:title(RootEl)]),	    
+    {ok, FeedEl, ItemEls} = feeds_parse:pick_items(RootEl),
+    %%io:format("FeedEl: ~p~n", [FeedEl]),
+    io:format("ItemEls: ~p~n", [length(ItemEls)]),
+    lists:foreach(
+      fun(ItemEl) ->
+	      io:format("== ~s ==~n", [feeds_parse:item_title(ItemEl)]),
+	      lists:foreach(
+		fun(Enclosure) ->
+			io:format("* ~s~n", [Enclosure])
+		end, feeds_parse:item_enclosures(ItemEl))
+      end, ItemEls).
 
-%% TODO: use backend_http
+%% TODO: use storage, handle pcast://
 http_fold(Url, Fold, AccIn) ->
     Headers =
 	[{"User-Agent", "PritTorrent/0.1"}],
