@@ -7,8 +7,8 @@
 %% Just look for 1st title element
 -spec(title/1 :: (xmlel()) -> binary() | undefined).
 title(Xml) ->
-    case exmpp_xml:get_name_as_atom(Xml) of
-	title ->
+    case exmpp_xml:get_name_as_list(Xml) of
+	"title" ->
 	    exmpp_xml:get_cdata(Xml);
 	_ ->
 	    lists:foldl(fun(Child, undefined) ->
@@ -34,8 +34,8 @@ pick_items(RootEl) ->
 item_enclosures(ItemEl) ->
     URLs =
 	lists:foldl(fun(El, URLs) ->
-			    case exmpp_xml:get_name_as_atom(El) of
-				enclosure ->
+			    case exmpp_xml:get_name_as_list(El) of
+				"enclosure" ->
 				    case exmpp_xml:get_attribute_as_binary(El, <<"url">>) of
 					URL when is_binary(URL) ->
 					    [URL | URLs];
@@ -47,7 +47,7 @@ item_enclosures(ItemEl) ->
 						    URLs
 					    end
 				    end;
-				link ->
+				"link" ->
 				    case exmpp_xml:get_attribute_as_binary(El, <<"type">>) of
 					<<"enclosure">> ->
 					    case exmpp_xml:get_attribute_as_binary(El, <<"href">>) of
