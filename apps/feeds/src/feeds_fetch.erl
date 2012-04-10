@@ -1,3 +1,4 @@
+%% TODO: etags/last-modified support
 -module(feeds_fetch).
 
 -export([fetch/1]).
@@ -22,16 +23,14 @@ fetch(Url) ->
 	       Els3 when is_list(Els3) ->
 		   Els3
 	   end,
-    Els = Els1 ++ Els2,
+    %% At least one:
+    Els = [RootEl | _] = Els1 ++ Els2,
     ok = exmpp_xml:stop_parser(Parser),
-    io:format("Downloaded ~s - ~p~n",[Url,Els]),
-    receive
-	M -> io:format("M=~p~n",[M])
-    after 1000 ->
-	    ignore
-    end,
-    ok.
+    io:format("Downloaded ~s - ~p~n",[Url,length(Els)]),
 
+    io:format("Title: ~p~n", [feeds_parse:title(RootEl)]).	    
+
+%% TODO: use backend_http
 http_fold(Url, Fold, AccIn) ->
     Headers =
 	[{"User-Agent", "PritTorrent/0.1"}],
