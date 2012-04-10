@@ -4,16 +4,27 @@
 
 
 fetch(Url) ->
-    Parser = exmpp_xml:start_parser([{max_size, 10 * 1024 * 1024},
+    Parser = exmpp_xml:start_parser([{max_size, 30 * 1024 * 1024},
 					{names_as_atom, false},
 					{engine, expat}]),
-    http_fold(Url, fun(Chunk, _) ->
-			   R1 = exmpp_xml:parse(Parser, Chunk),
-			   io:format("Parsed: ~p~n",[R1])
-		   end, undefined),
-    exmpp_xml:parse_final(Parser, <<"">>),
-    R = exmpp_xml:stop_parser(Parser),
-    io:format("Downloaded ~s - ~p~n",[Url,R]),
+    Els1 =
+	http_fold(Url, fun(Chunk, Els) ->
+			       case exmpp_xml:parse(Parser, Chunk) of
+				   continue ->
+				       Els;
+				   Els1 when is_list(Els1) ->
+				       Els1 ++ Els
+			       end
+		       end, []),
+    Els2 = case exmpp_xml:parse_final(Parser, <<"">>) of
+	       done ->
+		   [];
+	       Els3 when is_list(Els3) ->
+		   Els3
+	   end,
+    Els = Els1 ++ Els2,
+    ok = exmpp_xml:stop_parser(Parser),
+    io:format("Downloaded ~s - ~p~n",[Url,Els]),
     receive
 	M -> io:format("M=~p~n",[M])
     after 1000 ->
