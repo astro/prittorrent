@@ -1,10 +1,13 @@
 %% TODO: etags/last-modified support
 -module(feeds_fetch).
 
--export([fetch/1]).
+-export([fetch/3]).
 
+-include("deps/exmpp/include/exmpp_xml.hrl").
 
-fetch(Url) ->
+-spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).
+fetch(Url, Etag, LastModified) ->
+    %% TODO: Etag, LastModified
     Parser = exmpp_xml:start_parser([{max_size, 30 * 1024 * 1024},
 					{names_as_atom, false},
 					{engine, expat}]),
@@ -24,22 +27,10 @@ fetch(Url) ->
 		   Els3
 	   end,
     %% At least one:
-    Els = [RootEl | _] = Els1 ++ Els2,
+    [RootEl | _] = Els1 ++ Els2,
     ok = exmpp_xml:stop_parser(Parser),
-    io:format("Downloaded ~s - ~p~n",[Url,length(Els)]),
+    {ok, {Etag, LastModified}, RootEl}.
 
-    io:format("Title: ~p~n", [feeds_parse:title(RootEl)]),	    
-    {ok, FeedEl, ItemEls} = feeds_parse:pick_items(RootEl),
-    %%io:format("FeedEl: ~p~n", [FeedEl]),
-    io:format("ItemEls: ~p~n", [length(ItemEls)]),
-    lists:foreach(
-      fun(ItemEl) ->
-	      io:format("== ~s ==~n", [feeds_parse:item_title(ItemEl)]),
-	      lists:foreach(
-		fun(Enclosure) ->
-			io:format("* ~s~n", [Enclosure])
-		end, feeds_parse:item_enclosures(ItemEl))
-      end, ItemEls).
 
 %% TODO: use storage, handle pcast://
 http_fold(Url, Fold, AccIn) ->

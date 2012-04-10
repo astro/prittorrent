@@ -8,6 +8,15 @@ CREATE VIEW activated_users AS
        FROM users
        WHERE "activated";
 
-CREATE TABLE user_feeds ("user" TEXT NOT NULL,
-       	     		 "feed" TEXT NOT NULL,
+CREATE TABLE feeds ("url" TEXT NOT NULL,
+       	     	    "last_update" TIMESTAMP,
+       	     	    "etag" TEXT,
+		    "last_modified" TEXT,
+		    "error" TEXT,
+		    "xml" TEXT,
+       	     	    PRIMARY KEY ("url"));
+
+CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
+       	     		 "feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 PRIMARY KEY ("user", "feed"));
+
