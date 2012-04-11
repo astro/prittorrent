@@ -49,7 +49,6 @@ fetch(Url, Etag1, LastModified1) ->
 		    end,
 		%% At least one:
 		[RootEl | _] = Els1 ++ Els2,
-		ok = exmpp_xml:stop_parser(Parser),
 		{ok, {Etag2, LastModified2}, RootEl};
 	    not_modified ->
 		not_modified;
@@ -57,7 +56,7 @@ fetch(Url, Etag1, LastModified1) ->
 		E
 	end,
 
-    exmpp_xml:stop_parser(Parser),
+    ok = exmpp_xml:stop_parser(Parser),
     Result.
 
 %% TODO: use storage, handle pcast://
