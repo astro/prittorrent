@@ -9,6 +9,7 @@ update_loop() ->
     MinUpdate = calendar:datetime_to_gregorian_seconds(erlang:localtime()) - ?INTERVAL,
     case model_feeds:to_update(1) of
 	{ok, [{URL, LastUpdate}]} ->
+	    io:format("UL: ~p ~p~n",[URL, LastUpdate]),
 	    LastUpdate1 = calendar:datetime_to_gregorian_seconds(LastUpdate),
 	    if
 		LastUpdate1 =< MinUpdate ->

@@ -7,10 +7,16 @@
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 
 to_update(Limit) ->
-    {ok, _, Results} =
-	?Q("SELECT \"url\", \"last_update\" FROM \"feeds\" ORDER BY \"last_update\" ASC LIMIT $1", [Limit]),
-    {ok, [{URL, {YMD, {H, M, trunc(S)}}}
-	  || {URL, {YMD, {H, M, S}}} <- Results]}.
+    case ?Q("SELECT \"url\" FROM \"feeds\" WHERE \"last_update\" IS NULL LIMIT $1", [Limit]) of
+	{ok, _, [_ | _] = Results1} ->
+	    {ok, [{URL, {{1970,1,1},{0,0,0}}}
+		  || {URL} <- Results1]};
+	_ ->
+	    {ok, _, Results} =
+		?Q("SELECT \"url\", \"last_update\" FROM \"feeds\" ORDER BY \"last_update\" ASC LIMIT $1", [Limit]),
+	    {ok, [{URL, {YMD, {H, M, trunc(S)}}}
+		  || {URL, {YMD, {H, M, S}}} <- Results]}
+    end.
     
 
 prepare_update(FeedURL) ->
