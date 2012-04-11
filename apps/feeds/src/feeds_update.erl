@@ -111,7 +111,7 @@ xml_to_feed_item(Feed, Xml) ->
     Title = feeds_parse:item_title(Xml),
     Published = feeds_parse:item_published(Xml),
     XmlSerialized = exmpp_xml:document_to_binary(Xml),
-io:format("xml_to_feed_item ~p ~s ~s ~s~n", [Feed, Id, Title, Published]),
+    Enclosures = feeds_parse:item_enclosures(Xml),
     if
 	is_binary(Id),
 	is_binary(Title),
@@ -121,7 +121,8 @@ io:format("xml_to_feed_item ~p ~s ~s ~s~n", [Feed, Id, Title, Published]),
 		       id = Id,
 		       title = Title,
 		       published = Published,
-		       xml = XmlSerialized};
+		       xml = XmlSerialized,
+		       enclosures = Enclosures};
 	true ->
 	    %% Drop this
 	    null

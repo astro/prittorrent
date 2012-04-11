@@ -86,7 +86,20 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title,
 					Item#feed_item.xml])
-			 end
+			 end,
+			 %% Update enclosures
+			 lists:foreach(
+			   fun(Enclosure) ->
+				   io:format(" ~s~n", [Enclosure]),
+				   case Q("SELECT count(\"url\") FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+					  [FeedURL, Item#feed_item.id, Enclosure]) of
+				       {ok, _, [{0}]} ->
+					   Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
+					     [FeedURL, Item#feed_item.id, Enclosure]);
+				       _ ->
+					   ignore
+				   end
+			   end, Item#feed_item.enclosures)
 		 end, Items),
 
 	       ok
