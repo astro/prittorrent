@@ -24,5 +24,7 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    UpdateLoop = {update_loop, {feeds_update, start_link, []},
+		  permanent, 1000, worker, [feeds_update]},
+    {ok, { {one_for_one, 5, 10}, [UpdateLoop]} }.
 

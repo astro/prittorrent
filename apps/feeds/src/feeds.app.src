@@ -7,7 +7,8 @@
                   kernel,
                   stdlib,
                   ibrowse,
-                  erlsom
+                  exmpp,
+		  model
                  ]},
   {mod, { feeds_app, []}},
   {env, []}

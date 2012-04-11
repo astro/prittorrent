@@ -6,7 +6,7 @@
 	 item_published/1,
 	 replace_item_enclosures/2]).
 
--include("deps/exmpp/include/exmpp_xml.hrl").
+-include_lib("exmpp/include/exmpp_xml.hrl").
 
 %% Just look for 1st title element
 -spec(title/1 :: (xmlel()) -> binary() | undefined).

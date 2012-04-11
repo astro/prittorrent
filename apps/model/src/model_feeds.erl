@@ -30,11 +30,9 @@ prepare_update(FeedURL) ->
     end,
 
     case ?Q("SELECT \"etag\", \"last_modified\" FROM \"feeds\" WHERE \"url\"=$1", [FeedURL]) of
-	{ok, _, [{Etag, LastModified}]} = R ->
-	    io:format("R ok: ~p~n",[R]),
+	{ok, _, [{Etag, LastModified}]} ->
 	    {ok, Etag, LastModified};
-	{ok, _, _} = R ->
-	    io:format("R: ~p~n",[R]),
+	{ok, _, _} ->
 	    {ok, undefined, undefined}
     end.
 
@@ -88,17 +86,13 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 					Item#feed_item.xml])
 			 end,
 			 %% Update enclosures
+			 Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2",
+			   [FeedURL, Item#feed_item.id]),
 			 lists:foreach(
 			   fun(Enclosure) ->
-				   io:format(" ~s~n", [Enclosure]),
-				   case Q("SELECT count(\"url\") FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
-					  [FeedURL, Item#feed_item.id, Enclosure]) of
-				       {ok, _, [{0}]} ->
-					   Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
-					     [FeedURL, Item#feed_item.id, Enclosure]);
-				       _ ->
-					   ignore
-				   end
+				   io:format("  e ~s~n", [Enclosure]),
+				   Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
+				     [FeedURL, Item#feed_item.id, Enclosure])
 			   end, Item#feed_item.enclosures)
 		 end, Items),
 

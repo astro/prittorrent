@@ -3,7 +3,7 @@
 
 -export([fetch/3]).
 
--include("deps/exmpp/include/exmpp_xml.hrl").
+-include_lib("exmpp/include/exmpp_xml.hrl").
 
 
 -spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).

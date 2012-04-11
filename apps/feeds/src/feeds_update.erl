@@ -1,13 +1,17 @@
 -module(feeds_update).
 
--export([update_loop/0, update/1]).
+-export([start_link/0, update_loop/0, update/1]).
 
--include("../../model/include/model.hrl").
+-include_lib("model/include/model.hrl").
 
 -define(INTERVAL, 600).
 
+start_link() ->
+    {ok, spawn_link(fun update_loop/0)}.
+
 update_loop() ->
     MinUpdate = calendar:datetime_to_gregorian_seconds(erlang:localtime()) - ?INTERVAL,
+    %% FIXME: this should actually be in a transaction with prepare_update()
     case model_feeds:to_update(1) of
 	{ok, [{URL, LastUpdate}]} ->
 	    io:format("UL: ~p ~p~n",[URL, LastUpdate]),
