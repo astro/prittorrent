@@ -20,3 +20,10 @@ CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
        	     		 "feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 PRIMARY KEY ("user", "feed"));
 
+
+CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
+       	     		 "id" TEXT NOT NULL,
+			 "title" TEXT,
+			 "published" TIMESTAMP NOT NULL,
+			 "xml" TEXT,
+			 PRIMARY KEY ("feed", "id"));

@@ -2,6 +2,7 @@
 
 -export([update_loop/0, update/1]).
 
+-include("../../model/include/model.hrl").
 
 -define(INTERVAL, 600).
 
@@ -32,8 +33,9 @@ update_loop() ->
 	    after ?INTERVAL * 1000 ->
 		    ok
 	    end
-    end.
-%%?MODULE:update_loop().
+    end,
+    
+    ?MODULE:update_loop().
 
 
 update(URL) when is_binary(URL) ->
@@ -49,11 +51,35 @@ update1(URL, Etag1, LastModified1) ->
     R1 =
 	try feeds_fetch:fetch(URL, Etag1, LastModified1) of
 	    {ok, {Etag, LastModified}, RootEl} ->
-		try feeds_parse:pick_items(RootEl) of
-		    {ok, FeedEl, Items1} ->
-			FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
-			{ok, {Etag, LastModified},
-			 FeedXml1, Items1}
+		try
+		    {ok, FeedEl, Items1} =
+			feeds_parse:pick_items(RootEl),
+		    io:format("Picked ~b items from feed ~s~n",
+			      [length(Items1), URL]),
+		    FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
+		    Items2 =
+			lists:foldl(
+			  fun(ItemXml, Items2) ->
+				  try xml_to_feed_item(URL, ItemXml) of
+				      #feed_item{} = Item ->
+					  [Item | Items2];
+				      _ ->
+					  %%io:format("Malformed item: ~s~n", [exmpp_xml:document_to_binary(ItemXml)]),
+					  Items2
+				  catch exit:Reason ->
+					  io:format("Cannot extract from feed item: ~s~n~p~n~s~n", [URL, Reason, ItemXml]),
+					  Items2
+				  end
+			  end, [], Items1),
+		    if
+			length(Items2) < length(Items1) ->
+			    io:format("Lost ~B of ~B items of ~s~n",
+				      [length(Items1) - length(Items2), length(Items1), URL]);
+			true ->
+			    ok
+		    end,
+		    {ok, {Etag, LastModified},
+		     FeedXml1, lists:reverse(Items2)}
 		catch exit:Reason1 ->
 			{error, {Etag, LastModified}, Reason1}
 		end;
@@ -67,19 +93,36 @@ update1(URL, Etag1, LastModified1) ->
 	end,
 
     case R1 of
-	{ok, {Etag2, LastModified2}, FeedXml, Items} ->
-	    model_feeds:write_update(URL, {Etag2, LastModified2}, null, FeedXml),
-	    lists:foreach(
-	      fun(_Item) ->
-		      %%model_feeds:update_item(URL
-		      todo
-	      end, Items),
+	{ok, {Etag2, LastModified2}, FeedXml, Items3} ->
+	    io:format("model_feeds:write_update(~p, ~p, ~p, ~p, ~p)~n", [URL, {Etag2, LastModified2}, null, size(FeedXml), length(Items3)]),
+	    model_feeds:write_update(URL, {Etag2, LastModified2}, null, FeedXml, Items3),
 	    ok;
 	{error, {Etag2, LastModified2}, Reason} ->
 	    Error = case Reason of
 		undefined -> null;
 		_ -> list_to_binary(io_lib:format("~p",[Reason]))
 	    end,
-	    model_feeds:write_update(URL, {Etag2, LastModified2}, Error, null),
+	    model_feeds:write_update(URL, {Etag2, LastModified2}, Error, null, []),
 	    {error, Reason}
+    end.
+
+xml_to_feed_item(Feed, Xml) ->
+    Id = feeds_parse:item_id(Xml),
+    Title = feeds_parse:item_title(Xml),
+    Published = feeds_parse:item_published(Xml),
+    XmlSerialized = exmpp_xml:document_to_binary(Xml),
+io:format("xml_to_feed_item ~p ~s ~s ~s~n", [Feed, Id, Title, Published]),
+    if
+	is_binary(Id),
+	is_binary(Title),
+	is_binary(Published),
+	is_binary(XmlSerialized) ->
+	    #feed_item{feed = Feed,
+		       id = Id,
+		       title = Title,
+		       published = Published,
+		       xml = XmlSerialized};
+	true ->
+	    %% Drop this
+	    null
     end.

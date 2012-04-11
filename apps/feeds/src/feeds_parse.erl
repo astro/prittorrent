@@ -2,7 +2,8 @@
 
 -export([title/1, image/1,
 	 pick_items/1,
-	 item_title/1, item_enclosures/1,
+	 item_id/1, item_title/1, item_enclosures/1,
+	 item_published/1,
 	 replace_item_enclosures/2]).
 
 -include("deps/exmpp/include/exmpp_xml.hrl").
@@ -33,31 +34,111 @@ pick_items(#xmlel{} = RootEl) ->
     case exmpp_xml:get_name_as_list(RootEl) of
 	%% Handle ATOM
 	"feed" ->
-	    IsEntryEl = fun(#xmlel{name="entry"}) ->
-				true;
-			   (_) ->
-				false
-			end;
-	%% Assume RSS
-	%% FIXME: rss/channel/item
-	_ ->
-	    IsEntryEl = fun(#xmlel{name="item"}) ->
-				true;
-			   (_) ->
-				false
-			end
-    end,
+	    {Entries, FeedChildren} =
+		lists:partition(
+		  fun(#xmlel{name="entry"}) ->
+			  true;
+		     (_) ->
+			  false
+		  end, RootEl#xmlel.children),
+	    {ok,
+	     RootEl#xmlel{children = lists:reverse(FeedChildren)},
+	     lists:reverse(Entries)};
 
-    {Entries, FeedChildren} =
-	lists:partition(IsEntryEl, RootEl#xmlel.children),
-    {ok,
-     RootEl#xmlel{children = lists:reverse(FeedChildren)},
-     lists:reverse(Entries)}.
+	%% Assume RSS
+	_ ->
+	    {Items, RootChildren} =
+		lists:foldl(
+		  fun(#xmlel{name="channel"}=Channel,
+		      {Items, RootChildren}) ->
+			  {Items1, ChannelChildren} =
+			      lists:partition(
+				fun(#xmlel{name="item"}) ->
+					true;
+				   (_) ->
+					false
+				end, Channel#xmlel.children),
+			  {Items1 ++ Items,
+			   [Channel#xmlel{children = ChannelChildren}
+			    | RootChildren]};
+		     (Child,
+		      {Items, RootChildren}) ->
+			  {Items,
+			   [Child
+			    | RootChildren]}
+		  end, {[], []}, RootEl#xmlel.children),
+	    {ok,
+	     RootEl#xmlel{children = lists:reverse(RootChildren)},
+	     lists:reverse(Items)}
+    end.
+
 
 
 item_title(ItemEl) ->
     %% Works the same as for the feed in RSS & ATOM
     title(ItemEl).
+
+item_id(ItemEl) ->
+    item_id1(ItemEl, ["id", "guid", "link"]).
+
+item_id1(_ItemEl, []) ->
+    undefined;
+item_id1(ItemEl, [ChildName | ChildNames]) ->
+    R =
+	lists:foldl(
+	  fun(Child, undefined) ->
+		  case exmpp_xml:get_cdata(Child) of
+		      Cdata
+			when is_binary(Cdata),
+			     size(Cdata) > 0 ->
+			  Cdata;
+		      _ ->
+			  case {exmpp:get_attribute_as_binary(
+				  Child, "rel", undefined),
+				exmpp:get_attribute_as_binary(
+				  Child, "href", undefined)} of
+			      {<<"alternate">>, Href} ->
+				  Href;
+			      _ ->
+				  undefined
+			  end
+		  end;
+	     (_, R) ->
+		  R
+	  end, undefined, exmpp_xml:get_elements(ItemEl, ChildName)),
+    case R of
+	undefined ->
+	    item_id1(ItemEl, ChildNames);
+	_ ->
+	    R
+    end.
+
+item_published(ItemEl) ->
+    item_published1(ItemEl, ["pubDate", "published", "updated"]).
+
+item_published1(_ItemEl, []) ->
+    undefined;
+item_published1(ItemEl, [ChildName | ChildNames]) ->
+    R =
+	lists:foldl(
+	  fun(Child, undefined) ->
+		  case exmpp_xml:get_cdata(Child) of
+		      Cdata
+			when is_binary(Cdata),
+			     size(Cdata) > 0 ->
+			  Cdata;
+		      _ ->
+			  undefined
+		  end;
+	     (_, R) ->
+		  R
+	  end, undefined, exmpp_xml:get_elements(ItemEl, ChildName)),
+    case R of
+	undefined ->
+	    item_published1(ItemEl, ChildNames);
+	_ ->
+	    R
+    end.
 
 -spec(item_enclosures/1 :: (xmlel()) -> [binary()]).
 item_enclosures(ItemEl) ->
@@ -83,7 +164,7 @@ item_enclosures(ItemEl) ->
 					_ ->
 					    URLs
 				    end;
-				T ->
+				_Rel ->
 				    URLs
 			    end;
 		       (_, URLs) ->
