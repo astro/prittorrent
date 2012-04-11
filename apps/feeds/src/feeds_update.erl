@@ -14,12 +14,15 @@ update(URL) ->
 			FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
 			{ok, {Etag, LastModified},
 			 FeedXml1, Items1}
-	    catch exit:Reason1 ->
-		    {error, {Etag, LastModified}, Reason1}
-	    end
-    catch exit:Reason1 ->
-	    {error, {Etag1, LastModified1}, Reason1}
-    end,
+		catch exit:Reason1 ->
+			{error, {Etag, LastModified}, Reason1}
+		end;
+	    not_modified ->
+		%% Well, show it to the user... (in green :)
+		{error, {Etag1, LastModified1}, not_modified}
+	catch exit:Reason1 ->
+		{error, {Etag1, LastModified1}, Reason1}
+	end,
 
     case R1 of
 	{ok, {Etag2, LastModified2}, FeedXml, Items} ->
@@ -28,11 +31,13 @@ update(URL) ->
 	      fun(_Item) ->
 		      %%model_feeds:update_item(URL
 		      todo
-	      end, Items);
+	      end, Items),
+	    ok;
 	{error, {Etag2, LastModified2}, Reason} ->
 	    Error = case Reason of
 		undefined -> null;
 		_ -> list_to_binary(io_lib:format("~p",[Reason]))
 	    end,
-	    model_feeds:write_update(URL, {Etag2, LastModified2}, Error, null)
+	    model_feeds:write_update(URL, {Etag2, LastModified2}, Error, null),
+	    {error, Reason}
     end.
