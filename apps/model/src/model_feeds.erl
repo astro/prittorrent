@@ -1,10 +1,17 @@
 -module(model_feeds).
 
--export([prepare_update/1, write_update/4]).
+-export([to_update/1, prepare_update/1, write_update/4]).
 
 
 -define(POOL, pool_users).
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
+
+to_update(Limit) ->
+    {ok, _, Results} =
+	?Q("SELECT \"url\", \"last_update\" FROM \"feeds\" ORDER BY \"last_update\" ASC LIMIT $1", [Limit]),
+    {ok, [{URL, {YMD, {H, M, trunc(S)}}}
+	  || {URL, {YMD, {H, M, S}}} <- Results]}.
+    
 
 prepare_update(FeedURL) ->
     case ?Q("UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP WHERE \"url\"=$1", [FeedURL]) of

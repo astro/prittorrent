@@ -5,6 +5,7 @@
 
 -include("deps/exmpp/include/exmpp_xml.hrl").
 
+
 -spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).
 fetch(Url, Etag1, LastModified1) ->
     Headers =
