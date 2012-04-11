@@ -47,7 +47,6 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml) ->
     Params = [FeedURL,
 	      enforce_string(Etag), enforce_string(LastModified), 
 	      enforce_string(Error), enforce_string(Xml)],
-    io:format("Q: ~p ~p~n", [Stmt,Params]),
     case ?Q(Stmt, Params) of
 	{ok, 1} ->
 	    ok;	   

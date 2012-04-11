@@ -59,7 +59,9 @@ update1(URL, Etag1, LastModified1) ->
 		end;
 	    not_modified ->
 		%% Well, show it to the user... (in green :)
-		{error, {Etag1, LastModified1}, not_modified}
+		{error, {Etag1, LastModified1}, not_modified};
+	    {error, Reason1} ->
+		{error, {Etag1, LastModified1}, Reason1}
 	catch exit:Reason1 ->
 		{error, {Etag1, LastModified1}, Reason1}
 	end,
