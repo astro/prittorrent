@@ -45,7 +45,7 @@ page_2column(Col1, Col2) ->
 render_index() ->
     page_2column(
       [<<"      <div class=\"line\">
-	<h2>Popular Feeds</h2>
+	<h2>Recent Torrents</h2>
 	<!--ul class=\"feeds\">
 	  <li><a href=\"fu.rss\">RSS</a></li>
 	  <li><a href=\"fu.atom\">ATOM</a></li>
