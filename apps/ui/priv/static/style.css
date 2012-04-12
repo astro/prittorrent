@@ -100,6 +100,13 @@ h2 {
 article {
 
 }
+article img.logo {
+  width: 64px;
+  height: 64px;
+  border: 1px solid black;
+  padding: 0;
+  margin: 0 4px 2px 0;
+}
 
 .line > * {
   display: inline-block;
@@ -141,13 +148,6 @@ article {
 article div {
   vertical-align: top;
 }
-img.logo {
-  width: 64px;
-  height: 64px;
-  border: 1px solid black;
-  padding: 0;
-  margin: 0;
-}
 h3 {
   margin: 0;
   padding: 0;
@@ -161,31 +161,43 @@ h4 {
   color: #999;
   font-weight: bold;
 }
-ul.download {
-  clear: right;
-  float: right;
+.download {
   list-style-type: none;
-  margin: 0.3em 0 0;
-  padding: 0;
+  margin: 0.1em 0 0;
+  padding: 0.5em 0.5em;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 1px 1px 8px #ddd;
+  min-width: 350px;
 }
-dl.download {
-  margin: 0;
-  padding: 0;
-}
-dl.download dt {
-  margin-top: 0.2em;
-  color: #999;
-  font-weight: bold;
-}
-dl.download dd {
-  margin: 0;
-}
-dd.more {
-  font-size: 70%;
+.download .torrent {
+  float: left;
+  padding-top: 6px;
+  padding-bottom: 4px;
 }
 .stats {
   font-size: 75%;
-  color: #777;
+  font-weight: bold;
+  color: #888;
+  padding: 0;
+  text-align: right;
+}
+.stats > * {
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: 1px 1px 4px #ccc inset;
+  padding: 2px 4px 0px 4px;
+  margin: 0;
+  margin-right: 1em;
+  line-height: 24px;
+}
+.stats .s:before {
+  content: url('s.svg');
+}
+.stats .l:before {
+  content: url('l.svg');
+  vertical-align: middle;
 }
 .source {
   margin: 0;
@@ -212,7 +224,7 @@ a[href^="magnet:"] {
 .graphs {
   min-width: 400px;
   width: 100%;
-  margin-top: 1.5em;
+  margin-top: 0em;
   padding: 0em 0;
   font-size: 90%;
   color: #666;
@@ -220,7 +232,7 @@ a[href^="magnet:"] {
 .graphs .tabs {
   list-style: none;
   margin: 0;
-  margin-top: 1em;
+  margin-top: 0.4em;
   padding: 0;
 }
 .graphs .tabs li {
@@ -242,6 +254,7 @@ a[href^="magnet:"] {
   border: 1px solid #ddd;
   box-shadow: 2px 2px 4px #eee;
   padding: 0.6em 1em;
+  border-radius: 3px 3px 6px 6px;
 }
 .graphs svg {
   width: 100%;
