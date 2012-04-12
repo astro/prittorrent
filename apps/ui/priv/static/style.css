@@ -1,3 +1,8 @@
+* {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
 body {
   min-width: 800px;
   color: black;
@@ -17,19 +22,25 @@ a:hover {
 }
 
 header {
-  background-color: black;
-  color: white;
+  color: #333;
   width: 100%;
   margin: 0;
   text-align: center;
+  border-bottom: 1px dotted #ccc;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  font-weight: bold;
 }
 header h1 {
   font-size: 300%;
-  font-style: italic;
-  font-weight: bold;
-  font-family: 'Georgia', serif;
   margin: 0;
-  padding: 16px 0;
+  padding: 0.2em 0 0.05em;
+}
+header .slogan {
+  margin: 0;
+  margin-bottom: 0.1em;
+  padding: 0;
+  color: #777;
 }
 
 .col1 {
@@ -60,7 +71,7 @@ h2 {
   padding: 1em;
   background-color: white;
   border-radius: 6px;
-  box-shadow: 4px 4px 32px #ccc;
+  box-shadow: 4px 2px 8px #ccc;
 }
 #login h2, #signup h2 {
   text-align: center;
@@ -122,11 +133,10 @@ article {
 
 article {
   background-color: white;
-  border-radius: 6px;
-  box-shadow: 4px 4px 32px #ccc;
-  margin: 1em 1em;
+  border-top: 1px solid #eee;
+  margin: 0 1em;
   min-height: 72px;
-  padding: 4px;
+  padding: 1em 0;
 }
 article div {
   vertical-align: top;
@@ -141,24 +151,46 @@ img.logo {
 h3 {
   margin: 0;
   padding: 0;
-  font-size: 120%;
+  font-size: 105%;
   font-weight: bold;
   color: #999;
 }
+h4 {
+  font-size: 120%;
+  margin: 0.2em 0 0;
+  color: #999;
+  font-weight: bold;
+}
 ul.download {
+  clear: right;
+  float: right;
   list-style-type: none;
-  margin: 0;
-  margin-left: 2px;
+  margin: 0.3em 0 0;
   padding: 0;
+}
+dl.download {
+  margin: 0;
+  padding: 0;
+}
+dl.download dt {
+  margin-top: 0.2em;
+  color: #999;
+  font-weight: bold;
+}
+dl.download dd {
+  margin: 0;
+}
+dd.more {
+  font-size: 70%;
+}
+.stats {
+  font-size: 75%;
+  color: #777;
 }
 .source {
   margin: 0;
   font-size: 70%;
   color: #777;
-}
-.stats {
-  font-size: 70%;
-  color: #666;
 }
 a[href$=".torrent"] {
   background: url(dl.gif) left no-repeat;
@@ -177,15 +209,43 @@ a[href^="magnet:"] {
   font-size: 1%;
 }
 
-.stats {
-  min-width: 300px;
+.graphs {
+  min-width: 400px;
+  width: 100%;
+  margin-top: 1.5em;
+  padding: 0em 0;
+  font-size: 90%;
+  color: #666;
+}
+.graphs .tabs {
+  list-style: none;
   margin: 0;
+  margin-top: 1em;
   padding: 0;
 }
-.stats canvas {
-  margin: 2px 0;
-  display: block;
-  background-color: #ddd;
+.graphs .tabs li {
+  display: inline;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  margin: 0 0.5em;
+  padding: 0.2em 0.5em 0;
+  cursor: pointer;
+}
+.graphs .tabs li.tab_selected {
+  border-bottom: 1px solid white;
+  box-shadow: 2px -2px 4px #eee;
+}
+.graphs .tab_content {
+  border: 1px solid #ddd;
+  box-shadow: 2px 2px 4px #eee;
+  padding: 0.6em 1em;
+}
+.graphs svg {
+  width: 100%;
+  background-color: #eee;
 }
 
 footer {
