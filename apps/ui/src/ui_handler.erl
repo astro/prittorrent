@@ -27,7 +27,7 @@ terminate(_Req, _State) ->
     ok.
 
 html_ok(Body) ->
-    {ok, 200, [{<<"Content-Type">>, <<"text/html">>}], Body}.
+    {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], Body}.
 
 handle_request('GET', []) ->
     html_ok(ui_template:render_index());

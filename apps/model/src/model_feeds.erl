@@ -74,15 +74,17 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 				[FeedURL, Item#feed_item.id]) of
 			     {ok, _, [{0}]} ->
 				 {ok, 1} =
-				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"xml\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5)",
+				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title, Item#feed_item.published, 
+					enforce_string(Item#feed_item.homepage), enforce_string(Item#feed_item.payment), 
 					Item#feed_item.xml]);
 			     {ok, _, [{1}]} ->
 				 {ok, 1} =
-				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"xml\"=$4 WHERE \"feed\"=$1 AND \"id\"=$2",
+				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"xml\"=$6, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title,
+					enforce_string(Item#feed_item.homepage), enforce_string(Item#feed_item.payment), 
 					Item#feed_item.xml])
 			 end,
 			 %% Update enclosures

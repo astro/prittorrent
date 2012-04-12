@@ -4,12 +4,26 @@
   -webkit-box-sizing: border-box;
 }
 body {
-  min-width: 800px;
-  color: black;
-  background-color: white;
-  padding: 0;
   margin: 0;
+  padding: 0 auto;
+  background: url('backdrop.png');
+  color: black;
+}
+body .frame {
+  //min-width: 630px;
+  //max-width: 90%;
+  margin: 0 auto;
+  padding: 16px 32px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid #ccc;
+  box-shadow: 0 0 32px #333;
+  border-radius: 32px;
   font-family: sans-serif;
+}
+body .pane {
+  background-color: white;
+  border-radius: 32px;
+  border: 1px solid #ccc;
 }
 a {
   color: #555;
@@ -23,7 +37,7 @@ a:hover {
 
 header {
   color: #333;
-  width: 100%;
+  //width: 100%;
   margin: 0;
   text-align: center;
   border-bottom: 1px dotted #ccc;
@@ -44,13 +58,14 @@ header .slogan {
 }
 
 .col1 {
-  width: 49%;
+  //width: 49%;
   float: left;
   margin: 0;
   padding: 0;
+  min-width: 
 }
 .col2 {
-  width: 49%;
+  //width: 49%;
   margin: 0;
   margin-left: 50%;
   padding: 0;
@@ -186,7 +201,7 @@ h4 {
   display: inline-block;
   border: 1px solid #ccc;
   border-radius: 3px;
-  box-shadow: 1px 1px 4px #ccc inset;
+  box-shadow: 1px 1px 4px #eee insert;
   padding: 2px 4px 0px 4px;
   margin: 0;
   margin-right: 1em;

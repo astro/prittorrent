@@ -125,6 +125,8 @@ xml_to_feed_item(Feed, Xml) ->
 		       id = Id,
 		       title = Title,
 		       published = Published,
+		       homepage = Homepage,
+		       payment = Payment,
 		       xml = XmlSerialized,
 		       enclosures = Enclosures};
 	true ->
