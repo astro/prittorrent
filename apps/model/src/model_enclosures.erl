@@ -12,7 +12,12 @@ to_hash(Limit) ->
     ?T(fun(Q) ->
 	       case Q("SELECT \"url\" FROM enclosures_to_hash LIMIT $1", [Limit]) of
 		   {ok, _, [{URL}]} ->
-		       Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP WHERE \"url\"=$1", [Limit]),
+		       case Q("SELECT count(\"url\") FROM enclosure_torrents WHERE \"url\"=$1", [URL]) of
+			   {ok, _, [{0}]} ->
+			       ?Q("INSERT INTO enclosure_torrents (\"url\", \"last_update\") VALUES ($1, CURRENT_TIMESTAMP)", [URL]);
+			   {ok, _, [{1}]} ->
+			       ?Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP WHERE \"url\"=$1", [URL])
+		       end,
 		       {ok, URL};
 		   _ ->
 		       nothing

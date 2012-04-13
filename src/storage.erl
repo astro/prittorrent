@@ -1,5 +1,7 @@
 -module(storage).
 
+%% TODO: relative redirects
+
 -export([make/1, size/1, fold/5]).
 
 -record(storage, {urls :: [{binary(), integer()}]}).
@@ -28,18 +30,22 @@ resource_size(URL) when is_binary(URL) ->
 resource_size(URL) ->
     case ibrowse:send_req(URL, [], head) of
 	{ok, "200", Headers, _} ->
-	    lists:foldl(
-	      fun(_, {ok, Size}) ->
-		      {ok, Size};
-		 ({Header, Value}, _) ->
-		      case string:to_lower(Header) of
-			  "content-length" ->
-			      Size = list_to_integer(Value),
-			      {ok, Size};
-			  _ ->
-			      undefined
-		      end
-	      end, undefined, Headers);
+	    case extract_header("content-length", Headers) of
+		undefined ->
+		    undefined;
+		SizeS ->
+		    Size = list_to_integer(SizeS),
+		    {ok, Size}
+	    end;
+	{ok, [$3, _, _] = StatusS, Headers, _} ->
+	    case extract_header("location", Headers) of
+		undefined ->
+		    exit({http, list_to_integer(StatusS)});
+		Location ->
+		    %% FIXME: infinite redirects?
+		    io:format("HTTP ~s: ~s redirects to ~s~n", [StatusS, URL, Location]),
+		    resource_size(Location)
+	    end;
 	{ok, StatusS, _, _} ->
 	    exit({http, list_to_integer(StatusS)});
 	{error, Reason} ->
@@ -99,6 +105,16 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
         {ibrowse_async_headers, ReqId, "206", _Headers} ->
 	    %% Strrream...
             fold_resource1(ReqId, F, AccIn);
+	{ok, [$3, _, _] = StatusS, Headers, _} ->
+	    case extract_header("location", Headers) of
+		undefined ->
+		    exit({http, list_to_integer(StatusS)});
+		Location ->
+		    io:format("HTTP ~s: ~s redirects to ~s~n", [StatusS, URL, Location]),
+		    %% FIXME: infinite redirects?
+		    %% FIXME: this breaks Offset & Length for multi-file torrents
+		    fold_resource(Location, Offset, Length, F, AccIn)
+	    end;
         {ibrowse_async_headers, ReqId, StatusS, _Headers} ->
             {Status, _} = string:to_integer(StatusS),
             exit({http, Status});
@@ -123,3 +139,18 @@ fold_resource1(ReqId, F, AccIn) ->
 	%% M ->
 	%%     io:format("!!! fold_resource1 got ~p~n", [M])
     end.
+
+extract_header(Name1, Headers) ->
+    Name2 = string:to_lower(Name1),
+    lists:foldl(
+      fun({Header, Value}, undefined) ->
+	      case string:to_lower(Header) of
+		  Name3 when Name2 == Name3 ->
+		      Value;
+		  _ ->
+		      undefined
+	      end;
+	 (_, Value) ->
+	      Value
+      end, undefined, Headers).
+    
