@@ -1,0 +1,13 @@
+{application, hasher,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { hasher_app, []}},
+  {env, [{announce_url, <<"http://t.bitlove.org/announce">>},
+	 {workers, 2}]}
+ ]}.

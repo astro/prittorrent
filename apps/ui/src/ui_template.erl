@@ -63,7 +63,7 @@ render_index() ->
       </div>
 
       <article>
-">>],
+">>,
       <<"</article>">>]).
 
 render_user(_UserName) ->

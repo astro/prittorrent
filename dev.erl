@@ -16,13 +16,14 @@ add_app_paths(BaseDir) ->
 		      ignore;
 		 (Filename) ->
 		      code:add_patha(BaseDir ++ "/" ++ Filename ++ "/ebin")
-	      end, Filenames).
+	      end, Filenames) ++
+    [code:add_patha("ebin")].
 
 start_deps() ->
     R1 =
 	lists:map(
 	  fun application:start/1,
-	  [crypto, public_key, ssl, inets]),
+	  [crypto, public_key, ssl, inets, compiler]),
 
     {ok, Filenames} = file:list_dir("deps"),
     R2 =

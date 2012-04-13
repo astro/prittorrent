@@ -40,3 +40,16 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
 			 "url" TEXT NOT NULL,
 			 PRIMARY KEY ("feed", "item", "url"),
 			 FOREIGN KEY ("feed", "item") REFERENCES "feed_items" ("feed", "id"));
+
+CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
+       	     			 last_update TIMESTAMP,
+				 error TEXT,
+				 info_hash BYTEA);
+-- TODO: order
+CREATE VIEW enclosures_to_hash AS
+       (SELECT DISTINCT "url" FROM enclosures
+       	       WHERE "url" NOT IN
+	       (SELECT "url" FROM enclosure_torrents WHERE "last_update" > CURRENT_TIMESTAMP - '1 day'::interval));
+
+CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
+       	     	       "torrent" BYTEA);
