@@ -28,8 +28,12 @@ size(#storage{urls = URLs}) ->
 resource_size(URL) when is_binary(URL) ->
     resource_size(binary_to_list(URL));
 resource_size(URL) ->
-    case ibrowse:send_req(URL, [], head) of
+    io:format("HEAD ~s~n", [URL]),
+    R = ibrowse:send_req(URL, [], head, [], [{trace, true}]),
+    io:format("HEAD ~s - ~p~n", [URL, R]),
+    case R of
 	{ok, "200", Headers, _} ->
+	    io:format("200 ~s~n", [URL]),
 	    case extract_header("content-length", Headers) of
 		undefined ->
 		    undefined;
@@ -38,6 +42,7 @@ resource_size(URL) ->
 		    {ok, Size}
 	    end;
 	{ok, [$3, _, _] = StatusS, Headers, _} ->
+	    io:format("~s ~s ~p~n", [StatusS, URL, Headers]),
 	    case extract_header("location", Headers) of
 		undefined ->
 		    exit({http, list_to_integer(StatusS)});
@@ -47,8 +52,10 @@ resource_size(URL) ->
 		    resource_size(Location)
 	    end;
 	{ok, StatusS, _, _} ->
+	    io:format("~s ~s~n", [StatusS, URL]),
 	    exit({http, list_to_integer(StatusS)});
 	{error, Reason} ->
+	    io:format("~s ~p~n", [URL, Reason]),
 	    exit(Reason)
     end.
 
@@ -96,7 +103,9 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
     {ibrowse_req_id, ReqId} =
         ibrowse:send_req(URL, Headers, get, [],
                          [{stream_to, {self(), once}},
-			  {response_format, binary}
+			  {response_format, binary},
+			  {max_sessions, 100},
+			  {max_pipeline_size, 0}
 			 ], 10000),
 
     %% Await response
@@ -106,6 +115,13 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 	    %% Strrream...
             fold_resource1(ReqId, F, AccIn);
 	{ok, [$3, _, _] = StatusS, Headers, _} ->
+	    io:format("~s ibrowse_async_response_end ~s ~p~n", [URL, StatusS, Headers]),
+	    ok = ibrowse:stream_next(ReqId),
+	    receive
+		{ibrowse_async_response_end, ReqId} ->
+		    ok
+	    end,
+
 	    case extract_header("location", Headers) of
 		undefined ->
 		    exit({http, list_to_integer(StatusS)});
@@ -116,6 +132,12 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 		    fold_resource(Location, Offset, Length, F, AccIn)
 	    end;
         {ibrowse_async_headers, ReqId, StatusS, _Headers} ->
+	    ok = ibrowse:stream_next(ReqId),
+	    receive
+		{ibrowse_async_response_end, ReqId} ->
+		    ok
+	    end,
+
             {Status, _} = string:to_integer(StatusS),
             exit({http, Status});
         {ibrowse_async_response, ReqId, {error, Err}} ->
