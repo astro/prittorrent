@@ -12,6 +12,7 @@ loop() ->
 	    hash(URL);
 	nothing ->
 	    SleepTime = 30 + random:uniform(30),
+	    io:format("Nothing to hash, sleeping ~Bs~n", [SleepTime]),
 	    receive
 	    after SleepTime * 1000 ->
 		    ok
@@ -26,8 +27,8 @@ hash(URL) ->
 	    hasher_hash:make_torrent([URL]),
 	model_torrents:add_torrent(InfoHash, TorrentFile),
 	model_enclosures:set_torrent(URL, <<"">>, InfoHash)
-    catch _:Reason ->
-	    io:format("Failed hashing ~s~n~p~n", [URL, Reason]),
+    catch K:Reason ->
+	    io:format("Failed hashing ~s~n~s:~p~n", [URL, K, Reason]),
 	    model_enclosures:set_torrent(
 	      URL, list_to_binary(io_lib:format("~p", [Reason])), <<"">>)
     end.

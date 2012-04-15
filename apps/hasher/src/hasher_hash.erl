@@ -10,6 +10,7 @@ make_torrent(URL) when is_binary(URL) ->
 
 make_torrent(URLs) ->
     {ok, Size, Pieces} = hash_torrent(URLs),
+    io:format("hash_torrent ~p - Size: ~p, Pieces: ~p~n", [URLs, Size, length(Pieces)]),
     InfoValue =
 	[{<<"name">>, list_to_binary(extract_name_from_urls(URLs))},
 	 {<<"piece length">>, ?DEFAULT_PIECE_LENGTH},
@@ -49,6 +50,7 @@ hash_torrent(URLs) ->
     Pieces =
 	map_pieces(
 	  Size, fun(Offset, Length) ->
+			io:format("Hash ~s: ~B%~n", [hd(URLs), trunc(100 * (Offset + Length) / Size)]),
 			hash_piece(Storage, Offset, Length)
 		end),
     {ok, Size, Pieces}.
