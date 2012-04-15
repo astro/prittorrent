@@ -45,11 +45,15 @@ CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
        	     			 last_update TIMESTAMP,
 				 error TEXT,
 				 info_hash BYTEA);
--- TODO: order
 CREATE VIEW enclosures_to_hash AS
-       (SELECT DISTINCT "url" FROM enclosures
-       	       WHERE "url" NOT IN
-	       (SELECT "url" FROM enclosure_torrents WHERE "last_update" > CURRENT_TIMESTAMP - '1 day'::interval));
+       SELECT enclosures.url,
+       	      enclosure_torrents.last_update AS last_update,
+	      enclosure_torrents.error AS error,
+	      enclosure_torrents.info_hash
+	       FROM enclosures LEFT JOIN enclosure_torrents
+	       ON (enclosures.url=enclosure_torrents.url)
+	        WHERE enclosure_torrents.info_hash IS NULL
+		OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update;
 
 CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
        	     	       "torrent" BYTEA);
