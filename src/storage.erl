@@ -84,9 +84,6 @@ fold_resource(URL, Offset, Length, F, AccIn) when is_binary(URL) ->
     fold_resource(binary_to_list(URL), Offset, Length, F, AccIn);
 fold_resource(URL, Offset, Length, F, AccIn) ->
     %% Compose request
-    logger:log(backend_http, debug,
-               "GET ~s (~p+~p)~n", [URL, Offset, Length]),
-    io:format("GET ~s (~p+~p)~n", [URL, Offset, Length]),
     ReqHeaders =
         if
             is_integer(Offset),
