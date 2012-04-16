@@ -206,9 +206,9 @@ h4 {
   color: #777;
 }
 a[href$=".torrent"] {
-  background: url(dl.gif) left no-repeat;
-  padding-left: 10px;
-  line-height: 11px;
+  background: url(favicon.png) left no-repeat;
+  padding-left: 16px;
+  line-height: 16px;
 }
 a[href^="magnet:"] { 
   background: url(magnet.gif) top left no-repeat;

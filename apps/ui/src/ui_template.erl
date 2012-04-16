@@ -11,6 +11,8 @@ template_head() ->
   <head>
     <title>Bitlove</title>
     <link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\"/>
+    <link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\"/>
+    <link rel=\"shortcut icon\" type=\"image/png\" href=\"/static/favicon.png\"/>
   </head>
   <body>
     <header>
@@ -44,7 +46,7 @@ render_enclosure({URL, InfoHash}) ->
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
     [<<"<ul class=\"download\">
 	  <li class=\"torrent\">
-	    <a href=\"">>, escape_attr("/TODO"), <<"\">">>, escape(Title), <<"</a>
+	    <a href=\"">>, escape_attr("/TODO.torrent"), <<"\">">>, escape(Title), <<"</a>
 	  </li>">>,
      <<"<li class=\"stats\">
 	    <span class=\"size\" title=\"Download size\">">>, integer_to_list(Size), <<" Bytes</span>
