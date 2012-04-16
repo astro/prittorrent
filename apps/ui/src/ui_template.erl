@@ -10,7 +10,7 @@ template_head() ->
     <title>Bitlove</title>
     <link rel=\"stylesheet\" type=\"text/css\" href=\"static/style.css\"/>
   </head>
-  <body><div class=\"frame\"><div class=\"pane\">
+  <body>
     <header>
       <h1>Bitlove</h1>
       <p class=\"slogan\">♥ Lovely BitTorrent Speed For Your Podcast Downloads</p>
@@ -28,7 +28,7 @@ template_foot() ->
 	<a href=\"/login\">Log in</a>
       </p>
     </footer>
-  </div></div></body>
+  </body>
 </html>
 ">>.
 

@@ -4,26 +4,11 @@
   -webkit-box-sizing: border-box;
 }
 body {
-  margin: 0;
-  padding: 0 auto;
-  background: url('backdrop.png');
-  color: black;
-}
-body .frame {
-  //min-width: 630px;
-  //max-width: 90%;
   margin: 0 auto;
-  padding: 16px 32px;
-  background-color: rgba(255, 255, 255, 0.7);
-  border: 1px solid #ccc;
-  box-shadow: 0 0 32px #333;
-  border-radius: 32px;
+  max-width: 80em;
+  color: black;
+  background: white;
   font-family: sans-serif;
-}
-body .pane {
-  background-color: white;
-  border-radius: 32px;
-  border: 1px solid #ccc;
 }
 a {
   color: #555;
@@ -58,14 +43,14 @@ header .slogan {
 }
 
 .col1 {
-  //width: 49%;
+  width: 49%;
   float: left;
   margin: 0;
   padding: 0;
   min-width: 
 }
 .col2 {
-  //width: 49%;
+  width: 49%;
   margin: 0;
   margin-left: 50%;
   padding: 0;
