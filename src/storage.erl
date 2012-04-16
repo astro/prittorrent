@@ -2,7 +2,9 @@
 
 %% TODO: relative redirects
 
--export([make/1, size/1, fold/5]).
+-export([make/1, size/1, fold/5, resource_size/1]).
+
+-define(TIMEOUT, 30 * 1000).
 
 -record(storage, {urls :: [{binary(), integer()}]}).
 
@@ -28,12 +30,8 @@ size(#storage{urls = URLs}) ->
 resource_size(URL) when is_binary(URL) ->
     resource_size(binary_to_list(URL));
 resource_size(URL) ->
-    io:format("HEAD ~s~n", [URL]),
-    R = ibrowse:send_req(URL, [], head, [], [{trace, true}]),
-    io:format("HEAD ~s - ~p~n", [URL, R]),
-    case R of
-	{ok, "200", Headers, _} ->
-	    io:format("200 ~s~n", [URL]),
+    case lhttpc:request(URL, head, [], ?TIMEOUT) of
+	{ok, {{200, _}, Headers, _}} ->
 	    case extract_header("content-length", Headers) of
 		undefined ->
 		    undefined;
@@ -41,19 +39,19 @@ resource_size(URL) ->
 		    Size = list_to_integer(SizeS),
 		    {ok, Size}
 	    end;
-	{ok, [$3, _, _] = StatusS, Headers, _} ->
-	    io:format("~s ~s ~p~n", [StatusS, URL, Headers]),
+	{ok, {{Status, _}, Headers, _}}
+	 when Status >= 300, Status < 400 ->
 	    case extract_header("location", Headers) of
 		undefined ->
-		    exit({http, list_to_integer(StatusS)});
+		    exit({http, Status});
 		Location ->
 		    %% FIXME: infinite redirects?
-		    io:format("HTTP ~s: ~s redirects to ~s~n", [StatusS, URL, Location]),
+		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
 		    resource_size(Location)
 	    end;
-	{ok, StatusS, _, _} ->
-	    io:format("~s ~s~n", [StatusS, URL]),
-	    exit({http, list_to_integer(StatusS)});
+	{ok, {{Status, _}, _, _}} ->
+	    io:format("~B ~s~n", [Status, URL]),
+	    exit({http, Status});
 	{error, Reason} ->
 	    io:format("~s ~p~n", [URL, Reason]),
 	    exit(Reason)
@@ -80,6 +78,8 @@ fold(#storage{urls = URLs} = Storage,
     
     fold(Storage, Offset + Length1, Length - Length1, F, AccOut).
 
+%% FIXME: what if response chunk is smaller than requested? retry in
+%% case it's still uploading?
 fold_resource(URL, Offset, Length, F, AccIn) when is_binary(URL) ->
     fold_resource(binary_to_list(URL), Offset, Length, F, AccIn);
 fold_resource(URL, Offset, Length, F, AccIn) ->
@@ -87,7 +87,7 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
     logger:log(backend_http, debug,
                "GET ~s (~p+~p)~n", [URL, Offset, Length]),
     io:format("GET ~s (~p+~p)~n", [URL, Offset, Length]),
-    Headers =
+    ReqHeaders =
         if
             is_integer(Offset),
             is_integer(Length) ->
@@ -100,66 +100,56 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
                 []
         end ++
         [{"User-Agent", "PritTorrent/0.1"}],
-    {ibrowse_req_id, ReqId} =
-        ibrowse:send_req(URL, Headers, get, [],
-                         [{stream_to, {self(), once}},
-			  {response_format, binary},
-			  {max_sessions, 100},
-			  {max_pipeline_size, 0}
-			 ], 10000),
-
-    %% Await response
-    ok = ibrowse:stream_next(ReqId),
-    receive
-        {ibrowse_async_headers, ReqId, "206", _Headers} ->
-	    %% Strrream...
-            fold_resource1(ReqId, F, AccIn);
-	{ok, [$3, _, _] = StatusS, Headers, _} ->
-	    io:format("~s ibrowse_async_response_end ~s ~p~n", [URL, StatusS, Headers]),
-	    ok = ibrowse:stream_next(ReqId),
-	    receive
-		{ibrowse_async_response_end, ReqId} ->
-		    ok
-	    end,
+    ReqOptions =
+	[{partial_download,
+	  [
+	   %% specifies how many part will be sent to the calling
+	   %% process before waiting for an acknowledgement
+	   {window_size, 4},
+	   %% specifies the size the body parts should come in
+	   {part_size, 8192}
+	  ]}
+	],
+    case lhttpc:request(URL, get, ReqHeaders,
+			[], ?TIMEOUT, ReqOptions) of
+	%% Partial Content
+	{ok, {{206, _}, _Headers, Pid}} ->
+	    %% Strrream:
+	    fold_resource1(Pid, F, AccIn);
+	{ok, {{Status, _}, Headers, Pid}}
+	  when Status >= 300, Status < 400 ->
+	    %% Finalize this response:
+	    fold_resource1(Pid, F, AccIn),
 
 	    case extract_header("location", Headers) of
 		undefined ->
-		    exit({http, list_to_integer(StatusS)});
+		    exit({http, Status});
 		Location ->
-		    io:format("HTTP ~s: ~s redirects to ~s~n", [StatusS, URL, Location]),
+		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
 		    %% FIXME: infinite redirects?
 		    %% FIXME: this breaks Offset & Length for multi-file torrents
 		    fold_resource(Location, Offset, Length, F, AccIn)
 	    end;
-        {ibrowse_async_headers, ReqId, StatusS, _Headers} ->
-	    ok = ibrowse:stream_next(ReqId),
-	    receive
-		{ibrowse_async_response_end, ReqId} ->
-		    ok
-	    end,
+	{ok, {{Status, _}, _Headers, Pid}} ->
+	    %% Finalize this response:
+	    fold_resource1(Pid, F, AccIn),
 
-            {Status, _} = string:to_integer(StatusS),
-            exit({http, Status});
-        {ibrowse_async_response, ReqId, {error, Err}} ->
-            logger:log(backend_http, warn,
-                       "HTTP request error: ~p", [Err]),
-            exit(Err)
+	    exit({http, Status});
+
+	{error, Reason} ->
+	    exit(Reason)
     end.
 
-fold_resource1(ReqId, F, AccIn) ->
-    ok = ibrowse:stream_next(ReqId),
-    receive
-        {ibrowse_async_response, ReqId, {error, Err}} ->
-            logger:log(backend_http, warn,
-                       "HTTP request error: ~p", [Err]),
-            exit(Err);
-        {ibrowse_async_response, ReqId, Data} ->
+fold_resource1(undefined, _, AccIn) ->
+    %% No body, no fold.
+    AccIn;
+fold_resource1(Pid, F, AccIn) ->
+    case lhttpc:get_body_part(Pid, ?TIMEOUT) of
+	{ok, Data} when is_binary(Data) ->
 	    AccOut = F(AccIn, Data),
-	    fold_resource1(ReqId, F, AccOut);
-        {ibrowse_async_response_end, ReqId} ->
+	    fold_resource1(Pid, F, AccOut);
+	{ok, {http_eob, _Trailers}} ->
 	    AccIn
-	%% M ->
-	%%     io:format("!!! fold_resource1 got ~p~n", [M])
     end.
 
 extract_header(Name1, Headers) ->
