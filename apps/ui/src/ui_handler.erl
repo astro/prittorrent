@@ -62,9 +62,58 @@ handle_request('GET', [<<"~", UserName/binary>>, <<Slug/binary>>]) ->
 	    throw({http, 404})
     end;
 
-handle_request('GET', [<<"t">>, <<InfoHashHex:320/binary, ".torrent">>]) ->
-    throw({http, 500});
+%% TODO: 'HEAD' too
+handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
+    InfoHash = hex_to_binary(InfoHashHex),
+    case model_torrents:get_torrent(InfoHash) of
+	{ok, Torrent} ->
+	    Headers1 =
+		[{<<"Content-Type">>, <<"application/x-bittorrent">>}],
+	    Headers2 =
+		case (catch torrent_file_name(Torrent)) of
+		    Name when is_binary(Name) ->
+			[{<<"Content-Disposition">>,
+			  <<"attachment; filename=", Name/binary, ".torrent">>}
+			 | Headers1];
+		    {'EXIT', Reason} ->
+			io:format("Cannot extract file name from torrent: ~p~n", [Reason]),
+			Headers1
+		end,
+	    {ok, 200, Headers2, Torrent};
+	{error, not_found} ->
+	    throw({http, 404})
+    end;
 
 handle_request(_Method, _Path) ->
     throw({http, 404}).
     
+
+hex_to_binary(Hex) when is_binary(Hex) ->
+    iolist_to_binary(
+      hex_to_binary1(Hex));
+hex_to_binary(Hex) ->
+    hex_to_binary(list_to_binary(Hex)).
+
+hex_to_binary1(<<>>) ->
+    [];
+hex_to_binary1(<<H1:8, H2:8, Hex/binary>>) ->
+    [<<(parse_hex(H1)):4, (parse_hex(H2)):4>>
+	 | hex_to_binary1(Hex)].
+
+parse_hex(H)
+  when H >= $0, H =< $9 ->
+    H - $0;
+parse_hex(H)
+  when H >= $A, H =< $F ->
+    H - $A + 16#a;
+parse_hex(H)
+  when H >= $a, H =< $f ->
+    H - $a + 16#a;
+parse_hex(_) ->
+    error(invalid_hex).
+
+
+torrent_file_name(TorrentBin) ->
+    proplists:get_value(
+      <<"name">>, proplists:get_value(
+		    <<"info">>, benc:parse(TorrentBin))).
