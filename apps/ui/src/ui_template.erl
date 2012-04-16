@@ -97,7 +97,10 @@ render_user_feed(UserName, Feed) ->
       lists:map(fun(#feed_item{id = ItemId,
 			       title = ItemTitle}) ->
 			Torrents = model_enclosures:item_torrents(FeedURL, ItemId),
-			[render_item(ItemTitle) | lists:map(fun render_enclosure/1, Torrents)]
+			[<<"<article>">>,
+			 render_item(ItemTitle),
+			 lists:map(fun render_enclosure/1, Torrents),
+			 <<"</article>">>]
 		end, model_feeds:feed_items(FeedURL))).
 
 export_feed(_UserName, _Slug) ->
