@@ -10,8 +10,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="16"
-   height="16"
+   width="11"
+   height="11"
    id="svg2"
    version="1.1"
    inkscape:version="0.48.1 r9760"
@@ -35,10 +35,10 @@
        id="linearGradient3768"
        x1="8"
        y1="1"
-       x2="8"
-       y2="5"
+       x2="7.7400341"
+       y2="39.016735"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.9375,0,0,0.8,0,1036.3622)" />
+       gradientTransform="matrix(0.64453125,0,0,0.55,0.625,1041.3622)" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -47,15 +47,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.313708"
-     inkscape:cx="5.9511352"
-     inkscape:cy="7.1718924"
+     inkscape:zoom="45.254834"
+     inkscape:cx="6.2323852"
+     inkscape:cy="4.6093924"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="779"
-     inkscape:window-height="877"
-     inkscape:window-x="963"
+     inkscape:window-width="956"
+     inkscape:window-height="1057"
+     inkscape:window-x="0"
      inkscape:window-y="19"
      inkscape:window-maximized="0">
     <inkscape:grid
@@ -74,7 +74,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -82,24 +82,12 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-1036.3622)">
+     transform="translate(0,-1041.3622)">
     <path
        style="fill:url(#linearGradient3768);fill-opacity:1;fill-rule:evenodd;stroke:none"
-       d="m 7.5,1036.3622 7.5,4 -15,0 z"
+       d="m 5.5,1041.3622 4.5,5 -3,0 0,6 -3,0 0.022097,-5.9779 L 1,1046.3622 z"
        id="rect2991"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccc" />
-    <text
-       xml:space="preserve"
-       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#008000;fill-opacity:1;stroke:none;font-family:Crapola;-inkscape-font-specification:Crapola"
-       x="2.8398438"
-       y="1052.1356"
-       id="text2987"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2989"
-         x="2.8398438"
-         y="1052.1356"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold;fill:#008000">S</tspan></text>
+       sodipodi:nodetypes="cccccccc" />
   </g>
 </svg>
