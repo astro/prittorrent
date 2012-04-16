@@ -5,6 +5,8 @@
 
 -include_lib("exmpp/include/exmpp_xml.hrl").
 
+-define(TIMEOUT, 30 * 1000).
+
 
 -spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).
 fetch(Url, Etag1, LastModified1) ->
@@ -29,7 +31,7 @@ fetch(Url, Etag1, LastModified1) ->
 					{engine, expat}]),
     HttpRes =
 	http_fold(Url, Headers,
-		  fun(Chunk, Els) ->
+		  fun(Els, Chunk) ->
 			  case exmpp_xml:parse(Parser, Chunk) of
 			      continue ->
 				  Els;
@@ -60,48 +62,53 @@ fetch(Url, Etag1, LastModified1) ->
     ok = exmpp_xml:stop_parser(Parser),
     Result.
 
-%% TODO: use storage, handle pcast://
-http_fold(Url, Headers, Fold, AccIn) ->
-    Headers1 =
-	[{"User-Agent", "PritTorrent/0.1"}
-	 | Headers],
-    {ibrowse_req_id, ReqId} =
-	ibrowse:send_req(Url, Headers1, get, [],
-			 [{stream_to, {self(), once}}], 10000),
-    http_fold1(ReqId, Fold, AccIn).
+%% TODO: handle pcast://
+http_fold(URL, ReqHeaders1, F, AccIn) ->
+    %% Compose request
+    ReqHeaders2 =
+        [{"User-Agent", "PritTorrent/0.1"}
+	 | ReqHeaders1],
+    ReqOptions =
+	[{partial_download,
+	  [
+	   %% specifies how many part will be sent to the calling
+	   %% process before waiting for an acknowledgement
+	   {window_size, 4},
+	   %% specifies the size the body parts should come in
+	   {part_size, 4096}
+	  ]}
+	],
+    case lhttpc:request(URL, get, ReqHeaders2,
+			[], ?TIMEOUT, ReqOptions) of
+	%% Ok
+	{ok, {{200, _}, Headers, Pid}} ->
+            {ok, Etag, LastModified} =
+                get_etag_last_modified_from_headers(Headers),
+	    %% Strrream:
+	    {ok, AccOut } = http_fold1(Pid, F, AccIn),
+	    {ok, {Etag, LastModified}, AccOut};
+	{ok, {{Status, _}, _Headers, Pid}} ->
+	    %% Finalize this response:
+	    http_fold1(Pid, F, AccIn),
 
-http_fold1(ReqId, Fold, AccIn) ->
-    ok = ibrowse:stream_next(ReqId),
-    receive
-	{ibrowse_async_headers, ReqId, [$2, _, _], Headers} ->
-	    {ok, Etag, LastModified} =
-		get_etag_last_modified_from_headers(Headers),
-	    case http_fold2(ReqId, Fold, AccIn) of
-		{ok, AccOut} ->
-		    {ok, {Etag, LastModified}, AccOut};
-		{error, Reason} ->
-		    {error, Reason}
-	    end;
-	{ibrowse_async_headers, ReqId, "304", _Headers} ->
-	    not_modified;
-	{ibrowse_async_headers, ReqId, StatusS, _Headers} ->
-	    {Status, _} = string:to_integer(StatusS),
-	    {error, {http, Status}};
-	{ibrowse_async_response, ReqId, {error, Err}} ->
-	    {error, Err}
+	    exit({http, Status});
+
+	{error, Reason} ->
+	    exit(Reason)
     end.
 
-http_fold2(ReqId, Fold, AccIn) ->
-    ok = ibrowse:stream_next(ReqId),
-    receive
-	{ibrowse_async_response, ReqId, Data} ->
-	    AccOut = Fold(list_to_binary(Data), AccIn),
-	    http_fold2(ReqId, Fold, AccOut);
-	{ibrowse_async_response_end, ReqId} ->
-	    {ok, AccIn};
-	{ibrowse_async_response, ReqId, {error, Err}} ->
-	    {error, Err}
+http_fold1(undefined, _, AccIn) ->
+    %% No body, no fold.
+    AccIn;
+http_fold1(Pid, F, AccIn) ->
+    case lhttpc:get_body_part(Pid, ?TIMEOUT) of
+	{ok, Data} when is_binary(Data) ->
+	    AccOut = F(AccIn, Data),
+	    http_fold1(Pid, F, AccOut);
+	{ok, {http_eob, _Trailers}} ->
+	    {ok, AccIn}
     end.
+
 
 get_etag_last_modified_from_headers(Headers) ->
     {ok,
