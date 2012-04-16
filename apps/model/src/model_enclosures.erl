@@ -10,6 +10,9 @@
 
 to_hash(Limit) ->
     ?T(fun(Q) ->
+	       %% First read, then write
+	       Q("LOCK enclosure_torrents IN ROW EXCLUSIVE MODE", []),
+
 	       case Q("SELECT \"url\" FROM enclosures_to_hash LIMIT $1", [Limit]) of
 		   {ok, _, [{URL}]} ->
 		       case Q("SELECT count(\"url\") FROM enclosure_torrents WHERE \"url\"=$1", [URL]) of
