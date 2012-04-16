@@ -163,11 +163,7 @@ h4 {
 }
 .download {
   list-style-type: none;
-  margin: 0.1em 0 0;
-  padding: 0.5em 0.5em;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 1px 1px 8px #ddd;
+  padding: 0.5em 0.5em 0.5em 0;
   min-width: 350px;
 }
 .download .torrent {
@@ -194,10 +190,11 @@ h4 {
 }
 .stats .s:before {
   content: url('s.svg');
+  height: 1em;
 }
 .stats .l:before {
   content: url('l.svg');
-  vertical-align: middle;
+  height: 1em;
 }
 .source {
   margin: 0;

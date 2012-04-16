@@ -1,6 +1,6 @@
 -module(model_enclosures).
 
--export([to_hash/1, set_torrent/3]).
+-export([to_hash/1, set_torrent/3, item_torrents/2]).
 
 -include("../include/model.hrl").
 
@@ -36,3 +36,8 @@ set_torrent(URL, Error, InfoHash) ->
 		       ?Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP, \"info_hash\"=$2, \"error\"=$3 WHERE \"url\"=$1", [URL, InfoHash, Error])
 	       end
        end).
+
+item_torrents(Feed, Item) ->
+    {ok, _, Torrents} =
+	?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1 AND \"item\"=$2 ORDER BY \"url\"", [Feed, Item]),
+    Torrents.

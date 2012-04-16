@@ -16,11 +16,11 @@ handle(Req, State) ->
 	    {ok, Req2, State}
     catch throw:{http, Status} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
-	    {ok, Req2, State};
-	  _:Reason ->
-	    io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
-	    {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
 	    {ok, Req2, State}
+	  %% _:Reason ->
+	  %%   io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
+	  %%   {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
+	  %%   {ok, Req2, State}
     end.		    
 
 terminate(_Req, _State) ->
@@ -36,7 +36,7 @@ handle_request('GET', [<<"~", UserName/binary>>]) ->
     html_ok(ui_template:render_user(UserName));
 
 handle_request('GET', [<<"~", UserName/binary>>, <<Slug/binary>>]) ->
-    {FeedSlug, Ext} =
+    {Path, Ext} =
 	if 
 	    size(Slug) > 4 ->
 		case split_binary(Slug, size(Slug) - 4) of
@@ -48,17 +48,22 @@ handle_request('GET', [<<"~", UserName/binary>>, <<Slug/binary>>]) ->
 	    true ->
 		{Slug, <<"">>}
 	end,
+    %% PathTokens =
+    %% 	tokens
 
     case Ext of
 	<<"">> ->
 	    %% All hashed episodes
-	    html_ok(ui_template:render_user_feed(UserName, FeedSlug));
+	    html_ok(ui_template:render_user_feed(UserName, Path));
 	<<".xml">> ->
 	    %% Serve feed with hashed episodes
-	    {ok, 200, [], ui_template:export_feed(UserName, FeedSlug)};
+	    {ok, 200, [], ui_template:export_feed(UserName, Path)};
 	_ ->
 	    throw({http, 404})
     end;
+
+handle_request('GET', [<<"t">>, <<InfoHashHex:320/binary, ".torrent">>]) ->
+    throw({http, 500});
 
 handle_request(_Method, _Path) ->
     throw({http, 404}).

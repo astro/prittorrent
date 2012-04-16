@@ -20,7 +20,8 @@ start(_StartType, _StartArgs) ->
 		  {mimetypes, [{<<".css">>, [<<"text/css">>]},
 			       {<<".js">>, [<<"application/javascript">>]},
 			       {<<".png">>, [<<"image/png">>]},
-			       {<<".gif">>, [<<"image/gif">>]}
+			       {<<".gif">>, [<<"image/gif">>]},
+			       {<<".svg">>, [<<"image/svg+xml">>]}
 			      ]}
 		 ]},
 		{'_', ui_handler, []}

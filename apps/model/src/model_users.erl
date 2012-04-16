@@ -1,7 +1,7 @@
 -module(model_users).
 
 -export([register/3, authenticate/2, activate/1,
-	 get_feeds/1, add_feed/2]).
+	 get_feeds/1, get_feed/2, add_feed/2]).
 
 
 -define(POOL, pool_users).
@@ -26,13 +26,19 @@ activate(Name) ->
 
 
 get_feeds(Name) ->
-    {ok, _, Rows} = ?Q("SELECT feed FROM user_feeds WHERE \"user\"=$1",
+    {ok, _, Rows} = ?Q("SELECT \"slug\", \"feed\" FROM user_feeds WHERE \"user\"=$1",
 		       [Name]),
-    [Feed || {Feed} <- Rows].
+    Rows.
+
+get_feed(Name, Slug) ->
+    {ok, _, [{Feed}]} =
+	?Q("SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1 AND \"slug\"=$2 LIMIT 1",
+	   [Name, Slug]),
+    Feed.
+    
 
 add_feed(Name, "http://" ++ _ = Url) ->
     {ok, 1} = ?Q("INSERT INTO user_feeds (\"user\", \"feed\") VALUES ($1, $2)",
 		 [Name, Url]);
 add_feed(_, _) ->
     exit(invalid_url).
-

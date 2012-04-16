@@ -1,6 +1,6 @@
 -module(model_feeds).
 
--export([to_update/1, prepare_update/1, write_update/5]).
+-export([to_update/1, prepare_update/1, write_update/5, feed_items/1]).
 
 -include("../include/model.hrl").
 
@@ -100,6 +100,20 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 
 	       ok
        end).
+
+
+-spec(feed_items/1 :: (string()) -> [#feed_item{}]).
+feed_items(FeedURL) ->
+    {ok, _, Records} =
+	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM feed_items WHERE \"feed\"=$1", [FeedURL]),
+    [#feed_item{feed = Feed,
+		id = Id,
+		title = Title,
+		published = Published,
+		homepage = Homepage,
+		payment = Payment,
+		xml = Xml}
+     || {Feed, Id, Title, Homepage, Published, Payment, Xml} <- Records].
 
 enforce_string(S) when is_binary(S);
 		       is_list(S) ->
