@@ -3,10 +3,12 @@
 -export([title/1, image/1,
 	 pick_items/1,
 	 item_id/1, item_title/1, item_enclosures/1,
-	 item_published/1,
+	 item_published/1, item_link/1, item_payment/1,
 	 replace_item_enclosures/2]).
 
 -include_lib("exmpp/include/exmpp_xml.hrl").
+
+-define(NS_ATOM, "http://www.w3.org/2005/Atom").
 
 %% Just look for 1st title element
 -spec(title/1 :: (xmlel()) -> binary() | undefined).
@@ -93,9 +95,9 @@ item_id1(ItemEl, [ChildName | ChildNames]) ->
 			     size(Cdata) > 0 ->
 			  Cdata;
 		      _ ->
-			  case {exmpp:get_attribute_as_binary(
+			  case {exmpp_xml:get_attribute_as_binary(
 				  Child, "rel", undefined),
-				exmpp:get_attribute_as_binary(
+				exmpp_xml:get_attribute_as_binary(
 				  Child, "href", undefined)} of
 			      {<<"alternate">>, Href} ->
 				  Href;
@@ -139,6 +141,69 @@ item_published1(ItemEl, [ChildName | ChildNames]) ->
 	_ ->
 	    R
     end.
+
+item_link(ItemEl) ->
+    %% Handle ATOM
+    case exmpp_xml:get_ns_as_list(ItemEl) of
+	?NS_ATOM ->
+	    lists:foldl(
+	      fun(LinkEl, undefined) ->
+		      case {exmpp_xml:get_attribute_as_binary(
+			      LinkEl, "rel", undefined),
+			    exmpp_xml:get_attribute_as_binary(
+			      LinkEl, "href", undefined)} of
+			  {<<"alternate">>, Href} ->
+			      Href;
+			  _ ->
+			      undefined
+		      end;
+		 (_, Href) ->
+		      Href
+	      end, undefined, exmpp_xml:get_elements(ItemEl, "link"));
+	_ ->
+	    item_link1(ItemEl, ["link", "url"])
+    end.
+
+item_link1(_ItemEl, []) ->
+    undefined;
+item_link1(ItemEl, [ChildName | ChildNames]) ->
+    R =
+	lists:foldl(
+	  fun(Child, undefined) ->
+		  case exmpp_xml:get_cdata(Child) of
+		      Cdata
+			when is_binary(Cdata),
+			     size(Cdata) > 0 ->
+			  Cdata;
+		      _ ->
+			  undefined
+		  end;
+	     (_, R) ->
+		  R
+	  end, undefined, exmpp_xml:get_elements(ItemEl, ChildName)),
+    case R of
+	undefined ->
+	    item_link1(ItemEl, ChildNames);
+	_ ->
+	    R
+    end.
+
+item_payment(ItemEl) ->
+    lists:foldl(
+      fun(LinkEl, undefined) ->
+	      case {exmpp_xml:get_attribute_as_binary(
+		      LinkEl, "rel", undefined),
+		    exmpp_xml:get_attribute_as_binary(
+		      LinkEl, "href", undefined)} of
+		  {<<"payment">>, Href} ->
+		      Href;
+		  _ ->
+		      undefined
+	      end;
+	 (_, Href) ->
+	      Href
+      end, undefined, exmpp_xml:get_elements(ItemEl, "link")).
+
 
 -spec(item_enclosures/1 :: (xmlel()) -> [binary()]).
 item_enclosures(ItemEl) ->

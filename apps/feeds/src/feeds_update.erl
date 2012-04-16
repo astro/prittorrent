@@ -114,6 +114,8 @@ xml_to_feed_item(Feed, Xml) ->
     Id = feeds_parse:item_id(Xml),
     Title = feeds_parse:item_title(Xml),
     Published = feeds_parse:item_published(Xml),
+    Homepage = feeds_parse:item_link(Xml),
+    Payment = feeds_parse:item_payment(Xml),
     XmlSerialized = exmpp_xml:document_to_binary(Xml),
     Enclosures = feeds_parse:item_enclosures(Xml),
     if
