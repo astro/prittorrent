@@ -190,11 +190,15 @@ h4 {
 }
 .stats .s:before {
   content: url('s.svg');
-  height: 1em;
 }
 .stats .l:before {
   content: url('l.svg');
-  height: 1em;
+}
+.stats .size:before {
+  content: url('size.svg');
+}
+.stats .bw:before {
+  content: url('swarm.svg');
 }
 .source {
   margin: 0;
