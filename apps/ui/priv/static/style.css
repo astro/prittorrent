@@ -5,6 +5,7 @@
 }
 body {
   margin: 0 auto;
+  max-width: 80em;
   color: black;
   background: white;
   font-family: sans-serif;
@@ -46,14 +47,14 @@ header .slogan {
   padding: 0;
 }
 .col {
-  max-width: 50em;
+  width: 50em;
 }
 .col1 {
-  width: 35em;
+  width: 38em;
   float: left;
 }
 .col2 {
-  width: 35em;
+  max-width: 38em;
   margin-left: 50%;
 }
 
