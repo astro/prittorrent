@@ -73,7 +73,7 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 			 case Q("SELECT count(\"id\") FROM \"feed_items\" WHERE \"feed\"=$1 AND \"id\"=$2",
 				[FeedURL, Item#feed_item.id]) of
 			     {ok, _, [{0}]} ->
-				 io:format("New feed item:~n~p~n", [Item]),
+				 io:format("New feed item:~n~p~n", [Item#feed_item.title]),
 				 {ok, 1} =
 				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
@@ -104,9 +104,10 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 
 
 -spec(feed_items/1 :: (string()) -> [#feed_item{}]).
+%% FIXME: Xml not always needed
 feed_items(FeedURL) ->
     {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM feed_items WHERE \"feed\"=$1", [FeedURL]),
+	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
     [#feed_item{feed = Feed,
 		id = Id,
 		title = Title,

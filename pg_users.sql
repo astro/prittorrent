@@ -36,6 +36,18 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 "xml" TEXT,
 			 PRIMARY KEY ("feed", "id"));
 
+CREATE VIEW torrentified_items AS
+       SELECT *
+       FROM feed_items
+       WHERE EXISTS
+       	     (SELECT "url"
+	      FROM enclosures
+	      WHERE "feed"=feed_items.feed
+ 	        AND "item"=feed_items.id
+		AND "url" IN
+		    (SELECT "url" FROM torrentified)
+	     ) ORDER BY "published" DESC;
+
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
        	     		 "item" TEXT NOT NULL,
 			 "url" TEXT NOT NULL,
@@ -55,6 +67,15 @@ CREATE VIEW enclosures_to_hash AS
 	       ON (enclosures.url=enclosure_torrents.url)
 	        WHERE enclosure_torrents.info_hash IS NULL
 		OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update;
+
+CREATE VIEW torrentified AS
+       SELECT enclosures.url,
+       	      enclosure_torrents.last_update AS last_update,
+	      enclosure_torrents.error AS error,
+	      enclosure_torrents.info_hash
+	       FROM enclosures LEFT JOIN enclosure_torrents
+	       ON (enclosures.url=enclosure_torrents.url)
+	        WHERE LENGTH(enclosure_torrents.info_hash)=20 ORDER BY last_update;
 
 CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
        	     	       "name" TEXT,
