@@ -36,12 +36,16 @@ template_foot() ->
 </html>
 ">>.
 
-render_item(Title) ->
-    [<<"<h4>">>, escape(Title), <<"</h4>">>].
-
-render_enclosure({URL, InfoHash}) ->
-    Title = extract_name_from_url(URL),
-    render_torrent(Title, InfoHash, 0, 0, 0, 0).
+render_item(Title, Homepage) ->
+    [<<"<h4>">>, escape(Title), <<"</h4>">>,
+     if
+	 is_binary(Homepage),
+	 size(Homepage) > 0 ->
+	     [<<"<p class=\"homepage\"><a href=\"">>, escape_attr(Homepage), <<"\">">>,
+	      escape(Homepage), <<"</a></p>">>];
+	 true ->
+	     []
+     end].
 
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
     [<<"<ul class=\"download\">
@@ -97,10 +101,11 @@ render_user_feed(UserName, Feed) ->
     FeedURL = model_users:get_feed(UserName, Feed),
     page_1column(
       lists:map(fun(#feed_item{id = ItemId,
-			       title = ItemTitle}) ->
+			       title = ItemTitle,
+			       homepage = ItemHomepage}) ->
 			Torrents = model_enclosures:item_torrents(FeedURL, ItemId),
 			[<<"<article>">>,
-			 render_item(ItemTitle),
+			 render_item(ItemTitle, ItemHomepage),
 			 lists:map(fun render_enclosure/1, Torrents),
 			 <<"</article>">>]
 		end, model_feeds:feed_items(FeedURL))).

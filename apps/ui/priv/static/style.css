@@ -161,10 +161,19 @@ h4 {
   color: #999;
   font-weight: bold;
 }
+.homepage {
+  margin: 0;
+  font-size: 80%;
+}
+.homepage a {
+  font-weight: normal;
+  color: #333;
+}
 .download {
   list-style-type: none;
   padding: 0.5em 0.5em 0.5em 0;
   min-width: 350px;
+  margin: 0;
 }
 .download .torrent {
   float: left;
