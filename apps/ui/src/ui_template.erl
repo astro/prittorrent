@@ -61,7 +61,7 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
 	    <span class=\"size\" title=\"Download size\">">>, size_to_human(Size), <<"</span>
 	    <span class=\"s\" title=\"Seeders\">">>, integer_to_list(Seeders), <<"</span>
 	    <span class=\"l\" title=\"Leechers\">">>, integer_to_list(Leechers), <<"</span>
-	    <span class=\"bw\" title=\"Total Bandwidth\">">>, integer_to_list(Bandwidth), <<" B/s</span>
+	    <span class=\"bw\" title=\"Total Bandwidth\">">>, size_to_human(Bandwidth), <<"/s</span>
 	  </li>">>,
      <<"</ul>">>].
 
@@ -125,7 +125,7 @@ export_feed(_UserName, _Slug) ->
 
 size_to_human(Size)
   when Size < 1024 ->
-    io_lib:format("~B Bytes", [Size]);
+    io_lib:format("~B B", [Size]);
 size_to_human(Size) ->
     size_to_human(Size / 1024, "KMGT").
 
