@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="10"
-   height="13"
+   height="11"
    id="svg3005"
    version="1.1"
    inkscape:version="0.48.1 r9760"
@@ -24,13 +24,13 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
+     inkscape:zoom="11.313708"
      inkscape:cx="6.2597942"
      inkscape:cy="4.3300133"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1916"
+     inkscape:window-width="956"
      inkscape:window-height="1057"
      inkscape:window-x="0"
      inkscape:window-y="19"
@@ -51,7 +51,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -59,17 +59,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-1039.3622)">
+     transform="translate(0,-1041.3622)">
     <rect
        style="fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3020-5"
-       width="2"
-       height="1"
-       x="5"
-       y="1043.3622" />
-    <rect
-       style="fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:none"
-       id="rect3020-0"
        width="2"
        height="1"
        x="5"
@@ -87,28 +80,28 @@
        width="3"
        height="1"
        x="4"
-       y="1041.3622" />
+       y="1043.3622" />
     <rect
        style="fill:#333333;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3018"
        width="1"
-       height="13.000014"
+       height="10.999994"
        x="7"
-       y="1039.3622" />
+       y="1041.3622" />
     <rect
        style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3018-0"
        width="1"
-       height="13.000014"
+       height="10.999994"
        x="1"
-       y="1039.3622" />
+       y="1041.3622" />
     <rect
        style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3072"
        width="5"
        height="1"
        x="2"
-       y="1039.3622" />
+       y="1041.3622" />
     <rect
        style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3072-9"
@@ -116,13 +109,6 @@
        height="1"
        x="2"
        y="1051.3622" />
-    <rect
-       style="fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:none"
-       id="rect3020-0-3"
-       width="2"
-       height="1"
-       x="5"
-       y="1045.3622" />
     <rect
        style="fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3020-0-3-2"
