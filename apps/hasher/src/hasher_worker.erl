@@ -23,9 +23,9 @@ loop() ->
 
 hash(URL) ->
     try
-	{ok, InfoHash, TorrentFile} =
+	{ok, InfoHash, Name, Size, TorrentFile} =
 	    hasher_hash:make_torrent([URL]),
-	model_torrents:add_torrent(InfoHash, TorrentFile),
+	model_torrents:add_torrent(InfoHash, Name, Size, TorrentFile),
 	model_enclosures:set_torrent(URL, <<"">>, InfoHash)
     catch K:Reason ->
 	    io:format("Failed hashing ~s~n~s:~p~n", [URL, K, Reason]),

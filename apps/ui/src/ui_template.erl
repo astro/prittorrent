@@ -47,13 +47,18 @@ render_item(Title, Homepage) ->
 	     []
      end].
 
+render_enclosure({_URL, InfoHash}) ->
+    {ok, Name, Size, Seeders, Leechers, Bandwidth} =
+	model_torrents:get_stats(InfoHash),
+    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Bandwidth).
+
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
     [<<"<ul class=\"download\">
 	  <li class=\"torrent\">
 	    <a href=\"">>, escape_attr(ui_link:torrent(InfoHash)), <<"\">">>, escape(Title), <<"</a>
 	  </li>">>,
      <<"<li class=\"stats\">
-	    <span class=\"size\" title=\"Download size\">">>, integer_to_list(Size), <<" Bytes</span>
+	    <span class=\"size\" title=\"Download size\">">>, size_to_human(Size), <<"</span>
 	    <span class=\"s\" title=\"Seeders\">">>, integer_to_list(Seeders), <<"</span>
 	    <span class=\"l\" title=\"Leechers\">">>, integer_to_list(Leechers), <<"</span>
 	    <span class=\"bw\" title=\"Total Bandwidth\">">>, integer_to_list(Bandwidth), <<" B/s</span>
@@ -117,12 +122,19 @@ export_feed(_UserName, _Slug) ->
 %% Helpers
 %%
 
-extract_name_from_url(URL) when is_binary(URL) ->
-    extract_name_from_url(binary_to_list(URL));
-extract_name_from_url(URL) ->
-    lists:foldl(fun([_ | _] = Token, _) ->
-			Token
-		end, "unnamed", string:tokens(URL, "/")).
+
+size_to_human(Size)
+  when Size < 1024 ->
+    io_lib:format("~B Bytes", [Size]);
+size_to_human(Size) ->
+    size_to_human(Size / 1024, "KMGT").
+
+size_to_human(Size, [Unit | Units])
+  when Size < 1024;
+       length(Units) < 1 ->
+    io_lib:format("~.1f ~cB", [Size, Unit]);
+size_to_human(Size, [_ | Units]) ->
+    size_to_human(Size / 1024, Units).
 
 
 escape(Bin) when is_binary(Bin) ->

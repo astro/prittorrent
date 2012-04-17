@@ -11,8 +11,9 @@ make_torrent(URL) when is_binary(URL) ->
 make_torrent(URLs) ->
     {ok, Size, Pieces} = hash_torrent(URLs),
     io:format("hash_torrent ~p - Size: ~p, Pieces: ~p~n", [URLs, Size, length(Pieces)]),
+    Name = list_to_binary(extract_name_from_urls(URLs)),
     InfoValue =
-	[{<<"name">>, list_to_binary(extract_name_from_urls(URLs))},
+	[{<<"name">>, Name},
 	 {<<"piece length">>, ?DEFAULT_PIECE_LENGTH},
 	 {<<"pieces">>, list_to_binary(Pieces)},
 	 {<<"length">>, Size}
@@ -30,7 +31,7 @@ make_torrent(URLs) ->
 	 {<<"info">>, InfoValue}
 	],
     InfoHash = benc:hash(InfoValue),
-    {ok, InfoHash, benc:to_binary(Torrent)}.
+    {ok, InfoHash, Name, Size, benc:to_binary(Torrent)}.
 
 extract_name_from_urls([URL]) when is_binary(URL) ->
     extract_name_from_urls([binary_to_list(URL)]);

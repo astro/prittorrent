@@ -57,6 +57,8 @@ CREATE VIEW enclosures_to_hash AS
 		OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update;
 
 CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
+       	     	       "name" TEXT,
+		       "size" BIGINT,
        	     	       "torrent" BYTEA);
 
 CREATE VIEW item_torrents AS
