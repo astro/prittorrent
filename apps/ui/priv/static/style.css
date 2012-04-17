@@ -5,7 +5,6 @@
 }
 body {
   margin: 0 auto;
-  max-width: 80em;
   color: black;
   background: white;
   font-family: sans-serif;
@@ -22,8 +21,8 @@ a:hover {
 
 header {
   color: #333;
-  //width: 100%;
-  margin: 0;
+  width: 50%;
+  margin: 0 auto;
   text-align: center;
   border-bottom: 1px dotted #ccc;
   font-family: 'Georgia', serif;
@@ -33,27 +32,29 @@ header {
 header h1 {
   font-size: 300%;
   margin: 0;
-  padding: 0.2em 0 0.05em;
+  padding: 0.1em 0 0.05em;
 }
 header .slogan {
   margin: 0;
-  margin-bottom: 0.1em;
+  margin-bottom: 0.5em;
   padding: 0;
   color: #777;
 }
 
-.col1 {
-  width: 49%;
-  float: left;
-  margin: 0;
+.col, .col1, .col2 {
+  margin: 0 auto;
   padding: 0;
-  min-width: 
+}
+.col {
+  max-width: 50em;
+}
+.col1 {
+  width: 35em;
+  float: left;
 }
 .col2 {
-  width: 49%;
-  margin: 0;
+  width: 35em;
   margin-left: 50%;
-  padding: 0;
 }
 
 h2 { 
@@ -145,6 +146,9 @@ article {
   min-height: 72px;
   padding: 1em 0;
 }
+article:first-child {
+  border-top: none;
+}
 article div {
   vertical-align: top;
 }
@@ -171,21 +175,24 @@ h4 {
 }
 .download {
   list-style-type: none;
-  padding: 0.5em 0.5em 0.5em 0;
+  padding: 0;
   min-width: 350px;
-  margin: 0;
+  margin: 0.5em 0.5em 0.5em 0;
 }
 .download .torrent {
-  float: left;
   padding-top: 6px;
   padding-bottom: 4px;
+  line-height: 2em;
 }
 .stats {
   font-size: 75%;
   font-weight: bold;
   color: #888;
   padding: 0;
+  margin: 0;
   text-align: right;
+  line-height: 2em;
+  margin-top: -3em;
 }
 .stats > * {
   display: inline-block;

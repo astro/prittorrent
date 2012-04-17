@@ -17,7 +17,7 @@ template_head() ->
   <body>
     <header>
       <h1>Bitlove</h1>
-      <p class=\"slogan\">♥ Lovely BitTorrent Speed For Your Podcast Downloads</p>
+      <p class=\"slogan\">♥ Lovely BitTorrent Speed For Your Podcast Downloads ♥</p>
     </header>
 ">>.
 
@@ -66,7 +66,7 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
      <<"</ul>">>].
 
 page_1column(Col) ->
-    [template_head(), <<"<section class=\"col1\">
+    [template_head(), <<"<section class=\"col\">
 ">>, Col, <<"</section>">>, template_foot()].
 
 page_2column(Col1, Col2) ->
@@ -100,6 +100,7 @@ render_index() ->
       <<"</article>">>]).
 
 render_user(_UserName) ->
+    %% Feeds, Recent Episodes
     throw({http, 404}).
 
 render_user_feed(UserName, Feed) ->
