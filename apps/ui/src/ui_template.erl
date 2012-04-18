@@ -106,9 +106,32 @@ render_user(UserName) ->
     %% Feeds, Recent Episodes
     page_2column(
       [<<"<h2>Feeds</h2>">>,
-       lists:map(fun(Feed) ->
-			 [<<"<article>">>,
-			  <<"</article>">>]
+       lists:map(fun({Slug, Feed}) ->
+			 case model_feeds:feed_details(Feed) of
+			     {ok, Title, Homepage, Image}
+			       when is_binary(Title) ->
+				 [<<"<article><div class=\"line\">">>,
+				  if
+				      is_binary(Image),
+				      size(Image) > 0 ->
+					  [<<"<img src=\"">>,
+					   escape(Image),
+					   <<"\" class=\"logo\">">>];
+				      true ->
+					  []
+				  end,
+				  <<"<div><h4>">>, escape(Title), <<"</h4>">>,
+				  if
+				      is_binary(Homepage),
+				      size(Homepage) > 0 ->
+					  [<<"<p class=\"homepage\"><a href=\"">>, escape_attr(Homepage), <<"\">">>, escape(Homepage), <<"</a></p>">>];
+				      true ->
+					  []
+				  end,
+				  <<"</div></div></article>">>];
+			     _ ->
+				 []
+			 end
 		 end, model_users:get_feeds(UserName))
       ],
       [<<"<h2>Recent Episodes</h2>">>,
@@ -116,15 +139,15 @@ render_user(UserName) ->
 				id = ItemId,
 				title = ItemTitle,
 				homepage = ItemHomepage}) ->
-			case model_enclosures:item_torrents(FeedURL, ItemId) of
-			    [] ->
-				[];
-			    Torrents ->
-				[<<"<article>">>,
-				 render_item(ItemTitle, ItemHomepage),
-				 lists:map(fun render_enclosure/1, Torrents),
-				 <<"</article>">>]
-			end
+			 case model_enclosures:item_torrents(FeedURL, ItemId) of
+			     [] ->
+				 [];
+			     Torrents ->
+				 [<<"<article>">>,
+				  render_item(ItemTitle, ItemHomepage),
+				  lists:map(fun render_enclosure/1, Torrents),
+				  <<"</article>">>]
+			 end
 		 end, model_feeds:user_items(UserName))
       ]
      ).
