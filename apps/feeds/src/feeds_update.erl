@@ -50,6 +50,9 @@ update1(URL, Etag1, LastModified1) ->
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
 		    FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
+		    Title1 = feeds_parse:title(FeedEl),
+		    Homepage1 = feeds_parse:link(FeedEl),
+		    Image1 = feeds_parse:image(FeedEl),
 		    Items2 =
 			lists:foldl(
 			  fun(ItemXml, Items2) ->
@@ -72,7 +75,9 @@ update1(URL, Etag1, LastModified1) ->
 			    ok
 		    end,
 		    {ok, {Etag, LastModified},
-		     FeedXml1, lists:reverse(Items2)}
+		     FeedXml1,
+		     Title1, Homepage1, Image1,
+		     lists:reverse(Items2)}
 		catch exit:Reason1 ->
 			{error, {Etag, LastModified}, Reason1}
 		end;
@@ -86,16 +91,25 @@ update1(URL, Etag1, LastModified1) ->
 	end,
 
     case R1 of
-	{ok, {Etag2, LastModified2}, FeedXml, Items3} ->
-	    io:format("model_feeds:write_update(~p, ~p, ~p, ~p, ~p)~n", [URL, {Etag2, LastModified2}, null, size(FeedXml), length(Items3)]),
-	    model_feeds:write_update(URL, {Etag2, LastModified2}, null, FeedXml, Items3),
+	{ok, {Etag2, LastModified2},
+	 FeedXml,
+	 Title2, Homepage2, Image2,
+	 Items3} ->
+	    io:format("model_feeds:write_update(~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p)~n", [URL, {Etag2, LastModified2}, null, size(FeedXml), Title2, Homepage2, Image2, length(Items3)]),
+	    model_feeds:write_update(URL, {Etag2, LastModified2},
+				     null, FeedXml,
+				     Title2, Homepage2, Image2,
+				     Items3),
 	    ok;
 	{error, {Etag2, LastModified2}, Reason} ->
 	    Error = case Reason of
 		undefined -> null;
 		_ -> list_to_binary(io_lib:format("~p",[Reason]))
 	    end,
-	    model_feeds:write_update(URL, {Etag2, LastModified2}, Error, null, []),
+	    model_feeds:write_update(URL, {Etag2, LastModified2},
+				     Error, null,
+				     null, null, null,
+				     []),
 	    {error, Reason}
     end.
 
@@ -105,6 +119,7 @@ xml_to_feed_item(Feed, Xml) ->
     Published = feeds_parse:item_published(Xml),
     Homepage = feeds_parse:item_link(Xml),
     Payment = feeds_parse:item_payment(Xml),
+    Image = feeds_parse:item_image(Xml),
     XmlSerialized = exmpp_xml:document_to_binary(Xml),
     Enclosures = feeds_parse:item_enclosures(Xml),
     if
@@ -118,9 +133,12 @@ xml_to_feed_item(Feed, Xml) ->
 		       published = Published,
 		       homepage = Homepage,
 		       payment = Payment,
+		       image = Image,
 		       xml = XmlSerialized,
 		       enclosures = Enclosures};
 	true ->
 	    %% Drop this
 	    null
     end.
+
+

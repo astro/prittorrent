@@ -17,6 +17,7 @@ CREATE TABLE feeds ("url" TEXT NOT NULL,
 		    "error" TEXT,
 		    "title" TEXT,
 		    "homepage" TEXT,
+		    "image" TEXT,
 		    "xml" TEXT,
        	     	    PRIMARY KEY ("url"));
 

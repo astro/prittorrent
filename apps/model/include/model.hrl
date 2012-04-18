@@ -4,5 +4,6 @@
 		    published :: calendar:datetime(),
 		    homepage :: binary(),
 		    payment :: binary(),
+		    image :: binary(),
 		    xml :: binary(),
 		    enclosures :: [binary()] }).

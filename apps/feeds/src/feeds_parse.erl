@@ -1,9 +1,9 @@
 -module(feeds_parse).
 
--export([title/1, image/1,
+-export([title/1, link/1, image/1,
 	 pick_items/1,
 	 item_id/1, item_title/1, item_enclosures/1,
-	 item_published/1, item_link/1, item_payment/1,
+	 item_published/1, item_link/1, item_payment/1, item_image/1,
 	 replace_item_enclosures/2]).
 
 -include_lib("exmpp/include/exmpp_xml.hrl").
@@ -26,8 +26,46 @@ title(Xml) ->
 
 
 -spec(image/1 :: (xmlel()) -> binary() | undefined).
-image(_Xml) ->
-    undefined.
+image(Xml) ->
+    image1(Xml, ["image", "logo", "icon"]).
+
+image1(_, []) ->
+    undefined;
+image1(Xml, [ChildName | ChildNames]) ->
+    R =
+	lists:foldl(
+	  fun(Child, undefined) ->
+		  URL1 =
+		      case exmpp_xml:get_element(Child, "url") of
+			  [UrlEl | _] ->
+			      exmpp_xml:get_cdata(UrlEl);
+			  _ ->
+			      undefined
+		      end,
+		  if
+		      is_binary(URL1),
+		      size(URL1) > 0 ->
+			  URL1;
+		      true ->
+			  case exmpp_xml:get_cdata(Child) of
+			      Cdata
+				when is_binary(Cdata),
+				     size(Cdata) > 0 ->
+				  Cdata;
+			      _ ->
+				  undefined
+			  end
+		  end;
+	     (_, R) ->
+		  R
+	  end, undefined, exmpp_xml:get_elements(Xml, ChildName)),
+    case R of
+	undefined ->
+	    image1(Xml, ChildNames);
+	_ ->
+	    R
+    end.
+
 
 
 %% Separates items from the feed metadata
@@ -96,9 +134,9 @@ item_id1(ItemEl, [ChildName | ChildNames]) ->
 			  Cdata;
 		      _ ->
 			  case {exmpp_xml:get_attribute_as_binary(
-				  Child, "rel", undefined),
+				  Child, <<"rel">>, undefined),
 				exmpp_xml:get_attribute_as_binary(
-				  Child, "href", undefined)} of
+				  Child, <<"href">>, undefined)} of
 			      {<<"alternate">>, Href} ->
 				  Href;
 			      _ ->
@@ -111,6 +149,52 @@ item_id1(ItemEl, [ChildName | ChildNames]) ->
     case R of
 	undefined ->
 	    item_id1(ItemEl, ChildNames);
+	_ ->
+	    R
+    end.
+
+link(Xml) ->
+    %% Handle ATOM
+    case exmpp_xml:get_ns_as_list(Xml) of
+	?NS_ATOM ->
+	    lists:foldl(
+	      fun(LinkEl, undefined) ->
+		      case {exmpp_xml:get_attribute_as_binary(
+			      LinkEl, <<"rel">>, undefined),
+			    exmpp_xml:get_attribute_as_binary(
+			      LinkEl, <<"href">>, undefined)} of
+			  {<<"alternate">>, Href} ->
+			      Href;
+			  _ ->
+			      undefined
+		      end;
+		 (_, Href) ->
+		      Href
+	      end, undefined, exmpp_xml:get_elements(Xml, "link"));
+	_ ->
+	    link1(Xml, ["link", "url"])
+    end.
+
+link1(_Xml, []) ->
+    undefined;
+link1(Xml, [ChildName | ChildNames]) ->
+    R =
+	lists:foldl(
+	  fun(Child, undefined) ->
+		  case exmpp_xml:get_cdata(Child) of
+		      Cdata
+			when is_binary(Cdata),
+			     size(Cdata) > 0 ->
+			  Cdata;
+		      _ ->
+			  undefined
+		  end;
+	     (_, R) ->
+		  R
+	  end, undefined, exmpp_xml:get_elements(Xml, ChildName)),
+    case R of
+	undefined ->
+	    link1(Xml, ChildNames);
 	_ ->
 	    R
     end.
@@ -143,58 +227,15 @@ item_published1(ItemEl, [ChildName | ChildNames]) ->
     end.
 
 item_link(ItemEl) ->
-    %% Handle ATOM
-    case exmpp_xml:get_ns_as_list(ItemEl) of
-	?NS_ATOM ->
-	    lists:foldl(
-	      fun(LinkEl, undefined) ->
-		      case {exmpp_xml:get_attribute_as_binary(
-			      LinkEl, "rel", undefined),
-			    exmpp_xml:get_attribute_as_binary(
-			      LinkEl, "href", undefined)} of
-			  {<<"alternate">>, Href} ->
-			      Href;
-			  _ ->
-			      undefined
-		      end;
-		 (_, Href) ->
-		      Href
-	      end, undefined, exmpp_xml:get_elements(ItemEl, "link"));
-	_ ->
-	    item_link1(ItemEl, ["link", "url"])
-    end.
-
-item_link1(_ItemEl, []) ->
-    undefined;
-item_link1(ItemEl, [ChildName | ChildNames]) ->
-    R =
-	lists:foldl(
-	  fun(Child, undefined) ->
-		  case exmpp_xml:get_cdata(Child) of
-		      Cdata
-			when is_binary(Cdata),
-			     size(Cdata) > 0 ->
-			  Cdata;
-		      _ ->
-			  undefined
-		  end;
-	     (_, R) ->
-		  R
-	  end, undefined, exmpp_xml:get_elements(ItemEl, ChildName)),
-    case R of
-	undefined ->
-	    item_link1(ItemEl, ChildNames);
-	_ ->
-	    R
-    end.
+    ?MODULE:link(ItemEl).
 
 item_payment(ItemEl) ->
     lists:foldl(
       fun(LinkEl, undefined) ->
 	      case {exmpp_xml:get_attribute_as_binary(
-		      LinkEl, "rel", undefined),
+		      LinkEl, <<"rel">>, undefined),
 		    exmpp_xml:get_attribute_as_binary(
-		      LinkEl, "href", undefined)} of
+		      LinkEl, <<"href">>, undefined)} of
 		  {<<"payment">>, Href} ->
 		      Href;
 		  _ ->
@@ -204,6 +245,9 @@ item_payment(ItemEl) ->
 	      Href
       end, undefined, exmpp_xml:get_elements(ItemEl, "link")).
 
+
+item_image(ItemEl) ->
+    image(ItemEl).
 
 -spec(item_enclosures/1 :: (xmlel()) -> [binary()]).
 item_enclosures(ItemEl) ->

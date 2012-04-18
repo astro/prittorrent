@@ -1,6 +1,6 @@
 -module(model_feeds).
 
--export([to_update/1, prepare_update/1, write_update/5, feed_items/1]).
+-export([to_update/1, prepare_update/1, write_update/8, feed_items/1]).
 
 -include("../include/model.hrl").
 
@@ -36,28 +36,33 @@ prepare_update(FeedURL) ->
     end.
 
 %% TODO: transaction
--spec(write_update/5 :: (string(),
+-spec(write_update/8 :: (string(),
 			 {binary() | null, binary() | null},
+			 binary() | null,
+			 binary() | null,
+			 binary() | null,
 			 binary() | null,
 			 binary() | null,
 			 [#feed_item{}])
 			-> ok).
 write_update(FeedURL, {Etag, LastModified},
-	     Error, Xml, Items) when is_list(Etag) ->
+	     Error, Xml, Title, Homepage, Image, Items) when is_list(Etag) ->
     write_update(FeedURL, {list_to_binary(Etag), LastModified},
-		 Error, Xml, Items);
+		 Error, Xml, Title, Homepage, Image, Items);
 write_update(FeedURL, {Etag, LastModified},
-	     Error, Xml, Items) when is_list(LastModified) ->
+	     Error, Xml, Title, Homepage, Image, Items) when is_list(LastModified) ->
     write_update(FeedURL, {Etag, list_to_binary(LastModified)},
-		 Error, Xml, Items);
+		 Error, Xml, Title, Homepage, Image, Items);
 %% TODO: don't drop xml on error!
-write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
+write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, Items) ->
     ?T(fun(Q) ->
 	       %% Update feed entry
-	       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=$4, \"xml\"=$5 WHERE \"url\"=$1",
+	       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=$4, \"xml\"=$5, \"title\"=$6, \"homepage\"=$7, \"image\"=$8 WHERE \"url\"=$1",
 	       Params = [FeedURL,
 			 enforce_string(Etag), enforce_string(LastModified), 
-			 enforce_string(Error), enforce_string(Xml)],
+			 enforce_string(Error), enforce_string(Xml),
+			 enforce_string(Title), enforce_string(Homepage),
+			 enforce_string(Image)],
 	       case Q(Stmt, Params) of
 		   {ok, 1} ->
 		       ok;	   
@@ -76,17 +81,21 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 						       io:format("  e ~s~n", [Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
-				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, CURRENT_TIMESTAMP)",
+				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, $8, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title, Item#feed_item.published, 
-					enforce_string(Item#feed_item.homepage), enforce_string(Item#feed_item.payment), 
+					enforce_string(Item#feed_item.homepage),
+					enforce_string(Item#feed_item.payment),
+					enforce_string(Item#feed_item.image),
 					Item#feed_item.xml]);
 			     {ok, _, [{1}]} ->
 				 {ok, 1} =
-				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"xml\"=$6, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
+				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"image\"=$6, \"xml\"=$7, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title,
-					enforce_string(Item#feed_item.homepage), enforce_string(Item#feed_item.payment), 
+					enforce_string(Item#feed_item.homepage), 
+					enforce_string(Item#feed_item.payment), 
+					enforce_string(Item#feed_item.image), 
 					Item#feed_item.xml])
 			 end,
 			 %% Update enclosures
