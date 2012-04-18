@@ -85,13 +85,40 @@ CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
 				 info_hash BYTEA);
 CREATE VIEW enclosures_to_hash AS
        SELECT enclosures.url,
-       	      enclosure_torrents.last_update AS last_update,
-	      enclosure_torrents.error AS error,
-	      enclosure_torrents.info_hash
-	       FROM enclosures LEFT JOIN enclosure_torrents
-	       ON (enclosures.url=enclosure_torrents.url)
-	        WHERE enclosure_torrents.info_hash IS NULL
-		OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update;
+              enclosure_torrents.last_update AS last_update,
+              enclosure_torrents.error AS error,
+              enclosure_torrents.info_hash
+               FROM enclosures LEFT JOIN enclosure_torrents
+               ON (enclosures.url=enclosure_torrents.url)
+                WHERE enclosure_torrents.info_hash IS NULL
+                OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update NULLS FIRST;
+
+CREATE OR REPLACE FUNCTION enclosure_to_hash(
+       min_inactivity INTERVAL DEFAULT '2 hours',
+       OUT enclosure_url TEXT
+   ) RETURNS TEXT AS $$
+    DECLARE
+        next_url RECORD;
+    BEGIN
+        LOCK "enclosure_torrents" IN SHARE ROW EXCLUSIVE MODE;
+        SELECT enclosures_to_hash.url, enclosures_to_hash.last_update
+          INTO next_url
+          FROM enclosures_to_hash
+         LIMIT 1;
+
+        IF next_url.last_update IS NULL THEN
+            next_url.last_update = '1970-01-01 00:00:00';
+        END IF;
+        IF next_url.last_update <= CURRENT_TIMESTAMP - min_inactivity THEN
+           enclosure_url := next_url.url;
+           IF EXISTS (SELECT "url" FROM enclosure_torrents WHERE "url"=enclosure_url) THEN
+               UPDATE enclosure_torrents SET "last_update"=CURRENT_TIMESTAMP WHERE "url"=enclosure_url;
+           ELSE
+               INSERT INTO enclosure_torrents ("url", "last_update") VALUES (enclosure_url, CURRENT_TIMESTAMP);
+           END IF;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
 
 CREATE VIEW torrentified AS
        SELECT enclosures.url,

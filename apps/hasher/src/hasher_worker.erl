@@ -6,7 +6,7 @@ start_link() ->
     {ok, spawn_link(fun loop/0)}.
 
 loop() ->
-    case model_enclosures:to_hash(1) of
+    case model_enclosures:to_hash() of
 	{ok, URL} ->
 	    io:format("To hash: ~p~n", [URL]),
 	    hash(URL);
