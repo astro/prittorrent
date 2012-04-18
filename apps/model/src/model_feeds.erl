@@ -127,27 +127,25 @@ feed_details(FeedURL) ->
 %% FIXME: Xml not always needed
 feed_items(FeedURL) ->
     {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
+	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
     [#feed_item{feed = Feed,
 		id = Id,
 		title = Title,
 		published = Published,
 		homepage = Homepage,
-		payment = Payment,
-		xml = Xml}
-     || {Feed, Id, Title, Homepage, Published, Payment, Xml} <- Records].
+		payment = Payment}
+     || {Feed, Id, Title, Homepage, Published, Payment} <- Records].
 
 user_items(UserName) ->
     {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC", [UserName]),
+	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC LIMIT 30", [UserName]),
     [#feed_item{feed = Feed,
 		id = Id,
 		title = Title,
 		published = Published,
 		homepage = Homepage,
-		payment = Payment,
-		xml = Xml}
-     || {Feed, Id, Title, Homepage, Published, Payment, Xml} <- Records].
+		payment = Payment}
+     || {Feed, Id, Title, Homepage, Published, Payment} <- Records].
 
 %%
 %% Helpers

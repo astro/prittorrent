@@ -65,6 +65,8 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 "xml" TEXT,
 			 PRIMARY KEY ("feed", "id"));
 
+CREATE INDEX feed_items_published ON feed_items ("published");
+
 CREATE VIEW torrentified_items AS
        SELECT *
        FROM feed_items
@@ -82,11 +84,13 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
 			 "url" TEXT NOT NULL,
 			 PRIMARY KEY ("feed", "item", "url"),
 			 FOREIGN KEY ("feed", "item") REFERENCES "feed_items" ("feed", "id"));
+CREATE INDEX enclosures_url ON enclosures ("url");
 
 CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
        	     			 last_update TIMESTAMP,
 				 error TEXT,
 				 info_hash BYTEA);
+CREATE INDEX enclosure_torrents_info_hash ON enclosure_torrents ((length(info_hash)), info_hash);
 CREATE VIEW enclosures_to_hash AS
        SELECT enclosures.url,
               enclosure_torrents.last_update AS last_update,
