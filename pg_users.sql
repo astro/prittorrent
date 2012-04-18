@@ -61,6 +61,7 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 "homepage" TEXT,
 			 "published" TIMESTAMP NOT NULL,
 			 "payment" TEXT,
+			 "image" TEXT,
 			 "updated" TIMESTAMP,
 			 "xml" TEXT,
 			 PRIMARY KEY ("feed", "id"));
