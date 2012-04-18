@@ -22,13 +22,16 @@ get_torrent(InfoHash) ->
     end.
 
 get_stats(InfoHash) ->
-    {ok, _, [{Name, Size}]} =
-	?Q("SELECT \"name\", \"size\" FROM torrents WHERE \"info_hash\"=$1",
-	   [InfoHash]),
-    Seeders = 0,
-    Leechers = 0,
-    Bandwidth = 0,
-    {ok, Name, Size, Seeders, Leechers, Bandwidth}.
+    case ?Q("SELECT \"name\", \"size\" FROM torrents WHERE \"info_hash\"=$1",
+	    [InfoHash]) of
+	{ok, _, [{Name, Size}]} ->
+	    Seeders = 0,
+	    Leechers = 0,
+	    Bandwidth = 0,
+	    {ok, Name, Size, Seeders, Leechers, Bandwidth};
+	_ ->
+	    {error, not_found}
+    end.
 
 
 %% Maintenance

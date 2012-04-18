@@ -48,9 +48,12 @@ render_item(Title, Homepage) ->
      end].
 
 render_enclosure({_URL, InfoHash}) ->
-    {ok, Name, Size, Seeders, Leechers, Bandwidth} =
-	model_torrents:get_stats(InfoHash),
-    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Bandwidth).
+    case model_torrents:get_stats(InfoHash) of
+	{ok, Name, Size, Seeders, Leechers, Bandwidth} ->
+	    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Bandwidth);
+	{error, not_found} ->
+	    []
+    end.
 
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
     [<<"<ul class=\"download\">
