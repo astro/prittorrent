@@ -1,6 +1,7 @@
 -module(feeds_parse).
 
--export([title/1, link/1, image/1,
+-export([get_channel/1,
+	 title/1, link/1, image/1,
 	 pick_items/1,
 	 item_id/1, item_title/1, item_enclosures/1,
 	 item_published/1, item_link/1, item_payment/1, item_image/1,
@@ -9,6 +10,15 @@
 -include_lib("exmpp/include/exmpp_xml.hrl").
 
 -define(NS_ATOM, "http://www.w3.org/2005/Atom").
+
+
+get_channel(Xml) ->
+    case exmpp_xml:get_ns_as_list(Xml) of
+	?NS_ATOM ->
+	    Xml;
+	_ ->
+	    exmpp_xml:get_element(Xml, "channel")
+    end.
 
 %% Just look for 1st title element
 -spec(title/1 :: (xmlel()) -> binary() | undefined).
@@ -36,7 +46,7 @@ image1(Xml, [ChildName | ChildNames]) ->
 	lists:foldl(
 	  fun(Child, undefined) ->
 		  URL1 =
-		      case exmpp_xml:get_element(Child, "url") of
+		      case exmpp_xml:get_elements(Child, "url") of
 			  [UrlEl | _] ->
 			      exmpp_xml:get_cdata(UrlEl);
 			  _ ->

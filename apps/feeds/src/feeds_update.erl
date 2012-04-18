@@ -50,9 +50,10 @@ update1(URL, Etag1, LastModified1) ->
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
 		    FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
-		    Title1 = feeds_parse:title(FeedEl),
-		    Homepage1 = feeds_parse:link(FeedEl),
-		    Image1 = feeds_parse:image(FeedEl),
+		    ChannelEl = feeds_parse:get_channel(FeedEl),
+		    Title1 = feeds_parse:title(ChannelEl),
+		    Homepage1 = feeds_parse:link(ChannelEl),
+		    Image1 = feeds_parse:image(ChannelEl),
 		    Items2 =
 			lists:foldl(
 			  fun(ItemXml, Items2) ->
