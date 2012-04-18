@@ -25,6 +25,31 @@ CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
        	     		 "feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 PRIMARY KEY ("user", "slug", "feed"));
 
+CREATE OR REPLACE FUNCTION feed_to_update(
+       update_interval INTERVAL,
+       OUT next_url TEXT, OUT wait INTERVAL
+   ) RETURNS RECORD AS $$
+    DECLARE
+	next_feed RECORD;
+    BEGIN
+	LOCK "feeds" IN SHARE ROW EXCLUSIVE MODE;
+        SELECT "url", "last_update"
+	  INTO next_feed
+          FROM "feeds"
+      ORDER BY "last_update" ASC NULLS FIRST
+         LIMIT 1;
+
+	next_url := next_feed.url;
+	wait := next_feed.last_update + update_interval - CURRENT_TIMESTAMP;
+
+	IF wait <= '0'::INTERVAL THEN
+	   UPDATE "feeds"
+	      SET "last_update"=CURRENT_TIMESTAMP
+	    WHERE "url"=next_url;
+	END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
        	     		 "id" TEXT NOT NULL,

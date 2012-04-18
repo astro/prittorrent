@@ -8,18 +8,18 @@
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
-to_update(Limit) ->
-    case ?Q("SELECT \"url\" FROM \"feeds\" WHERE \"last_update\" IS NULL LIMIT $1", [Limit]) of
-	{ok, _, [_ | _] = Results1} ->
-	    {ok, [{URL, {{1970,1,1},{0,0,0}}}
-		  || {URL} <- Results1]};
-	_ ->
-	    {ok, _, Results} =
-		?Q("SELECT \"url\", \"last_update\" FROM \"feeds\" ORDER BY \"last_update\" ASC LIMIT $1", [Limit]),
-	    {ok, [{URL, {YMD, {H, M, trunc(S)}}}
-		  || {URL, {YMD, {H, M, S}}} <- Results]}
+to_update(MaxAge1) ->
+    MaxAge2 = {{0,0,MaxAge1},0,0},
+    case ?Q("SELECT next_url, wait FROM feed_to_update($1)",
+	    [MaxAge2]) of
+	{ok, _, []} ->
+	    %% Nothing in database? Wait like 10s...
+	    {<<"">>, 10};
+	{ok, _, [{NextURL, Wait1}]} ->
+	    {{H, M, S}, Days, Months} = Wait1,
+	    Wait2 = S + 60 * (M + (60 * (H + 24 * (Days + 30 * Months)))),
+	    {ok, {NextURL, Wait2}}
     end.
-    
 
 prepare_update(FeedURL) ->
     case ?Q("UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP WHERE \"url\"=$1", [FeedURL]) of
@@ -69,11 +69,13 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 	       %% Update items
 	       lists:foreach(
 		 fun(#feed_item{} = Item) ->
-			 io:format("Item ~s: ~s~n", [Item#feed_item.id, Item#feed_item.title]),
 			 case Q("SELECT count(\"id\") FROM \"feed_items\" WHERE \"feed\"=$1 AND \"id\"=$2",
 				[FeedURL, Item#feed_item.id]) of
 			     {ok, _, [{0}]} ->
 				 io:format("New feed item:~n~p~n", [Item#feed_item.title]),
+				 lists:foreach(fun(Enclosure) ->
+						       io:format("  e ~s~n", [Enclosure])
+					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
 				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
@@ -93,7 +95,6 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Items) ->
 			   [FeedURL, Item#feed_item.id]),
 			 lists:foreach(
 			   fun(Enclosure) ->
-				   io:format("  e ~s~n", [Enclosure]),
 				   Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
 				     [FeedURL, Item#feed_item.id, Enclosure])
 			   end, Item#feed_item.enclosures)
