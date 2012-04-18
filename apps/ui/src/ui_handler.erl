@@ -10,17 +10,17 @@ handle(Req, State) ->
     {Method, _} = cowboy_http_req:method(Req),
     {Path, _} = cowboy_http_req:path(Req),
     io:format("ui_handler ~s ~p~n", [Method, Path]),
-    try handle_request(Method, Path) of
+    case (catch handle_request(Method, Path)) of
 	{ok, Status, Headers, Body} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, Body, Req),
-	    {ok, Req2, State}
-    catch throw:{http, Status} ->
+	    {ok, Req2, State};
+	{http, Status} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
+	    {ok, Req2, State};
+	{'EXIT', Reason} ->
+	    io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
+	    {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
 	    {ok, Req2, State}
-	  %% _:Reason ->
-	  %%   io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
-	  %%   {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
-	  %%   {ok, Req2, State}
     end.		    
 
 terminate(_Req, _State) ->
