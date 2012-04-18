@@ -26,7 +26,7 @@ activate(Name) ->
 
 
 get_feeds(Name) ->
-    {ok, _, Rows} = ?Q("SELECT \"slug\", \"feed\" FROM user_feeds WHERE \"user\"=$1",
+    {ok, _, Rows} = ?Q("SELECT \"slug\", \"feed\" FROM user_feeds WHERE \"user\"=$1 ORDER BY LOWER(\"slug\")",
 		       [Name]),
     Rows.
 
