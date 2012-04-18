@@ -12,13 +12,12 @@ to_update(MaxAge1) ->
     MaxAge2 = {{0,0,MaxAge1},0,0},
     case ?Q("SELECT next_url, wait FROM feed_to_update($1)",
 	    [MaxAge2]) of
-	{ok, _, []} ->
+	{ok, _, [{NextURL, {{H, M, S}, Days, Months}}]} ->
+	    Wait = S + 60 * (M + (60 * (H + 24 * (Days + 30 * Months)))),
+	    {ok, {NextURL, Wait}};
+	{ok, _, _} ->
 	    %% Nothing in database? Wait like 10s...
-	    {<<"">>, 10};
-	{ok, _, [{NextURL, Wait1}]} ->
-	    {{H, M, S}, Days, Months} = Wait1,
-	    Wait2 = S + 60 * (M + (60 * (H + 24 * (Days + 30 * Months)))),
-	    {ok, {NextURL, Wait2}}
+	    {<<"">>, 10}
     end.
 
 prepare_update(FeedURL) ->
