@@ -11,4 +11,4 @@ torrent(InfoHash) ->
 binary_to_hex(<<>>) ->
     [];
 binary_to_hex(<<C:8, Bin/binary>>) ->
-    [io_lib:format("~2.16.0B", [C]) | binary_to_hex(Bin)].
+    [io_lib:format("~2.16.0b", [C]) | binary_to_hex(Bin)].
