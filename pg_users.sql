@@ -40,6 +40,9 @@ CREATE OR REPLACE FUNCTION feed_to_update(
          LIMIT 1;
 
 	next_url := next_feed.url;
+	IF next_feed.last_update IS NULL THEN
+	   next_feed.last_update = '1970-01-01 00:00:00';
+	END IF;
 	wait := next_feed.last_update + update_interval - CURRENT_TIMESTAMP;
 
 	IF wait <= '0'::INTERVAL THEN
