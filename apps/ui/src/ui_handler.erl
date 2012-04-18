@@ -7,12 +7,14 @@ init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req, State) ->
+    T1 = util:get_now_us(),
     {Method, _} = cowboy_http_req:method(Req),
     {Path, _} = cowboy_http_req:path(Req),
-    io:format("ui_handler ~s ~p~n", [Method, Path]),
     case (catch handle_request(Method, Path)) of
 	{ok, Status, Headers, Body} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, Body, Req),
+	    T2 = util:get_now_us(),
+	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
 	    {ok, Req2, State};
 	{http, Status} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
