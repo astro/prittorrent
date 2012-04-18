@@ -1,6 +1,7 @@
 -module(model_feeds).
 
--export([to_update/1, prepare_update/1, write_update/8, feed_items/1]).
+-export([to_update/1, prepare_update/1, write_update/8,
+	 feed_details/1, feed_items/1, user_items/1]).
 
 -include("../include/model.hrl").
 
@@ -112,6 +113,16 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
        end).
 
 
+feed_details(FeedURL) ->
+    case ?Q("SELECT \"title\", \"homepage\", \"image\" FROM feeds WHERE \"url\"=$1",
+	    [FeedURL]) of
+	{ok, _, [{Title, Homepage, Image}]} ->
+	    {ok, Title, Homepage, Image};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
+
+
 -spec(feed_items/1 :: (string()) -> [#feed_item{}]).
 %% FIXME: Xml not always needed
 feed_items(FeedURL) ->
@@ -125,6 +136,22 @@ feed_items(FeedURL) ->
 		payment = Payment,
 		xml = Xml}
      || {Feed, Id, Title, Homepage, Published, Payment, Xml} <- Records].
+
+user_items(UserName) ->
+    {ok, _, Records} =
+	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\", \"xml\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC", [UserName]),
+    [#feed_item{feed = Feed,
+		id = Id,
+		title = Title,
+		published = Published,
+		homepage = Homepage,
+		payment = Payment,
+		xml = Xml}
+     || {Feed, Id, Title, Homepage, Published, Payment, Xml} <- Records].
+
+%%
+%% Helpers
+%%
 
 enforce_string(S) when is_binary(S);
 		       is_list(S) ->

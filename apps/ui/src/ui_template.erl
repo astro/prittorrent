@@ -102,9 +102,32 @@ render_index() ->
 ">>,
       <<"</article>">>]).
 
-render_user(_UserName) ->
+render_user(UserName) ->
     %% Feeds, Recent Episodes
-    throw({http, 404}).
+    page_2column(
+      [<<"<h2>Feeds</h2>">>,
+       lists:map(fun(Feed) ->
+			 [<<"<article>">>,
+			  <<"</article>">>]
+		 end, model_users:get_feeds(UserName))
+      ],
+      [<<"<h2>Recent Episodes</h2>">>,
+       lists:map(fun(#feed_item{feed = FeedURL,
+				id = ItemId,
+				title = ItemTitle,
+				homepage = ItemHomepage}) ->
+			case model_enclosures:item_torrents(FeedURL, ItemId) of
+			    [] ->
+				[];
+			    Torrents ->
+				[<<"<article>">>,
+				 render_item(ItemTitle, ItemHomepage),
+				 lists:map(fun render_enclosure/1, Torrents),
+				 <<"</article>">>]
+			end
+		 end, model_feeds:user_items(UserName))
+      ]
+     ).
 
 render_user_feed(UserName, Feed) ->
     FeedURL = model_users:get_feed(UserName, Feed),
@@ -112,12 +135,17 @@ render_user_feed(UserName, Feed) ->
       lists:map(fun(#feed_item{id = ItemId,
 			       title = ItemTitle,
 			       homepage = ItemHomepage}) ->
-			Torrents = model_enclosures:item_torrents(FeedURL, ItemId),
-			[<<"<article>">>,
-			 render_item(ItemTitle, ItemHomepage),
-			 lists:map(fun render_enclosure/1, Torrents),
-			 <<"</article>">>]
-		end, model_feeds:feed_items(FeedURL))).
+			case model_enclosures:item_torrents(FeedURL, ItemId) of
+			    [] ->
+				[];
+			    Torrents ->
+				[<<"<article>">>,
+				 render_item(ItemTitle, ItemHomepage),
+				 lists:map(fun render_enclosure/1, Torrents),
+				 <<"</article>">>]
+			end
+		end, model_feeds:feed_items(FeedURL))
+     ).
 
 export_feed(_UserName, _Slug) ->
     throw({http, 404}).
