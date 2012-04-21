@@ -17,6 +17,8 @@ handle(Req, State) ->
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
 	    {ok, Req2, State};
 	{http, Status} ->
+	    T2 = util:get_now_us(),
+	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, Path]),
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
 	    {ok, Req2, State};
 	{'EXIT', Reason} ->
