@@ -20,7 +20,9 @@ html(Contents) ->
 	  ]},
 	 {body,
 	  [{header,
-	    [{h1, "Bitlove"},
+	    [{h1, 
+	      {a, [{href, "/"}], "Bitlove"}
+	     },
 	     {p, [{class, "slogan"}], "♥ Lovely BitTorrent Speed For Your Podcast Downloads ♥"}
 	    ]} | Contents] ++
 	      [{footer,

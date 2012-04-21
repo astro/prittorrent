@@ -35,6 +35,13 @@ header h1 {
   margin: 0;
   padding: 0.1em 0 0.05em;
 }
+header h1 a {
+  color: #444;
+}
+header h1 a:hover {
+  color: #444;
+  text-decoration: none;
+}
 header .slogan {
   margin: 0;
   margin-bottom: 0.5em;
