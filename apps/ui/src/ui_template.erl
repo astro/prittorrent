@@ -5,44 +5,50 @@
 
 -include_lib("model/include/model.hrl").
 
-template_head() ->
-    <<"<!DOCTYPE html>
-<html>
-  <head>
-    <title>Bitlove</title>
-    <link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\"/>
-    <link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\"/>
-    <link rel=\"shortcut icon\" type=\"image/png\" href=\"/static/favicon.png\"/>
-  </head>
-  <body>
-    <header>
-      <h1>Bitlove</h1>
-      <p class=\"slogan\">♥ Lovely BitTorrent Speed For Your Podcast Downloads ♥</p>
-    </header>
-">>.
+html(Contents) ->
+    [<<"<!DOCTYPE html>\n">>,
+     html:to_iolist(
+       {html,
+	[{head,
+	  [{title, "Bitlove"},
+	   {link, [{rel, "stylesheet"},
+		   {type, "text/css"},
+		   {href, "/static/style.css"}], ""},
+	   {link, [{rel, "shortcut icon"},
+		   {type, "image/png"},
+		   {href, "/static/favicon.png"}], ""}
+	  ]},
+	 {body,
+	  [{header,
+	    [{h1, "Bitlove"},
+	     {p, [{class, "slogan"}], "♥ Lovely BitTorrent Speed For Your Podcast Downloads ♥"}
+	    ]} | Contents] ++
+	      [{footer,
+		[{p, "Are you a podcast publisher?"},
+		 {p, [{a, [{href, "/signup"}], "Sign up"}]},
+		 {p, [{a, [{href, "/login"}], "Log in"}]}
+		]}
+	      ]}
+	]}
+      )].
 
-template_foot() ->
-    <<"    <footer>
-      <p>
-	Are you a podcast publisher?
-      </p>
-      <p>
-	<a href=\"/signup\">Sign up</a>
-	•
-	<a href=\"/login\">Log in</a>
-      </p>
-    </footer>
-  </body>
-</html>
-">>.
+render_link(URL = ("http://" ++ URL1)) ->
+    render_link(URL, URL1);
+render_link(URL = ("https://" ++ URL1)) ->
+    render_link(URL, URL1);
+render_link(URL) ->
+    render_link(URL, URL).
+
+render_link(URL, Text) ->
+    {a, [{href, URL}], Text}.
 
 render_item(Title, Homepage) ->
-    [<<"<h4>">>, escape(Title), <<"</h4>">>,
+    [{h4, Title},
      if
 	 is_binary(Homepage),
 	 size(Homepage) > 0 ->
-	     [<<"<p class=\"homepage\"><a href=\"">>, escape_attr(Homepage), <<"\">">>,
-	      escape(Homepage), <<"</a></p>">>];
+	     {p, [{class, "homepage"}],
+	      render_link(Homepage)};
 	 true ->
 	     []
      end].
@@ -56,85 +62,82 @@ render_enclosure({_URL, InfoHash}) ->
     end.
 
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
-    [<<"<ul class=\"download\">
-	  <li class=\"torrent\">
-	    <a href=\"">>, escape_attr(ui_link:torrent(InfoHash)), <<"\">">>, escape(Title), <<"</a>
-	  </li>">>,
-     <<"<li class=\"stats\">
-	    <span class=\"size\" title=\"Download size\">">>, size_to_human(Size), <<"</span>
-	    <span class=\"s\" title=\"Seeders\">">>, integer_to_list(Seeders), <<"</span>
-	    <span class=\"l\" title=\"Leechers\">">>, integer_to_list(Leechers), <<"</span>
-	    <span class=\"bw\" title=\"Total Bandwidth\">">>, size_to_human(Bandwidth), <<"/s</span>
-	  </li>">>,
-     <<"</ul>">>].
+    {ul, [{class, "download"}],
+     [{li, [{class, "torrent"}],
+       {a, [{href, ui_link:torrent(InfoHash)}], Title}
+      },
+      {li, [{class, "stats"}],
+       [{span, [{class, "size"},
+		{title, "Download size"}], size_to_human(Size)},
+	{span, [{class, "s"},
+		{title, "Seeders"}], integer_to_list(Seeders)},
+	{span, [{class, "l"},
+		{title, "Leechers"}], integer_to_list(Leechers)},
+	{span, [{class, "bw"},
+		{title, "Current Total Bandwidth"}], [size_to_human(Bandwidth), "/s"]}
+       ]}
+     ]}.
 
 page_1column(Col) ->
-    [template_head(), <<"<section class=\"col\">
-">>, Col, <<"</section>">>, template_foot()].
+    html([{section, [{class, "col"}], Col}]).
 
 page_2column(Col1, Col2) ->
-    [template_head(), <<"<section class=\"col1\">
-">>, Col1, <<"</section>
+    html([{section, [{class, "col1"}], Col1},
+	  {section, [{class, "col2"}], Col2}
+	 ]).
 
-<section class=\"col2\">">>, Col2, <<"</section>">>, template_foot()].
-
+%% TODO
 render_index() ->
     page_2column(
-      [<<"      <div class=\"line\">
-	<h2>Recent Torrents</h2>
-	<!--ul class=\"feeds\">
-	  <li><a href=\"fu.rss\">RSS</a></li>
-	  <li><a href=\"fu.atom\">ATOM</a></li>
-	</ul-->
-      </div>
-      <article>
-">>,
-       <<"</article>">>],
-      [<<"<div class=\"line\">
-	<h2>Popular Feeds</h2>
-	<ul class=\"feeds\">
-	  <li><a href=\"fu.rss\">RSS</a></li>
-	  <li><a href=\"fu.atom\">ATOM</a></li>
-	</ul>
-      </div>
-
-      <article>
-">>,
-      <<"</article>">>]).
-
+      [{'div', [{class, "line"}],
+	[{h2, "Recent Torrents"}
+	]} |
+       []],
+      [{'div', [{class, "line"}],
+	[{h2, "Popular Feeds"}
+	]} |
+       []]
+     ).
 render_user(UserName) ->
     %% Feeds, Recent Episodes
     page_2column(
-      [<<"<h2>Feeds</h2>">>,
+      [{h2, "Feeds"} |
        lists:map(fun({Slug, Feed}) ->
 			 case model_feeds:feed_details(Feed) of
 			     {ok, Title, Homepage, Image}
-			       when is_binary(Title) ->
-				 [<<"<article><div class=\"line\">">>,
-				  if
-				      is_binary(Image),
-				      size(Image) > 0 ->
-					  [<<"<img src=\"">>,
-					   escape(Image),
-					   <<"\" class=\"logo\">">>];
-				      true ->
-					  []
-				  end,
-				  <<"<div><h4>">>, escape(Title), <<"</h4>">>,
-				  if
-				      is_binary(Homepage),
-				      size(Homepage) > 0 ->
-					  [<<"<p class=\"homepage\"><a href=\"">>, escape_attr(Homepage), <<"\">">>, escape(Homepage), <<"</a></p>">>];
-				      true ->
-					  []
-				  end,
-				  <<"</div></div></article>">>];
+			       when is_binary(Title),
+				    size(Title) > 0 ->
+				 io:format("Details: ~p ~p ~p~n", [Title, Homepage, Image]),
+				 {article,
+				  [{'div', [{class, "line"}],
+				    [if
+					 is_binary(Image),
+					 size(Image) > 0 ->
+					     {img, [{src, Image},
+						    {class, "logo"}], ""};
+					 true ->
+					     []
+				     end,
+				     {'div',
+				      [{h4, 
+					[{a, [{href, ui_link:link_user_feed(UserName, Slug)}], Title}]},
+				       if
+					   is_binary(Homepage),
+					   size(Homepage) > 0 ->
+					       {p, [{class, "homepage"}],
+						[render_link(Homepage)]};
+					   true ->
+					       []
+				       end
+				      ]}
+				    ]}
+				  ]};
 			     _ ->
-				 []
+				 ""
 			 end
 		 end, model_users:get_feeds(UserName))
       ],
-      [<<"<h2>Recent Episodes</h2>">>,
+      [{h2, "Recent Episodes"} |
        lists:map(fun(#feed_item{feed = FeedURL,
 				id = ItemId,
 				title = ItemTitle,
@@ -143,10 +146,10 @@ render_user(UserName) ->
 			     [] ->
 				 [];
 			     Torrents ->
-				 [<<"<article>">>,
-				  render_item(ItemTitle, ItemHomepage),
-				  lists:map(fun render_enclosure/1, Torrents),
-				  <<"</article>">>]
+				 {article,
+				  [render_item(ItemTitle, ItemHomepage) |
+				   lists:map(fun render_enclosure/1, Torrents)
+				  ]}
 			 end
 		 end, model_feeds:user_items(UserName))
       ]
@@ -162,10 +165,10 @@ render_user_feed(UserName, Feed) ->
 			    [] ->
 				[];
 			    Torrents ->
-				[<<"<article>">>,
-				 render_item(ItemTitle, ItemHomepage),
-				 lists:map(fun render_enclosure/1, Torrents),
-				 <<"</article>">>]
+				{article,
+				 [render_item(ItemTitle, ItemHomepage) |
+				  lists:map(fun render_enclosure/1, Torrents)
+				 ]}
 			end
 		end, model_feeds:feed_items(FeedURL))
      ).
@@ -191,25 +194,3 @@ size_to_human(Size, [Unit | Units])
 size_to_human(Size, [_ | Units]) ->
     size_to_human(Size / 1024, Units).
 
-
-escape(Bin) when is_binary(Bin) ->
-    escape(binary_to_list(Bin));
-escape(S) ->
-    [case C of
-	 $& -> <<"&amp;">>;
-	 $< -> <<"&lt;">>;
-	 $> -> <<"&gt;">>;
-	 _ -> C
-     end || C <- S].
-
-escape_attr(Bin) when is_binary(Bin) ->
-    escape(binary_to_list(Bin));
-escape_attr(S) ->
-    [case C of
-	 $& -> <<"&amp;">>;
-	 $< -> <<"&lt;">>;
-	 $> -> <<"&gt;">>;
-	 $' -> <<"&apos;">>;
-	 $" -> <<"&quot;">>;
-	 _ -> C
-     end || C <- S].
