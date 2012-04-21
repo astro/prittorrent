@@ -58,12 +58,20 @@ write_update(FeedURL, {Etag, LastModified},
 write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, Items) ->
     ?T(fun(Q) ->
 	       %% Update feed entry
-	       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=$4, \"xml\"=$5, \"title\"=$6, \"homepage\"=$7, \"image\"=$8 WHERE \"url\"=$1",
-	       Params = [FeedURL,
-			 enforce_string(Etag), enforce_string(LastModified), 
-			 enforce_string(Error), enforce_string(Xml),
-			 enforce_string(Title), enforce_string(Homepage),
-			 enforce_string(Image)],
+	       case Error of
+		   null ->
+		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=null, \"xml\"=$5, \"title\"=$6, \"homepage\"=$7, \"image\"=$8 WHERE \"url\"=$1",
+		       Params = [FeedURL,
+				 enforce_string(Etag), enforce_string(LastModified), 
+				 enforce_string(Error), enforce_string(Xml),
+				 enforce_string(Title), enforce_string(Homepage),
+				 enforce_string(Image)];
+		   _ when is_binary(Error) ->
+		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=$4 WHERE \"url\"=$1",
+		       Params = [FeedURL,
+				 enforce_string(Etag), enforce_string(LastModified), 
+				 enforce_string(Error)]
+	       end,
 	       case Q(Stmt, Params) of
 		   {ok, 1} ->
 		       ok;	   
