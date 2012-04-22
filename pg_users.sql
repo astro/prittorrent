@@ -3,6 +3,7 @@ CREATE TABLE users ("name" TEXT NOT NULL,
 		    "password" TEXT NOT NULL,
 		    "activated" BOOLEAN DEFAULT FALSE,
 		    "title" TEXT,
+		    "image" TEXT,
 		    "homepage" TEXT,
 		    PRIMARY KEY ("name"));
 CREATE VIEW activated_users AS

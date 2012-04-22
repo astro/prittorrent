@@ -23,7 +23,7 @@ html(Contents) ->
 	    [{h1, 
 	      {a, [{href, "/"}], "Bitlove"}
 	     },
-	     {p, [{class, "slogan"}], "♥ Lovely BitTorrent Speed For Your Podcast Downloads ♥"}
+	     {p, [{class, "slogan"}], "Lovely BitTorrent Speed For Your Podcast Downloads"}
 	    ]} | Contents] ++
 	      [{footer,
 		[{p, "Are you a podcast publisher?"},
@@ -34,15 +34,41 @@ html(Contents) ->
 	]}
       )].
 
-render_link(URL = ("http://" ++ URL1)) ->
+render_link(URL = <<"http://", URL1/binary>>) ->
     render_link(URL, URL1);
-render_link(URL = ("https://" ++ URL1)) ->
+render_link(URL = <<"https://", URL1/binary>>) ->
     render_link(URL, URL1);
 render_link(URL) ->
+    io:format("render_link ~p~n", [URL]),
     render_link(URL, URL).
 
 render_link(URL, Text) ->
     {a, [{href, URL}], Text}.
+
+
+render_meta(Heading, Title, Image, Homepage) ->
+    {'div', [{class, "meta line"}],
+     [if
+	  is_binary(Image),
+	  size(Image) > 0 ->
+	      {img, [{src, Image},
+		     {class, "logo"}], []};
+	  true ->
+	      []
+      end,
+      {'div',
+       [{Heading, Title},
+	if
+	    is_binary(Homepage),
+	    size(Homepage) > 0 ->
+		{p, [{class, "homepage"}],
+		 render_link(Homepage)};
+	    true ->
+		[]
+	end
+      ]}
+    ]}.
+
 
 render_item(Title, Homepage) ->
     [{h4, Title},
@@ -60,6 +86,7 @@ render_enclosure({_URL, InfoHash}) ->
 	{ok, Name, Size, Seeders, Leechers, Bandwidth} ->
 	    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Bandwidth);
 	{error, not_found} ->
+	    io:format("Enclosure not found: ~p ~p~n", [_URL, InfoHash]),
 	    []
     end.
 
@@ -84,7 +111,11 @@ page_1column(Col) ->
     html([{section, [{class, "col"}], Col}]).
 
 page_2column(Col1, Col2) ->
-    html([{section, [{class, "col1"}], Col1},
+    page_2column([], Col1, Col2).
+
+page_2column(Prologue, Col1, Col2) ->
+    html([Prologue,
+	  {section, [{class, "col1"}], Col1},
 	  {section, [{class, "col2"}], Col2}
 	 ]).
 
@@ -100,9 +131,19 @@ render_index() ->
 	]} |
        []]
      ).
+
+%% Feeds, Recent Episodes
 render_user(UserName) ->
-    %% Feeds, Recent Episodes
+    {UserTitle, UserImage, UserHomepage} =
+	case model_users:get_details(UserName) of
+	    {ok, Title1, Image1, Homepage1} ->
+		{Title1, Image1, Homepage1};
+	    {error, not_found} ->
+		throw({http, 404})
+	end,
+
     page_2column(
+      render_meta(h2, UserTitle, UserImage, UserHomepage),
       [{h2, "Feeds"} |
        lists:map(fun({Slug, Feed}) ->
 			 case model_feeds:feed_details(Feed) of
@@ -158,22 +199,47 @@ render_user(UserName) ->
      ).
 
 render_user_feed(UserName, Feed) ->
-    FeedURL = model_users:get_feed(UserName, Feed),
+    {UserTitle, _UserImage, _UserHomepage} =
+	case model_users:get_details(UserName) of
+	    {ok, Title1, Image1, Homepage1} ->
+		{Title1, Image1, Homepage1};
+	    {error, not_found} ->
+		throw({http, 404})
+	end,
+
+    FeedURL =
+	case model_users:get_feed(UserName, Feed) of
+	    {ok, FeedURL1} ->
+		FeedURL1;
+	    {error, not_found} ->
+		throw({http, 404})
+	end,
+    {ok, FeedTitle, FeedHomepage, FeedImage} =
+	model_feeds:feed_details(FeedURL),
+	    
     page_1column(
-      lists:map(fun(#feed_item{id = ItemId,
-			       title = ItemTitle,
-			       homepage = ItemHomepage}) ->
-			case model_enclosures:item_torrents(FeedURL, ItemId) of
-			    [] ->
-				[];
-			    Torrents ->
-				{article,
-				 [render_item(ItemTitle, ItemHomepage) |
-				  lists:map(fun render_enclosure/1, Torrents)
-				 ]}
-			end
-		end, model_feeds:feed_items(FeedURL))
-     ).
+      [render_meta(h2,
+		   [FeedTitle,
+		    {span, [{class, "publisher"}],
+		     [<<" by ">>,
+		      {a, [{href, ui_link:link_user(UserName)}],
+		       UserTitle}
+		     ]}
+		   ], FeedImage, FeedHomepage) |
+       lists:map(fun(#feed_item{id = ItemId,
+				title = ItemTitle,
+				homepage = ItemHomepage}) ->
+			 case model_enclosures:item_torrents(FeedURL, ItemId) of
+			     [] ->
+				 [];
+			     Torrents ->
+				 {article,
+				  [render_item(ItemTitle, ItemHomepage) |
+				   lists:map(fun render_enclosure/1, Torrents)
+				  ]}
+			 end
+		 end, model_feeds:feed_items(FeedURL))
+      ]).
 
 export_feed(_UserName, _Slug) ->
     throw({http, 404}).

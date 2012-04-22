@@ -1,7 +1,9 @@
 -module(ui_link).
 
--export([link_user_feed/2, torrent/1]).
+-export([link_user/1, link_user_feed/2, torrent/1]).
 
+link_user(UserName) ->
+    <<"/~", UserName/binary>>.
 
 link_user_feed(UserName, Slug) ->
     <<"/~", UserName/binary, "/", Slug/binary>>.
