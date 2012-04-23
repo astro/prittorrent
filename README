@@ -5,15 +5,23 @@ PritTorrent
 TODO
 ----
 
+! Tracker
+! Seeder
+* Redesign
+! ui_link:link_item/3
+* Flattr buttons
 * UI: Detect browser language
-* Storage: local caching
 * Stats:
+*! Collecting
 ** Counters: ULed Swarm+PritTorrent, DLed, Completes
 ** Gauges: Seeders, Leechers
-* UI: Wholesome OPML export
+** DLs by country/client?
+* Publisher mode
 
 Future Tech features:
 
+* Storage: local caching
+* UI: Wholesome OPML export
 * Super-seeding
 * Slot queues
 * PEX
