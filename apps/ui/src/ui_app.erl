@@ -24,6 +24,7 @@ start(_StartType, _StartArgs) ->
 			       {<<".svg">>, [<<"image/svg+xml">>]}
 			      ]}
 		 ]},
+		{[<<"announce">>], ui_tracker_handler, []},
 		{'_', ui_handler, []}
 	       ]
 	 }
