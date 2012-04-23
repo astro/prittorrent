@@ -70,16 +70,28 @@ render_meta(Heading, Title, Image, Homepage) ->
     ]}.
 
 
-render_item(Title, Homepage) ->
-    [{h4, Title},
-     if
-	 is_binary(Homepage),
-	 size(Homepage) > 0 ->
-	     {p, [{class, "homepage"}],
-	      render_link(Homepage)};
-	 true ->
-	     []
-     end].
+render_item(Title, Image, Homepage) ->
+    {'div', [{class, "line"}],
+     [if
+	  is_binary(Image),
+	  size(Image) > 0 ->
+	      {img, [{src, Image},
+		     {class, "logo"}], []};
+	  true ->
+	      []
+      end,
+      {'div',
+       [{h4, Title},
+	if
+	    is_binary(Homepage),
+	    size(Homepage) > 0 ->
+		{p, [{class, "homepage"}],
+		 render_link(Homepage)};
+	    true ->
+		[]
+	end
+      ]}
+    ]}.
 
 render_enclosure({_URL, InfoHash}) ->
     case model_torrents:get_stats(InfoHash) of
@@ -184,13 +196,14 @@ render_user(UserName) ->
        lists:map(fun(#feed_item{feed = FeedURL,
 				id = ItemId,
 				title = ItemTitle,
+				image = ItemImage,
 				homepage = ItemHomepage}) ->
 			 case model_enclosures:item_torrents(FeedURL, ItemId) of
 			     [] ->
 				 [];
 			     Torrents ->
-				 {article,
-				  [render_item(ItemTitle, ItemHomepage) |
+				 {article, [{class, "item"}],
+				  [render_item(ItemTitle, ItemImage, ItemHomepage) |
 				   lists:map(fun render_enclosure/1, Torrents)
 				  ]}
 			 end
@@ -228,13 +241,14 @@ render_user_feed(UserName, Feed) ->
 		   ], FeedImage, FeedHomepage) |
        lists:map(fun(#feed_item{id = ItemId,
 				title = ItemTitle,
+				image = ItemImage,
 				homepage = ItemHomepage}) ->
 			 case model_enclosures:item_torrents(FeedURL, ItemId) of
 			     [] ->
 				 [];
 			     Torrents ->
-				 {article,
-				  [render_item(ItemTitle, ItemHomepage) |
+				 {article, [{class, "item"}],
+				  [render_item(ItemTitle, ItemImage, ItemHomepage) |
 				   lists:map(fun render_enclosure/1, Torrents)
 				  ]}
 			 end

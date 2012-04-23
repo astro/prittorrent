@@ -60,10 +60,10 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 	       %% Update feed entry
 	       case Error of
 		   null ->
-		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=null, \"xml\"=$5, \"title\"=$6, \"homepage\"=$7, \"image\"=$8 WHERE \"url\"=$1",
+		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=null, \"xml\"=$4, \"title\"=$5, \"homepage\"=$6, \"image\"=$7 WHERE \"url\"=$1",
 		       Params = [FeedURL,
 				 enforce_string(Etag), enforce_string(LastModified), 
-				 enforce_string(Error), enforce_string(Xml),
+				 enforce_string(Xml),
 				 enforce_string(Title), enforce_string(Homepage),
 				 enforce_string(Image)];
 		   _ when is_binary(Error) ->
@@ -135,25 +135,27 @@ feed_details(FeedURL) ->
 %% FIXME: Xml not always needed
 feed_items(FeedURL) ->
     {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
+	?Q("SELECT \"feed\", \"id\", \"title\", \"image\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
     [#feed_item{feed = Feed,
 		id = Id,
 		title = Title,
 		published = Published,
+		image = Image,
 		homepage = Homepage,
 		payment = Payment}
-     || {Feed, Id, Title, Homepage, Published, Payment} <- Records].
+     || {Feed, Id, Title, Image, Homepage, Published, Payment} <- Records].
 
 user_items(UserName) ->
     {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC LIMIT 30", [UserName]),
+	?Q("SELECT \"feed\", \"id\", \"title\", \"image\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC LIMIT 30", [UserName]),
     [#feed_item{feed = Feed,
 		id = Id,
 		title = Title,
 		published = Published,
+		image = Image,
 		homepage = Homepage,
 		payment = Payment}
-     || {Feed, Id, Title, Homepage, Published, Payment} <- Records].
+     || {Feed, Id, Title, Image, Homepage, Published, Payment} <- Records].
 
 %%
 %% Helpers
