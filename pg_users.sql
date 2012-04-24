@@ -69,7 +69,7 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 
 CREATE INDEX feed_items_published ON feed_items ("published");
 
-CREATE OR REPLACE FUNCTION feed_items_ensure_link() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION feed_items_ensure_image() RETURNS trigger AS $$
     BEGIN
         IF NEW.image IS NULL OR NEW.image='' THEN
             SELECT image INTO NEW.image FROM feeds WHERE url=NEW.feed;
@@ -78,8 +78,8 @@ CREATE OR REPLACE FUNCTION feed_items_ensure_link() RETURNS trigger AS $$
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER feed_items_ensure_link BEFORE INSERT OR UPDATE ON feed_items
-    FOR EACH ROW EXECUTE PROCEDURE feed_items_ensure_link();
+CREATE TRIGGER feed_items_ensure_image BEFORE INSERT OR UPDATE ON feed_items
+    FOR EACH ROW EXECUTE PROCEDURE feed_items_ensure_image();
 
 CREATE OR REPLACE VIEW torrentified_items AS
        SELECT *
