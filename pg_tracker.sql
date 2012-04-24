@@ -5,6 +5,8 @@ CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash"
 		      "port" INT NOT NULL,
 		      "uploaded" BIGINT,
 		      "downloaded" BIGINT,
+		      "downspeed" BIGINT,
+		      "upspeed" BIGINT,
 		      "left" BIGINT,
 		      "last_request" TIMESTAMP NOT NULL,
 		      PRIMARY KEY ("info_hash", "peer_id")
@@ -30,26 +32,51 @@ CREATE VIEW tracker_leechers AS
 
 CREATE OR REPLACE FUNCTION set_peer(
        "p_info_hash" BYTEA, "p_host" BYTEA, "p_port" INT, "p_peer_id" BYTEA,
-       "p_uploaded" BIGINT, "p_downloaded" BIGINT, "p_left" BIGINT
-    ) RETURNS void AS $$
+       "p_uploaded" BIGINT, "p_downloaded" BIGINT, "p_left" BIGINT,
+       OUT "up" BIGINT, OUT "down" BIGINT
+    ) RETURNS RECORD AS $$
     DECLARE
         "old" RECORD;
+        "old_age" FLOAT;
+        "up" BIGINT;
+        "down" BIGINT;
+        "p_upspeed" BIGINT;
+        "p_downspeed" BIGINT;
     BEGIN
+        RAISE NOTICE 'set_peer(%, %)', p_info_hash, p_peer_id;
         SELECT * INTO "old" FROM tracked WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
         IF "old" IS NULL THEN
             INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
                                  "uploaded", "downloaded", "left", "last_request")
                 VALUES ("p_info_hash", "p_peer_id", "p_host", "p_port",
-                        "p_uploaded", "p_downloaded", "p_left", CURRENT_TIMESTAMP);
+                        "p_uploaded", "p_downloaded", "p_left", now());
         ELSE
+            "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
+	    RAISE NOTICE 'old_age: %', old_age;
+            -- Estimate speeds, with sanity checks first:
+            IF "old_age" <= 30 * 60 AND
+               "p_uploaded" >= old.uploaded AND
+               "p_downloaded" >= old.downloaded AND
+               "p_left" <= old.left THEN
+                "up" := "p_uploaded" - old.uploaded;
+                "down" := "p_downloaded" - old.downloaded;
+	        RAISE NOTICE 'up: % down: %',"up","down";
+                "p_upspeed" := (up / "old_age")::BIGINT;
+                "p_downspeed" := (down / "old_age")::BIGINT;
+            END IF;
+
             UPDATE tracked SET "host"="p_host", "port"="p_port",
                                "uploaded"="p_uploaded", "downloaded"="p_downloaded",
-                               "left"="p_left", "last_request"=CURRENT_TIMESTAMP
+                               "left"="p_left", "last_request"=now(),
+                               "upspeed"="p_upspeed", "downspeed"="p_downspeed"
              WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
-	    -- TODO: return deltas
         END IF;
     END;
 $$ LANGUAGE plpgsql;
 
--- TODO: periodic tracked cleaner
-
+-- periodic tracked cleaner
+CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
+    BEGIN
+        DELETE FROM tracked WHERE "last_update" <= CURRENT_TIMESTAMP - maxage;
+    END;
+$$ LANGUAGE plpgsql;

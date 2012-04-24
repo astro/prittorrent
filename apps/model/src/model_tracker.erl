@@ -27,9 +27,11 @@ get_peers(InfoHash, ReqPeerId, LeechersOnly) ->
 
 %% Add/Update
 set_peer(InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left) ->
-    {ok, _, _} =
-	?Q("SELECT set_peer($1, $2, $3, $4, $5, $6, $7)",
+    %% FIXME: up/down not going out
+    {ok, _, [{_Up, _Down}]} = 
+	?Q("SELECT \"up\", \"down\" FROM set_peer($1, $2, $3, $4, $5, $6, $7)",
 	   [InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left]),
+    io:format("set_peer: ~p~n", [R]),
 
     %% TODO: Report back deltas:
     {ok}.

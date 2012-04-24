@@ -3,7 +3,13 @@
 
 -behaviour(cowboy_http_handler).
 
+tracker_interval() ->
+    io:format("r: ~B~n", [random:uniform(60)]),
+    540 + random:uniform(60).
+
 init({tcp, http}, Req, _Opts) ->
+    {MS, S, SS} = erlang:now(),
+    random:seed(MS, S, SS),
     {ok, Req, undefined_state}.
 
 handle(Req, _State) ->
@@ -18,13 +24,14 @@ handle(Req, _State) ->
     Reply =
 	case (catch handle1(Req, Host, Method, Path)) of
 	    {ok, Peers, Peers6} ->
-		[{<<"interval">>, 600},
+		[{<<"interval">>, tracker_interval()},
 		 {<<"peers">>, Peers},
 		 {<<"peers6">>, Peers6}];
 	    {'EXIT', Reason} ->
 		io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
 		[{<<"failure">>, <<"Internal server error">>}]
 	end,
+    io:format("Tracker Reply: ~p~n", [Reply]),
     
     Body = benc:to_binary(Reply),
     {ok, Req2} =
