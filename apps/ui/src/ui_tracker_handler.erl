@@ -58,18 +58,27 @@ handle1(Req, Host, Method, Path) ->
 
     handle2(Method, Path, InfoHash,
 	    host_to_binary(Host), binary_to_integer_or(Port, undefined), PeerId,
-	    Event, Uploaded, Downloaded, Left, Compact).
+	    Event,
+	    binary_to_integer_or(Uploaded, 0), binary_to_integer_or(Downloaded, 0),
+	    binary_to_integer_or(Left, 0), Compact).
 
 handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>, 
 	Host, Port, <<PeerId:20/binary>>, 
 	Event, Uploaded, Downloaded, Left, Compact)
-  when is_integer(Port) ->
+  when is_integer(Port),
+       is_integer(Uploaded),
+       is_integer(Downloaded),
+       is_integer(Left) ->
     IsSeeder = case Left of
-		   <<"0">> -> true;
-		   undefined -> true;
+		   0 -> true;
 		   _ -> false
 	       end,
     {ok, Peers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
+    %% Continue write part in background:
+    spawn_set_peer(InfoHash, 
+	Host, Port, PeerId,
+	Event, Uploaded, Downloaded, Left),
+
     case Compact of
 	<<"1">> ->
 	    {ok,
@@ -97,6 +106,37 @@ handle2(_Method, _Path, _InfoHash,
 terminate(_Req, _State) ->
     ok.
 
+
+
+spawn_set_peer(InfoHash, 
+	       Host, Port, PeerId,
+	       Event, Uploaded, Downloaded, Left) ->
+    spawn(
+      fun() ->
+	      case (catch set_peer(InfoHash, 
+				   Host, Port, PeerId,
+				   Event, Uploaded, Downloaded, Left)) of
+		  {'EXIT', Reason} ->
+		      io:format("Failed set_peer: ~p ~p ~p ~p ~p ~p ~p ~p ~n~p~n",
+				[InfoHash, 
+				 Host, Port, PeerId,
+				 Event, Uploaded, Downloaded, Left,
+				 Reason]);
+		  _ ->
+		      ok
+	      end
+      end).
+
+set_peer(InfoHash, 
+	 Host, Port, PeerId,
+	 Event, Uploaded, Downloaded, Left) ->
+    case Event of
+	<<"stopped">> ->
+	    model_tracker:rm_peer(InfoHash, PeerId);
+	_ ->
+	    model_tracker:set_peer(InfoHash, Host, Port, PeerId,
+				   Uploaded, Downloaded, Left)
+    end.
 
 
 binary_to_integer_or(<<Bin/binary>>, _) ->
