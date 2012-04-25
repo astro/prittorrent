@@ -7,7 +7,6 @@ TODO
 
 ! Tracker
 ! Seeder
-* Redesign
 ! ui_link:link_item/3
 * Flattr buttons
 * UI: Detect browser language
@@ -17,6 +16,7 @@ TODO
 ** Gauges: Seeders, Leechers
 ** DLs by country/client?
 * Publisher mode
+* rebar release
 
 Future Tech features:
 
