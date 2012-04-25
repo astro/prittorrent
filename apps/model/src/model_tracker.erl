@@ -31,7 +31,7 @@ set_peer(InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left) ->
     {ok, _, [{_Up, _Down}]} = 
 	?Q("SELECT \"up\", \"down\" FROM set_peer($1, $2, $3, $4, $5, $6, $7)",
 	   [InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left]),
-    io:format("set_peer: ~p~n", [R]),
+    io:format("set_peer: ~p~n", [{_Up, _Down}]),
 
     %% TODO: Report back deltas:
     {ok}.

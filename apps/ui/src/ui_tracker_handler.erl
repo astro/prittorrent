@@ -80,12 +80,16 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 		   0 -> true;
 		   _ -> false
 	       end,
-    {ok, Peers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
+    {ok, Seeders} = application:get_env(ui, seeders),
+    {ok, TrackerPeers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
+    Peers = [{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
+	     || {PeerHost, PeerPort} <- Seeders] ++ TrackerPeers,
     %% Continue write part in background:
     spawn_set_peer(InfoHash, 
 	Host, Port, PeerId,
 	Event, Uploaded, Downloaded, Left),
 
+    %% TODO: scrape info
     case Compact of
 	<<"1">> ->
 	    {ok,
@@ -137,6 +141,7 @@ spawn_set_peer(InfoHash,
 set_peer(InfoHash, 
 	 Host, Port, PeerId,
 	 Event, Uploaded, Downloaded, Left) ->
+    %% TODO: count "completed" for stats
     case Event of
 	<<"stopped">> ->
 	    model_tracker:rm_peer(InfoHash, PeerId);

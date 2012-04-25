@@ -116,7 +116,9 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 	{ok, {{Status, _}, Headers, Pid}}
 	  when Status >= 300, Status < 400 ->
 	    %% Finalize this response:
-	    fold_resource1(Pid, F, AccIn),
+	    fold_resource1(Pid, fun(_, _) ->
+					ok
+				end, undefined),
 
 	    case extract_header("location", Headers) of
 		undefined ->
@@ -129,7 +131,9 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 	    end;
 	{ok, {{Status, _}, _Headers, Pid}} ->
 	    %% Finalize this response:
-	    fold_resource1(Pid, F, AccIn),
+	    fold_resource1(Pid, fun(_, _) ->
+					ok
+				end, undefined),
 
 	    exit({http, Status});
 
