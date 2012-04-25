@@ -4,12 +4,12 @@
 -behaviour(cowboy_http_handler).
 
 tracker_interval() ->
-    io:format("r: ~B~n", [random:uniform(60)]),
     540 + random:uniform(60).
 
 init({tcp, http}, Req, _Opts) ->
     {MS, S, SS} = erlang:now(),
     random:seed(MS, S, SS),
+
     {ok, Req, undefined_state}.
 
 handle(Req, _State) ->
