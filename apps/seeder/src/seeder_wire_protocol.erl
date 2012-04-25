@@ -178,13 +178,22 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 	storage:fold(
 	  Storage,
 	  Piece * PieceLength + Offset, Length,
-	  fun(_, Data) ->
-		  ok = gen_tcp:send(Socket, Data)
+	  fun(Transmitted, Data) ->
+		  ok = gen_tcp:send(Socket, Data),
+		  Transmitted + size(Data)
 	  end, 0),
+    io:format("Piece ~p+~p-~p~n", [Piece, Offset, Transmitted]),
     if
 	Transmitted < Length ->
-	    io:format("Short read from HTTP: ~p~n", [Storage]);
+	    io:format("Short read from HTTP: ~p~n", [Storage]),
+	    %% Make them fail hash check. Perhaps they will retry
+	    %% later when the file is up on HTTP completely.
+	    ok =
+		gen_tcp:send(<< <<0>>
+				|| _ <- lists:seq(1, Length - Transmitted)
+			     >>);
 	Transmitted > Length ->
+	    %% Yikes
 	    io:format("Excess data from HTTP: ~p~n", [Storage]);
 	true ->
 	    alright
