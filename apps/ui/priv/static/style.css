@@ -1,14 +1,13 @@
-* {
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
 body {
-  margin: 0 auto;
-  max-width: 80em;
+  text-align: center;
   color: black;
   background: white;
   font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+body > * {
+  text-align: left;
 }
 a {
   color: #555;
@@ -20,29 +19,28 @@ a:hover {
   text-decoration: underline;
 }
 
-header {
+header.site {
   color: #333;
-  width: 70%;
-  margin: 0 auto;
+  margin: 0 auto 1em;
   text-align: center;
   border-bottom: 1px dotted #ccc;
   font-family: 'Georgia', serif;
   font-style: italic;
   font-weight: bold;
 }
-header h1 {
+header.site h1 {
   font-size: 300%;
   margin: 0;
   padding: 0.1em 0 0.05em;
 }
-header h1 a {
+header.site h1 a {
   color: #444;
 }
-header h1 a:hover {
+header.site h1 a:hover {
   color: #444;
   text-decoration: none;
 }
-header .slogan {
+header.site .slogan {
   margin: 0;
   margin-bottom: 0.5em;
   padding: 0;
@@ -50,118 +48,54 @@ header .slogan {
 }
 
 .col, .col1, .col2 {
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
+  vertical-align: top;
+  display: inline-block;
 }
-.col {
-  width: 50em;
-}
-.col1 {
-  width: 38em;
-  float: left;
-}
-.col2 {
-  max-width: 38em;
-  margin-left: 50%;
+.col1, .col2 {
+  /*max-width: 50%;*/
 }
 
 h2 { 
-  font-size: 200%;
-  font-style: italic;
-  font-weight: bold;
-  font-family: 'Georgia', serif;
+  font-size: 150%;
+  font-weight: normal;
   color: #999;
+  margin: 0.4em 0 0.1em;
+}
+header {
+  text-align: center;
+  margin: 0 auto;
+}
+header .meta, header .meta div {
+  text-align: left;
+  display: inline-block;
+}
+.meta h2 {
   margin: 0;
+  font-style: italic;
+  font-family: 'Georgia', serif;
 }
-.col h2, .col1 h2, .col2 h2 {
-  //margin: 0.5em 0.2em 0em 0.6em;
-}
-
-.meta {
-  margin: 1em 1em;
-}
-
-.meta img {
-  margin-right: 0.5em;
-  vertical-align: top;
-}
-
 h2 .publisher {
   font-size: 50%;
   font-style: normal;
   font-family: sans-serif;
+  white-space: pre-nowrap;
 }
-
-#login, #signup {
-  width: 16em;
-  margin: 2em auto;
-  padding: 1em;
-  background-color: white;
-  border-radius: 6px;
-  box-shadow: 4px 2px 8px #ccc;
+.meta, section {
+  min-height: 70px;
 }
-#login h2, #signup h2 {
-  text-align: center;
-  margin: 0;
-  margin-bottom: 0.3em;
-}
-.field {
-  margin: 0;
-  padding: 0;
-}
-.field label {
-  width: 6em;
+.meta img.logo, section img.logo {
   float: left;
-  color: #444;
-  line-height: 1.5em;
-  margin-bottom: -1.5em;
-}
-.field input {
-  margin-left: 8em;
-  width: 10em;
-}
-.center {
-  text-align: center;
-}
-
-img.logo {
+  vertical-align: top;
   width: 64px;
   height: 64px;
-  border: 1px solid black;
   padding: 0;
+  margin: 0 4px 4px 0;
 }
-article img.logo {
-  margin: 0 4px 0 0;
-}
-
-.line > * {
-  display: inline-block;
-}
-
-.feeds {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  font-size: 70%;
-  line-height: 1em;
-}
-.feeds a {
-  color: white;
-  font-weight: bold;
-}
-.feeds a:hover {
-  color: black;
-  text-decoration: none;
-}
-.feeds a[href$=".atom"] {
-  background: url(atom.png) left no-repeat;
-  padding-left: 15px;
-  line-height: 14px;
-}
-.feeds a[href$=".rss"] {
-  background: url(rss.png) left no-repeat;
-  padding-left: 15px;
-  line-height: 14px;
+.item img.logo {
+  width: 40px;
+  height: 40px;
 }
 
 article {
@@ -174,17 +108,7 @@ article {
 article:first-child {
   border-top: none;
 }
-article div {
-  vertical-align: top;
-}
 h3 {
-  margin: 0;
-  padding: 0;
-  font-size: 105%;
-  font-weight: bold;
-  color: #999;
-}
-h4 {
   font-size: 120%;
   margin: 0.2em 0 0;
   color: #999;
@@ -193,41 +117,36 @@ h4 {
 .homepage {
   margin: 0;
   font-size: 80%;
+  max-width: 30em;
 }
 .homepage a {
   font-weight: normal;
   color: #333;
 }
+
 .download {
   list-style-type: none;
+  margin: 1em 0;
   padding: 0;
-  min-width: 350px;
-  margin: 0 0.5em 0.4em 0;
 }
 .download .torrent {
-  padding-top: 6px;
-  padding-bottom: 4px;
-  line-height: 2em;
+  float: left;
+  width: 20em;
+}
+.torrent a {
+  background: url('favicon.png') no-repeat top left;
+  padding-left: 16px;
 }
 .stats {
-  font-size: 75%;
-  font-weight: bold;
-  color: #888;
-  padding: 0;
-  margin: 0;
-  text-align: right;
-  line-height: 2em;
-  margin-top: -3em;
+  margin: 0 0 0 1em;
+  white-space: nowrap;
 }
-.stats > * {
-  display: inline-block;
+.stats .size, .stats .l, .stats .s, .stats .bw {
+  font-size: 80%;
+  padding: 2px 0.2em;
+  margin: 0 0.3em;
   border: 1px solid #ccc;
   border-radius: 3px;
-  box-shadow: 1px 1px 4px #eee insert;
-  padding: 2px 4px 0px 4px;
-  margin: 0;
-  margin-right: 1em;
-  line-height: 24px;
 }
 .stats .s:before {
   content: url('s.svg');
@@ -241,71 +160,8 @@ h4 {
 .stats .bw:before {
   content: url('swarm.svg');
 }
-.source {
-  margin: 0;
-  font-size: 70%;
-  color: #777;
-}
-a[href$=".torrent"] {
-  background: url(favicon.png) left no-repeat;
-  padding-left: 16px;
-  line-height: 16px;
-}
-a[href^="magnet:"] { 
-  background: url(magnet.gif) top left no-repeat;
-  padding-left: 13px;
-  line-height: 12px;
-}
-.download a[href^="magnet:"] { 
-  width: 13px;
-  overflow: hidden;
-  color: white;
-  font-size: 1%;
-}
-
-.graphs {
-  min-width: 400px;
-  width: 100%;
-  margin-top: 0em;
-  padding: 0em 0;
-  font-size: 90%;
-  color: #666;
-}
-.graphs .tabs {
-  list-style: none;
-  margin: 0;
-  margin-top: 0.4em;
-  padding: 0;
-}
-.graphs .tabs li {
-  display: inline;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  margin: 0 0.5em;
-  padding: 0.2em 0.5em 0;
-  cursor: pointer;
-}
-.graphs .tabs li.tab_selected {
-  border-bottom: 1px solid white;
-  box-shadow: 2px -2px 4px #eee;
-}
-.graphs .tab_content {
-  border: 1px solid #ddd;
-  box-shadow: 2px 2px 4px #eee;
-  padding: 0.6em 1em;
-  border-radius: 3px 3px 6px 6px;
-}
-.graphs svg {
-  width: 100%;
-  background-color: #eee;
-}
 
 footer {
-  clear: both;
-  width: 100%;
   margin: 0;
   margin-top: 2em;
   padding: 0;
@@ -322,60 +178,4 @@ footer p {
 footer a {
   color: #777;
   font-weight: bold;
-}
-
-
-article.u {
-    display: none;  /* default */
-    padding: 1em 2em;
-}
-.userfeeds {
-    display: inline-block;
-    width: 20em;
-    overflow: auto;
-    margin: 0;
-    background-color: #eee;
-    border-top-left-radius: 16px;
-    border-bottom-left-radius: 16px;
-}
-.userfeeds .buttons {
-    text-align: center;
-    font-size: 120%;
-}
-.userfeeds .buttons a {
-    margin: 0 1em;
-}
-.userfeeds .buttons a:hover {
-    text-decoration: none;
-    color: black;
-}
-.userfeeds ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0.2em 0;
-}
-.userfeeds li {
-    margin: 0;
-    padding: 0.5em 2em;
-}
-.userfeeds li.selected {
-    background-color: white;
-    color: #333;
-    font-weight: bold;
-}
-.userfeeds li:hover {
-    background-color: white;
-    cursor: pointer;
-}
-
-.userfeed {
-    display: inline-block;
-    margin: 0;
-    box-shadow: -4px 2px 16px #aaa;
-    padding: 0.5em 2em;
-}
-
-.item img.logo {
-  width: 40px;
-  height: 40px;
 }

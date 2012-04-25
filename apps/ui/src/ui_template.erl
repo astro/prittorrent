@@ -19,7 +19,7 @@ html(Contents) ->
 		   {href, "/static/favicon.png"}], ""}
 	  ]},
 	 {body,
-	  [{header,
+	  [{header, [{class, "site"}],
 	    [{h1, 
 	      {a, [{href, "/"}], "Bitlove"}
 	     },
@@ -47,7 +47,7 @@ render_link(URL, Text) ->
 
 
 render_meta(Heading, Title, Image, Homepage) ->
-    {'div', [{class, "meta line"}],
+    {'div', [{class, "meta"}],
      [if
 	  is_binary(Image),
 	  size(Image) > 0 ->
@@ -71,7 +71,7 @@ render_meta(Heading, Title, Image, Homepage) ->
 
 
 render_item(Title, Image, Homepage) ->
-    {'div', [{class, "line"}],
+    {'div',
      [if
 	  is_binary(Image),
 	  size(Image) > 0 ->
@@ -81,7 +81,7 @@ render_item(Title, Image, Homepage) ->
 	      []
       end,
       {'div',
-       [{h4, Title},
+       [{h3, Title},
 	if
 	    is_binary(Homepage),
 	    size(Homepage) > 0 ->
@@ -134,11 +134,11 @@ page_2column(Prologue, Col1, Col2) ->
 %% TODO
 render_index() ->
     page_2column(
-      [{'div', [{class, "line"}],
+      [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
        []],
-      [{'div', [{class, "line"}],
+      [{'div',
 	[{h2, "Popular Feeds"}
 	]} |
        []]
@@ -155,7 +155,9 @@ render_user(UserName) ->
 	end,
 
     page_2column(
-      render_meta(h2, UserTitle, UserImage, UserHomepage),
+      {header, [{class, "user"}],
+       render_meta(h2, UserTitle, UserImage, UserHomepage)
+      },
       [{h2, "Feeds"} |
        lists:map(fun({Slug, Feed}) ->
 			 case model_feeds:feed_details(Feed) of
@@ -164,7 +166,8 @@ render_user(UserName) ->
 				    size(Title) > 0 ->
 				 io:format("Details: ~p ~p ~p~n", [Title, Homepage, Image]),
 				 {article,
-				  [{'div', [{class, "line"}],
+				  
+				  [{'div',
 				    [if
 					 is_binary(Image),
 					 size(Image) > 0 ->
@@ -174,7 +177,7 @@ render_user(UserName) ->
 					     []
 				     end,
 				     {'div',
-				      [{h4, 
+				      [{h3, 
 					[{a, [{href, ui_link:link_user_feed(UserName, Slug)}], Title}]},
 				       if
 					   is_binary(Homepage),
@@ -231,14 +234,16 @@ render_user_feed(UserName, Feed) ->
 	model_feeds:feed_details(FeedURL),
 	    
     page_1column(
-      [render_meta(h2,
-		   [FeedTitle,
-		    {span, [{class, "publisher"}],
-		     [<<" by ">>,
-		      {a, [{href, ui_link:link_user(UserName)}],
-		       UserTitle}
-		     ]}
-		   ], FeedImage, FeedHomepage) |
+      [{header, [{class, "feed"}],
+	render_meta(h2,
+		    [FeedTitle,
+		     {span, [{class, "publisher"}],
+		      [<<" by ">>,
+		       {a, [{href, ui_link:link_user(UserName)}],
+			UserTitle}
+		      ]}
+		    ], FeedImage, FeedHomepage)
+       } |
        lists:map(fun(#feed_item{id = ItemId,
 				title = ItemTitle,
 				image = ItemImage,
