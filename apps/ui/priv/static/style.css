@@ -54,7 +54,7 @@ header.site .slogan {
   display: inline-block;
 }
 .col1, .col2 {
-  /*max-width: 50%;*/
+  max-width: 49%;
 }
 
 h2 { 
@@ -110,14 +110,14 @@ article:first-child {
 }
 h3 {
   font-size: 120%;
-  margin: 0.2em 0 0;
+  margin: 0;
   color: #999;
   font-weight: bold;
+  line-height: 1em;
 }
 .homepage {
   margin: 0;
-  font-size: 80%;
-  max-width: 30em;
+  font-size: 70%;
 }
 .homepage a {
   font-weight: normal;
@@ -136,6 +136,7 @@ h3 {
 .torrent a {
   background: url('favicon.png') no-repeat top left;
   padding-left: 16px;
+  font-size: 90%;
 }
 .stats {
   margin: 0 0 0 1em;
@@ -143,7 +144,7 @@ h3 {
 }
 .stats .size, .stats .l, .stats .s, .stats .bw {
   font-size: 80%;
-  padding: 2px 0.2em;
+  padding: 3px 0.4em 2px;
   margin: 0 0.3em;
   border: 1px solid #ccc;
   border-radius: 3px;
