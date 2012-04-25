@@ -23,7 +23,7 @@ html(Contents) ->
 	    [{h1, 
 	      {a, [{href, "/"}], "Bitlove"}
 	     },
-	     {p, [{class, "slogan"}], "Lovely BitTorrent Speed For Your Podcast Downloads"}
+	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
 	    ]} | Contents] ++
 	      [{footer,
 		[{p, "Are you a podcast publisher?"},

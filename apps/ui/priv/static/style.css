@@ -31,7 +31,8 @@ header.site {
 header.site h1 {
   font-size: 300%;
   margin: 0;
-  padding: 0.1em 0 0.05em;
+  padding: 0 0;
+  line-height: 1em;
 }
 header.site h1 a {
   color: #444;
@@ -53,8 +54,11 @@ header.site .slogan {
   vertical-align: top;
   display: inline-block;
 }
+.col {
+  max-width: 40em;
+}
 .col1, .col2 {
-  max-width: 49%;
+  max-width: 35em;
 }
 
 h2 { 
