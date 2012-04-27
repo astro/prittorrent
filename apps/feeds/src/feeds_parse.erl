@@ -317,7 +317,6 @@ item_enclosures(ItemEl) ->
 			    URLs
 		    end, [], exmpp_xml:get_child_elements(ItemEl))).
 
-%% TODO: replace @type
 replace_item_enclosures(ItemEl, MapFun) ->
     exmpp_xml:set_children(
       ItemEl,
@@ -329,7 +328,13 @@ replace_item_enclosures(ItemEl, MapFun) ->
 			LinkEl, <<"href">>, undefined)} of
 		    {<<"enclosure">>, Href} ->
 			NewHref = MapFun(Href),
-			exmpp_xml:set_attribute(LinkEl, <<"href">>, NewHref);
+			LinkEl2 =
+			    exmpp_xml:set_attribute(
+			      LinkEl , <<"href">>, NewHref),
+			LinkEl3 =
+			    exmpp_xml:set_attribute(
+			      LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
+			LinkEl3;
 		    {_, _} ->
 			LinkEl
 		end;
@@ -337,7 +342,13 @@ replace_item_enclosures(ItemEl, MapFun) ->
 		URL = exmpp_xml:get_attribute_as_binary(
 			EnclosureEl, <<"url">>, undefined),
 		NewURL = MapFun(URL),
-		exmpp_xml:set_attribute(EnclosureEl, <<"url">>, NewURL);
+		EnclosureEl2 =
+		    exmpp_xml:set_attribute(
+		      EnclosureEl, <<"url">>, NewURL),
+		EnclosureEl3 =
+		    exmpp_xml:set_attribute(
+		      EnclosureEl2, <<"type">>, <<"application/x-bittorrent">>),
+		EnclosureEl3;
 	   (Child) ->
 		Child
 	end,
