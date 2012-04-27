@@ -125,21 +125,21 @@ send_bitfield(Sock, Length, PieceLength) ->
 make_bitfield(Length, PieceLength) ->
     list_to_binary(
       lists:map(
-	fun(I) ->
-		if
-		    %% Last piece?
-		    %% Keep spare bits empty
-		    I >= Length - PieceLength * 8 ->
-			lists:foldl(
-			  fun(I1, R) when I1 >= Length ->
-				  R;
-			     (_, R) ->
-				  16#80 bor (R bsr 1)
-			  end, 0, lists:seq(I, I + 8 * PieceLength, PieceLength));
-		    true ->
-			255
-		end
-	end, lists:seq(0, Length - 1, PieceLength * 8))).
+    	fun(I) ->
+    		if
+    		    %% Last piece?
+    		    %% Keep spare bits empty
+    		    I >= Length - PieceLength * 8 ->
+    			lists:foldl(
+    			  fun(I1, R) when I1 >= Length ->
+    				  R;
+    			     (_, R) ->
+    				  16#80 bor (R bsr 1)
+    			  end, 0, lists:seq(I, I + 8 * PieceLength, PieceLength));
+    		    true ->
+    			255
+    		end
+    	end, lists:seq(0, Length - 1, PieceLength * 8))).
 
 
 loop(#state{socket = Socket} = State1) ->
