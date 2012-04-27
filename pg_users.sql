@@ -81,18 +81,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER feed_items_ensure_image BEFORE INSERT OR UPDATE ON feed_items
     FOR EACH ROW EXECUTE PROCEDURE feed_items_ensure_image();
 
-CREATE OR REPLACE VIEW torrentified_items AS
-       SELECT *
-       FROM feed_items
-       WHERE EXISTS
-       	     (SELECT "url"
-	      FROM enclosures
-	      WHERE "feed"=feed_items.feed
- 	        AND "item"=feed_items.id
-		AND "url" IN
-		    (SELECT "url" FROM torrentified)
-	     ) ORDER BY "published" DESC;
-
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
        	     		 "item" TEXT NOT NULL,
 			 "url" TEXT NOT NULL,
@@ -161,3 +149,16 @@ CREATE VIEW item_torrents AS
        	      enclosure_torrents.info_hash
        FROM enclosure_torrents LEFT JOIN enclosures ON (enclosures.url=enclosure_torrents.url)
        WHERE LENGTH(info_hash)=20;
+
+CREATE OR REPLACE VIEW torrentified_items AS
+       SELECT *
+       FROM feed_items
+       WHERE EXISTS
+       	     (SELECT "url"
+	      FROM enclosures
+	      WHERE "feed"=feed_items.feed
+ 	        AND "item"=feed_items.id
+		AND "url" IN
+		    (SELECT "url" FROM torrentified)
+	     ) ORDER BY "published" DESC;
+
