@@ -71,20 +71,26 @@ header {
   text-align: center;
   margin: 0 auto;
 }
+header .meta {
+  display: inline-block;
+}
 header .meta, header .meta div {
   text-align: left;
-  display: inline-block;
+  /* Let logo float: */
+  margin-left: 70px;
 }
 .meta h2 {
   margin: 0;
   font-style: italic;
   font-family: 'Georgia', serif;
+  line-height: 0.8em;
+  font-size: 300%;
 }
 h2 .publisher {
   font-size: 50%;
   font-style: normal;
   font-family: sans-serif;
-  white-space: pre-nowrap;
+  white-space: nowrap;
 }
 .meta, section {
   min-height: 70px;
@@ -95,7 +101,7 @@ h2 .publisher {
   width: 64px;
   height: 64px;
   padding: 0;
-  margin: 0 4px 4px 0;
+  margin: 2px 4px 4px 0;
 }
 .item img.logo {
   width: 40px;
