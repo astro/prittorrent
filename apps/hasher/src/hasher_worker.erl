@@ -22,13 +22,17 @@ loop() ->
     ?MODULE:loop().
 
 hash(URL) ->
-    try
-	{ok, InfoHash, Name, Size, TorrentFile} =
-	    hasher_hash:make_torrent([URL]),
-	model_torrents:add_torrent(InfoHash, Name, Size, TorrentFile),
-	model_enclosures:set_torrent(URL, <<"">>, InfoHash)
-    catch K:Reason ->
-	    io:format("Failed hashing ~s~n~s:~p~n", [URL, K, Reason]),
+    case (catch hash1(URL)) of
+	{'EXIT', Reason} ->
+	    io:format("Failed hashing ~s~n~p~n", [URL, Reason]),
 	    model_enclosures:set_torrent(
-	      URL, list_to_binary(io_lib:format("~p", [Reason])), <<"">>)
+	      URL, list_to_binary(io_lib:format("~p", [Reason])), <<"">>);
+	_ ->
+	    ok
     end.
+
+hash1(URL) ->
+    {ok, InfoHash, Name, Size, TorrentFile} =
+	hasher_hash:make_torrent([URL]),
+    model_torrents:add_torrent(InfoHash, Name, Size, TorrentFile),
+    model_enclosures:set_torrent(URL, <<"">>, InfoHash).
