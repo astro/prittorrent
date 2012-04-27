@@ -1,6 +1,9 @@
 -module(ui_link).
 
--export([base/0, link_user/1, link_user_feed/2, torrent/1]).
+-export([base/0,
+	 link_user/1,
+	 link_user_feed/2, link_user_feed_xml/2,
+	 torrent/1]).
 
 
 base() ->
@@ -17,6 +20,9 @@ link_user(UserName) ->
 
 link_user_feed(UserName, Slug) ->
     <<"/~", UserName/binary, "/", Slug/binary>>.
+
+link_user_feed_xml(UserName, Slug) ->
+    <<"/~", UserName/binary, "/", Slug/binary, "/feed">>.
 
 
 torrent(InfoHash) ->

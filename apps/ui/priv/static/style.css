@@ -86,6 +86,16 @@ header .meta, header .meta div {
   line-height: 0.8em;
   font-size: 300%;
 }
+h2 .feedicon {
+  font-size: 0;
+  color: rgba(255, 255, 255, 0);
+  width: 0px;
+  height: 0px;
+  vertical-align: top;
+  padding-top: 16px;
+  padding-left: 16px;
+  background: url('rss.png') no-repeat top center;
+}
 h2 .publisher {
   font-size: 50%;
   font-style: normal;

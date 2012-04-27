@@ -5,7 +5,7 @@
 
 -include_lib("model/include/model.hrl").
 
-html(Contents) ->
+html(HeadEls, Contents) ->
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
@@ -17,7 +17,7 @@ html(Contents) ->
 	   {link, [{rel, "shortcut icon"},
 		   {type, "image/png"},
 		   {href, "/static/favicon.png"}], ""}
-	  ]},
+	   | HeadEls]},
 	 {body,
 	  [{header, [{class, "site"}],
 	    [{h1, 
@@ -121,14 +121,30 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
        ]}
      ]}.
 
-page_1column(Col) ->
-    html([{section, [{class, "col"}], Col}]).
+page_1column(FeedLink, Col) ->
+    HeadEls =
+	if
+	    is_binary(FeedLink),
+	    size(FeedLink) > 0 ->
+		FeedURL =
+		    <<(ui_link:base())/binary,
+		      FeedLink/binary>>,
+		%% TODO: type can be ATOM
+		[{alternate, [{rel, <<"alternate">>},
+			      {type, <<"application/rss+xml">>},
+			      {href, FeedURL}], []}];
+	    true ->
+		[]
+	end,
+    html(HeadEls,
+	 [{section, [{class, "col"}], Col}]).
 
 page_2column(Col1, Col2) ->
     page_2column([], Col1, Col2).
 
 page_2column(Prologue, Col1, Col2) ->
-    html([Prologue,
+    html([],
+	 [Prologue,
 	  {section, [{class, "col1"}], Col1},
 	  {section, [{class, "col2"}], Col2}
 	 ]).
@@ -236,9 +252,13 @@ render_user_feed(UserName, Feed) ->
 	model_feeds:feed_details(FeedURL),
 	    
     page_1column(
+      ui_link:link_user_feed_xml(UserName, Feed),
       [{header, [{class, "feed"}],
 	render_meta(h2,
 		    [FeedTitle,
+		     {a, [{class, "feedicon"},
+			  {href, ui_link:link_user_feed_xml(UserName, Feed)}],
+		      <<" (Subscribe)">>},
 		     {span, [{class, "publisher"}],
 		      [<<" by ">>,
 		       {a, [{href, ui_link:link_user(UserName)}],
