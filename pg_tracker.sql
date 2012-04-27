@@ -77,7 +77,7 @@ $$ LANGUAGE plpgsql;
 -- periodic tracked cleaner
 CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
     BEGIN
-        DELETE FROM tracked WHERE "last_update" <= CURRENT_TIMESTAMP - maxage;
+        DELETE FROM tracked WHERE "last_request" <= CURRENT_TIMESTAMP - maxage;
     END;
 $$ LANGUAGE plpgsql;
 
