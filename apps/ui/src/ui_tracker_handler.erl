@@ -23,10 +23,13 @@ handle(Req, _State) ->
 
     Reply =
 	case (catch handle1(Req, Host, Method, Path)) of
-	    {ok, Peers, Peers6} ->
+	    {ok, Peers, Peers6, Leechers, Seeders} ->
 		[{<<"interval">>, tracker_interval()},
 		 {<<"peers">>, Peers},
-		 {<<"peers6">>, Peers6}];
+		 {<<"peers6">>, Peers6},
+		 {<<"incomplete">>, Leechers},
+		 {<<"complete">>, Seeders}
+		];
 	    {'EXIT', Reason} ->
 		io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
 		[{<<"failure">>, <<"Internal server error">>}]
@@ -61,6 +64,7 @@ handle1(Req, Host, Method, Path) ->
     {Left, _} = cowboy_http_req:qs_val(<<"left">>, Req),
     {Event, _} = cowboy_http_req:qs_val(<<"event">>, Req),
     {Compact, _} = cowboy_http_req:qs_val(<<"compact">>, Req),
+    %% TODO: numwant w/ checks
     io:format("Tracker request: ~p ~p ~p ~p ~p ~p ~p ~p~n", [InfoHash, Host, Port, PeerId, Event, Uploaded, Downloaded, Left]),
 
     handle2(Method, Path, InfoHash,
@@ -80,34 +84,38 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 		   0 -> true;
 		   _ -> false
 	       end,
-    {ok, Seeders} = application:get_env(ui, seeders),
+    {ok, MySeeders} = application:get_env(ui, seeders),
     {ok, TrackerPeers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
     Peers = [{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
-	     || {PeerHost, PeerPort} <- Seeders] ++ TrackerPeers,
+	     || {PeerHost, PeerPort} <- MySeeders] ++ TrackerPeers,
+    %% scrape info:
+    %% We return the numbers without the client added for the first time.
+    {ok, Leechers, Seeders, _Downspeed, _Downloaded} =
+	model_tracker:scrape(InfoHash),
+
     %% Continue write part in background:
     spawn_set_peer(InfoHash, 
 	Host, Port, PeerId,
 	Event, Uploaded, Downloaded, Left),
 
-    %% TODO: scrape info
-    case Compact of
-	<<"1">> ->
-	    {ok,
-	     << <<PeerHost/binary, PeerPort:16>>
-		|| {_, <<PeerHost:4/binary>>, PeerPort} <- Peers >>,
-	     << <<PeerHost/binary, PeerPort:16>>
-		|| {_, <<PeerHost:16/binary>>, PeerPort} <- Peers >>};
-	_ ->
-	    {ok,
-	     [[{<<"id">>, PeerPeerId},
-	       {<<"ip">>, PeerHost},
-	       {<<"port">>, PeerPort}]
-	      || {PeerPeerId, <<PeerHost:4/binary>>, PeerPort} <- Peers],
-	     [[{<<"id">>, PeerPeerId},
-	       {<<"ip">>, PeerHost},
-	       {<<"port">>, PeerPort}]
-	      || {PeerPeerId, <<PeerHost:16/binary>>, PeerPort} <- Peers]}
-    end;
+    {PeersValue, Peers6Value} =
+	case Compact of
+	    <<"1">> ->
+		{<< <<PeerHost/binary, PeerPort:16>>
+		    || {_, <<PeerHost:4/binary>>, PeerPort} <- Peers >>,
+		 << <<PeerHost/binary, PeerPort:16>>
+		    || {_, <<PeerHost:16/binary>>, PeerPort} <- Peers >>};
+	    _ ->
+		{[[{<<"id">>, PeerPeerId},
+		   {<<"ip">>, PeerHost},
+		   {<<"port">>, PeerPort}]
+		  || {PeerPeerId, <<PeerHost:4/binary>>, PeerPort} <- Peers],
+		 [[{<<"id">>, PeerPeerId},
+		   {<<"ip">>, PeerHost},
+		   {<<"port">>, PeerPort}]
+		  || {PeerPeerId, <<PeerHost:16/binary>>, PeerPort} <- Peers]}
+	end,
+    {ok, PeersValue, Peers6Value, Leechers, Seeders + length(MySeeders)};
 
 handle2(_Method, _Path, _InfoHash,
 	_Host, _Port, _PeerId,
