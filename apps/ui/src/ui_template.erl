@@ -6,7 +6,7 @@
 -include_lib("model/include/model.hrl").
 
 html(Contents) ->
-    [<<"<!DOCTYPE html>\n">>,
+    [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
 	[{head,
@@ -295,7 +295,9 @@ export_feed(UserName, Slug) ->
 		  end, ItemXmls), 
 	    CompleteFeedEl = feeds_parse:merge_items(FeedEl, ItemEls),
 	    Body = exmpp_xml:document_to_iolist(CompleteFeedEl),
-	    {ok, Type, Body};
+	    {ok, Type,
+	     [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
+	      Body]};
 	{error, not_found} ->
 	    throw({http, 404})
     end.
