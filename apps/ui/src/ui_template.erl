@@ -285,8 +285,8 @@ export_feed(UserName, Slug) ->
 			    fun(URL) ->
 				    case proplists:get_value(URL, EnclosuresMap) of
 					<<InfoHash:20/binary>> ->
-					    %% TODO: make absolute
-					    ui_link:torrent(InfoHash);
+					    <<(ui_link:base())/binary,
+					      (ui_link:torrent(InfoHash))/binary>>;
 					_ ->
 					    io:format("Cannot map enclosure ~s~n", [URL]),
 					    URL

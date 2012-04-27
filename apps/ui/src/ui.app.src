@@ -7,10 +7,13 @@
                   kernel,
                   stdlib,
 		  cowboy,
-		  model
+		  model,
+		  exmpp
                  ]},
   {mod, { ui_app, []}},
   {env, [{seeders,
-	 [{{0,0,0,0,0,0,0,1},6881}
-	 ]}]}
+	  [{{0,0,0,0,0,0,0,1},6881}
+	  ]},
+	 {base_url, <<"http://bitlove.org">>}
+	]}
  ]}.
