@@ -94,9 +94,11 @@ render_item(Title, Image, Homepage) ->
     ]}.
 
 render_enclosure({_URL, InfoHash}) ->
-    case model_torrents:get_stats(InfoHash) of
-	{ok, Name, Size, Seeders, Leechers, Bandwidth} ->
-	    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Bandwidth);
+    case model_torrents:get_info(InfoHash) of
+	{ok, Name, Size} ->
+	    {ok, Leechers, Seeders, Downspeed, _Downloaded} =
+		model_tracker:scrape(InfoHash),
+	    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Downspeed);
 	{error, not_found} ->
 	    io:format("Enclosure not found: ~p ~p~n", [_URL, InfoHash]),
 	    []

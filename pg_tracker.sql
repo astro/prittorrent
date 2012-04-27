@@ -80,3 +80,32 @@ CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
         DELETE FROM tracked WHERE "last_update" <= CURRENT_TIMESTAMP - maxage;
     END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION scrape_tracker(
+       t_info_hash BYTEA,
+       OUT t_leechers INT,
+       OUT t_seeders INT,
+       OUT t_downspeed INT,
+       OUT t_downloaded INT
+) RETURNS record AS $$
+    BEGIN
+	SELECT COUNT(peer_id)
+	  INTO t_seeders
+	  FROM tracked
+	 WHERE info_hash = t_info_hash
+	   AND "left" <= 0;
+	SELECT COUNT(peer_id)
+	  INTO t_leechers
+	  FROM tracked
+	 WHERE info_hash = t_info_hash
+	   AND "left" > 0;
+	SELECT COALESCE(SUM(downspeed), 0)
+	  INTO t_downspeed
+	  FROM tracked
+	 WHERE info_hash = t_info_hash;
+	-- TODO:
+	t_downloaded := 0;
+    END;
+$$ LANGUAGE plpgsql;
+

@@ -1,6 +1,6 @@
 -module(model_tracker).
 
--export([get_peers/3, set_peer/7, rm_peer/2]).
+-export([scrape/1, get_peers/3, set_peer/7, rm_peer/2]).
 
 -include("../include/model.hrl").
 
@@ -8,6 +8,12 @@
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
+
+scrape(InfoHash) ->
+    {ok, _, [{Leechers, Seeders, Downspeed, Downloaded}]} =
+	?Q("SELECT \"t_leechers\", \"t_seeders\", \"t_downspeed\", \"t_downloaded\" FROM scrape_tracker($1)",
+	   [InfoHash]),
+    {ok, Leechers, Seeders, Downspeed, Downloaded}.
 
 %% List
 -spec(get_peers/3 :: (binary(), binary(), true | false)

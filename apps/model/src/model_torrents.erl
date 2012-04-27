@@ -1,6 +1,6 @@
 -module(model_torrents).
 
--export([add_torrent/4, get_torrent/1, get_stats/1, calculate_names_sizes/0]).
+-export([add_torrent/4, get_torrent/1, get_info/1, calculate_names_sizes/0]).
 
 -include("../include/model.hrl").
 
@@ -21,14 +21,11 @@ get_torrent(InfoHash) ->
 	    {error, not_found}
     end.
 
-get_stats(InfoHash) ->
+get_info(InfoHash) ->
     case ?Q("SELECT \"name\", \"size\" FROM torrents WHERE \"info_hash\"=$1",
 	    [InfoHash]) of
 	{ok, _, [{Name, Size}]} ->
-	    Seeders = 0,
-	    Leechers = 0,
-	    Bandwidth = 0,
-	    {ok, Name, Size, Seeders, Leechers, Bandwidth};
+	    {ok, Name, Size};
 	_ ->
 	    {error, not_found}
     end.
