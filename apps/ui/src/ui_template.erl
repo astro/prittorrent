@@ -262,8 +262,42 @@ render_user_feed(UserName, Feed) ->
 		 end, model_feeds:feed_items(FeedURL))
       ]).
 
-export_feed(_UserName, _Slug) ->
-    throw({http, 404}).
+export_feed(UserName, Slug) ->
+    case model_users:get_feed(UserName, Slug) of
+	{ok, FeedURL} ->
+	    {ok, FeedXml, ItemXmls, EnclosuresMap} =
+		model_feeds:feed_data(FeedURL),
+	    [FeedEl | _] =
+		exmpp_xml:parse_document(FeedXml,
+					 [{names_as_atom, false},
+					  {engine, expat}]),
+	    Type = feeds_parse:get_type(FeedEl),
+	    ItemEls =
+		lists:map(
+		  fun(Xml) ->
+			  [ItemEl | _] =
+			      exmpp_xml:parse_document(
+				Xml,
+				[{names_as_atom, false},
+				 {engine, expat}]),
+			  feeds_parse:replace_item_enclosures(
+			    ItemEl,
+			    fun(URL) ->
+				    case proplists:get_value(URL, EnclosuresMap) of
+					<<InfoHash:20/binary>> ->
+					    ui_link:torrent(InfoHash);
+					_ ->
+					    io:format("Cannot map enclosure ~s~n", [URL]),
+					    URL
+				    end
+			    end)
+		  end, ItemXmls), 
+	    CompleteFeedEl = feeds_parse:merge_items(FeedEl, ItemEls),
+	    Body = exmpp_xml:document_to_iolist(CompleteFeedEl),
+	    {ok, Type, Body};
+	{error, not_found} ->
+	    throw({http, 404})
+    end.
 
 %%
 %% Helpers

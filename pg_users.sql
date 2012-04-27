@@ -158,7 +158,9 @@ CREATE OR REPLACE VIEW torrentified_items AS
 	      FROM enclosures
 	      WHERE "feed"=feed_items.feed
  	        AND "item"=feed_items.id
-		AND "url" IN
-		    (SELECT "url" FROM torrentified)
+		AND EXISTS (SELECT "url"
+		    	    FROM torrentified
+			    WHERE "url"=enclosures.url
+			   )
 	     ) ORDER BY "published" DESC;
 

@@ -1,8 +1,8 @@
 -module(feeds_parse).
 
--export([get_channel/1,
+-export([get_type/1, get_channel/1,
 	 title/1, link/1, image/1,
-	 pick_items/1,
+	 pick_items/1, merge_items/2,
 	 item_id/1, item_title/1, item_enclosures/1,
 	 item_published/1, item_link/1, item_payment/1, item_image/1,
 	 replace_item_enclosures/2]).
@@ -12,9 +12,17 @@
 -define(NS_ATOM, "http://www.w3.org/2005/Atom").
 
 
-get_channel(Xml) ->
+get_type(Xml) ->
     case exmpp_xml:get_ns_as_list(Xml) of
 	?NS_ATOM ->
+	    atom;
+	_ ->
+	    rss
+    end.
+
+get_channel(Xml) ->
+    case get_type(Xml) of
+	atom ->
 	    Xml;
 	_ ->
 	    exmpp_xml:get_element(Xml, "channel")
@@ -122,6 +130,25 @@ pick_items(#xmlel{} = RootEl) ->
 	     lists:reverse(Items)}
     end.
 
+%% Opposite of pick_items/1
+merge_items(FeedEl, ItemEls) ->
+    ChannelEl1 = get_channel(FeedEl),
+    ChannelEl2 = exmpp_xml:append_children(ChannelEl1, ItemEls),
+    if
+	%% ATOM
+	ChannelEl1 =:= FeedEl ->
+	    ChannelEl2;
+	%% RSS
+	true ->
+	    exmpp_xml:set_children(
+	      FeedEl,
+	      lists:map(fun(Child) when Child =:= ChannelEl1 ->
+				ChannelEl2;
+			   (Child) ->
+				Child
+			end,
+			exmpp_xml:get_child_elements(FeedEl)))
+    end.
 
 
 item_title(ItemEl) ->
@@ -290,5 +317,29 @@ item_enclosures(ItemEl) ->
 			    URLs
 		    end, [], exmpp_xml:get_child_elements(ItemEl))).
 
-replace_item_enclosures(_ItemEl, _MapFun) ->
-    undefined.
+%% TODO: replace @type
+replace_item_enclosures(ItemEl, MapFun) ->
+    exmpp_xml:set_children(
+      ItemEl,
+      lists:map(
+	fun(#xmlel{name="link"} = LinkEl) ->
+		case {exmpp_xml:get_attribute_as_binary(
+			LinkEl, <<"rel">>, undefined),
+		      exmpp_xml:get_attribute_as_binary(
+			LinkEl, <<"href">>, undefined)} of
+		    {<<"enclosure">>, Href} ->
+			NewHref = MapFun(Href),
+			exmpp_xml:set_attribute(LinkEl, <<"href">>, NewHref);
+		    {_, _} ->
+			LinkEl
+		end;
+	   (#xmlel{name="enclosure"} = EnclosureEl) ->
+		URL = exmpp_xml:get_attribute_as_binary(
+			EnclosureEl, <<"url">>, undefined),
+		NewURL = MapFun(URL),
+		exmpp_xml:set_attribute(EnclosureEl, <<"url">>, NewURL);
+	   (Child) ->
+		Child
+	end,
+	exmpp_xml:get_child_elements(ItemEl))).
+

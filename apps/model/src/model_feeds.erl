@@ -1,7 +1,8 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/8,
-	 feed_details/1, feed_items/1, user_items/1]).
+	 feed_details/1, feed_items/1, user_items/1,
+	 feed_data/1]).
 
 -include("../include/model.hrl").
 
@@ -156,6 +157,27 @@ user_items(UserName) ->
 		homepage = Homepage,
 		payment = Payment}
      || {Feed, Id, Title, Image, Homepage, Published, Payment} <- Records].
+
+-spec(feed_data/1 :: (binary())
+		     -> ({ok, binary(), [binary()], [{binary(), binary()}]} |
+			 {error, not_found})).
+feed_data(FeedURL) ->
+    case ?Q("SELECT \"xml\" FROM feeds WHERE \"url\"=$1",
+	    [FeedURL]) of
+	{ok, _, [{FeedXml}]} ->
+	    {ok, _, ItemResults} =
+		?Q("SELECT \"xml\" FROM torrentified_items WHERE \"feed\"=$1 LIMIT 10",
+		   [FeedURL]),
+	    ItemXmls =
+		[ItemXml
+		 || {ItemXml} <- ItemResults],
+	    {ok, _, EnclosureMap} =
+		?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1",
+		   [FeedURL]),
+	    {ok, FeedXml, ItemXmls, EnclosureMap};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
 
 %%
 %% Helpers
