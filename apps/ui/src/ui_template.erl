@@ -153,7 +153,8 @@ render_enclosure({_URL, InfoHash}) ->
 	{ok, Name, Size} ->
 	    {ok, Leechers, Seeders, Downspeed, _Downloaded} =
 		model_tracker:scrape(InfoHash),
-	    render_torrent(Name, InfoHash, Size, Seeders, Leechers, Downspeed);
+	    {ok, MySeeders} = application:get_env(ui, seeders),
+	    render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed);
 	{error, not_found} ->
 	    io:format("Enclosure not found: ~p ~p~n", [_URL, InfoHash]),
 	    []

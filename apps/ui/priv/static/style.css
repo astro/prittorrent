@@ -58,7 +58,7 @@ header.site .slogan {
   max-width: 40em;
 }
 .col1, .col2 {
-  max-width: 35em;
+  max-width: 50%;
 }
 
 h2 { 
@@ -119,20 +119,25 @@ h2 .publisher {
 }
 .flattr {
   float: right;
+  text-align: right;
 }
-.flattr:after {
-  clear: right;
+.flattr a {
+  font-size: 70%;
 }
 .flattr a.FlattrButton {
   display: none;
 }
 
 article {
+  clear: both;
   background-color: white;
   border-top: 1px solid #eee;
-  margin: 0 1em;
+  margin: 0;
   min-height: 72px;
-  padding: 1em 0;
+  padding: 0.2em 0;
+}
+.col2 article {
+  margin-right: 0;
 }
 article:first-child {
   border-top: none;
@@ -155,40 +160,55 @@ h3 {
 
 .download {
   list-style-type: none;
-  margin: 1em 0;
+  margin: 0.5em 0 0.8em;
   padding: 0;
+  /* meta & flattr floats above */
+  clear: both;
 }
 .download .torrent {
   float: left;
-  width: 20em;
+  width: 18em;
 }
 .torrent a {
   background: url('favicon.png') no-repeat top left;
   padding-left: 19px;
   font-size: 90%;
+  display: block;
 }
 .stats {
   margin: 0 0 0 1em;
   white-space: nowrap;
+  text-align: right;
 }
 .stats .size, .stats .l, .stats .s, .stats .bw {
-  font-size: 80%;
+  font-size: 70%;
+  color: #333;
   padding: 3px 0.4em 2px;
-  margin: 0 0.3em;
+  margin: 0 0.2em;
   border: 1px solid #ccc;
   border-radius: 3px;
+  display: inline-block;
+  box-shadow: #eee 2px 2px 4px inset;
 }
-.stats .s:before {
-  content: url('s.svg');
+.stats .size {
+  background: url('size.svg') no-repeat 3% 50%;
+  padding-left: 11px;
+  min-width: 5em;
 }
-.stats .l:before {
-  content: url('l.svg');
+.stats .s {
+  background: url('s.svg') no-repeat 5% 50%;
+  padding-left: 11px;
+  min-width: 1.5em;
 }
-.stats .size:before {
-  content: url('size.svg');
+.stats .l {
+  background: url('l.svg') no-repeat 5% 50%;
+  padding-left: 11px;
+  min-width: 1.5em;
 }
-.stats .bw:before {
-  content: url('swarm.svg');
+.stats .bw {
+  background: url('swarm.svg') no-repeat 8% 50%;
+  padding-left: 16px;
+  min-width: 4em;
 }
 
 footer {
