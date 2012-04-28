@@ -4,7 +4,7 @@
 
 -include("../include/model.hrl").
 
--define(POOL, pool_users).
+-define(POOL, pool_torrents).
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
