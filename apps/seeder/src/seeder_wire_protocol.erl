@@ -6,14 +6,16 @@
 
 
 -record(state, {socket,
+		data_length,
 		piece_length,
+		has,
 		storage
 	       }).
 %% For code reload:
 -export([loop/1]).
 
 %% For testing:
--export([make_bitfield/2]).
+-export([make_bitfield/2, make_empty_bitfield/2]).
 
 
 -define(PACKET_OPTS, [{packet, 4},
@@ -83,9 +85,12 @@ init(Socket, _Opts) ->
 
     %% Initial Bitfield
     send_bitfield(Socket, Length, PieceLength),
+    Has = make_empty_bitfield(Length, PieceLength),
 
     ?MODULE:loop(#state{socket = Socket,
+			data_length = Length,
 			piece_length = PieceLength,
+			has = Has,
 			storage = Storage}).
 
 lookup_torrent(InfoHash) ->
@@ -141,15 +146,21 @@ make_bitfield(Length, PieceLength) ->
     		end
     	end, lists:seq(0, Length - 1, PieceLength * 8))).
 
+make_empty_bitfield(Length, PieceLength) ->
+    << <<0>>
+       || _ <- lists:seq(0, Length - 1, PieceLength * 8) >>.
 
 loop(#state{socket = Socket} = State1) ->
     ok = inet:setopts(Socket, [{active, once}]),
 
     receive
 	{tcp, Socket, Data} ->
-	    {ok, State2} =
-		handle_message(Data, State1),
-	    ?MODULE:loop(State2);
+	    case handle_message(Data, State1) of
+		{ok, State2} ->
+		    ?MODULE:loop(State2);
+		{close, _State2} ->
+		    close
+	    end;
 	{tcp_closed, Socket} ->
 	    tcp_closed
     end.
@@ -164,9 +175,26 @@ handle_message(<<?INTERESTED>>,
     send_message(Socket, <<?UNCHOKE>>),
     {ok, State};
 
-handle_message(<<?HAVE, _Piece:32>>, State) ->
-    %% TODO: implement piece map to disconnect new seeders
-    {ok, State};
+handle_message(<<?HAVE, Piece:32>>, #state{has = Has} = State1) ->
+    %% update piece map
+    I = trunc(Piece / 8),
+    <<Has1:I/binary, Pieces:8, Has2/binary>> = Has,
+    State2 =
+	State1#state{has = <<Has1/binary,
+			     (Pieces bor (16#80 bsr (Piece - I * 8))):8,
+			     Has2/binary>>},
+    io:format("Have ~B: ~p~n", [Piece, State2#state.has]),
+
+    %% disconnect new seeders:
+    check_bitfield(State2);
+
+handle_message(<<?BITFIELD, Bits/binary>>, State) ->
+    if
+	size(Bits) == size(State#state.has) ->
+	    check_bitfield(State#state{has = Bits});
+	true ->
+	    exit(bitfield_size_mismatch)
+    end;
 
 handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 	       #state{socket = Socket,
@@ -213,3 +241,26 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 handle_message(Data, State) ->
     io:format("Unhandled wire message: ~p~n", [Data]),
     {ok, State}.
+
+check_bitfield(#state{has = Has,
+		      data_length = Length,
+		      piece_length = PieceLength} = State) ->
+    IsSeeder = lists:foldl(
+		 fun(_, false) ->
+			 false;
+		    (I, true) ->
+			 J = 8 * size(Has) - I - 1,
+			 case Has of
+			     <<_:I, Bit:1, _:J>> ->
+				 Bit == 1;
+			     _ ->
+				 %% Non-fatal:
+				 io:format("Cannot match bitfield: ~p~n", [Has])
+			 end
+		 end, true, lists:seq(0, trunc((Length - 1) / PieceLength))),
+    case IsSeeder of
+	true ->
+	    {close, State};
+	false ->
+	    {ok, State}
+    end.
