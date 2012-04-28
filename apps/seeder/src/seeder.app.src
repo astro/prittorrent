@@ -1,0 +1,14 @@
+{application, seeder,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+		  lhttpc,
+		  model
+                 ]},
+  {mod, { seeder_app, []}},
+  {env, []}
+ ]}.

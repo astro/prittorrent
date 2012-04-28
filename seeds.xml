@@ -1,9 +1,0 @@
-<seeds>
-  <seed>
-  	<torrent>data/torrents/erlang-the-movie.m4v.torrent</torrent>
-    <data>data/files</data>
-  </seed>
-  <!-- You may split this list into multiple files:
-       <include>seed-index.xml</include>
-    -->
-</seeds>
