@@ -165,7 +165,7 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 	       #state{socket = Socket,
 		      piece_length = PieceLength,
 		      storage = Storage} = State) ->
-    io:format("Request ~p+~p-~p~n", [Piece, Offset, Length]),
+    %%io:format("Request ~p+~p-~p~n", [Piece, Offset, Length]),
 
     PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
     %% We switch to manual packetization for streaming
@@ -182,7 +182,7 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 		  ok = gen_tcp:send(Socket, Data),
 		  Transmitted + size(Data)
 	  end, 0),
-    io:format("Piece ~p+~p-~p~n", [Piece, Offset, Transmitted]),
+    %%io:format("Piece ~p+~p-~p~n", [Piece, Offset, Transmitted]),
     if
 	Transmitted < Length ->
 	    io:format("Short read from HTTP: ~p~n", [Storage]),

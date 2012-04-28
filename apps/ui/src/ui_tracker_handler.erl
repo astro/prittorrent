@@ -14,6 +14,7 @@ init({tcp, http}, Req, _Opts) ->
 
 handle(Req, _State) ->
     T1 = util:get_now_us(),
+    %%io:format("Tracker: ~p~n", [Req]),
 
     %% HTTP parameters
     %% FIXME: use cowboy_http_req:peer_addr/1 when using a frontend proxy
@@ -34,7 +35,7 @@ handle(Req, _State) ->
 		io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
 		[{<<"failure">>, <<"Internal server error">>}]
 	end,
-    io:format("Tracker Reply: ~p~n", [Reply]),
+    %%io:format("Tracker Reply: ~p~n", [Reply]),
     
     Body = benc:to_binary(Reply),
     {ok, Req2} =
@@ -42,7 +43,7 @@ handle(Req, _State) ->
 			      Body, Req),
 
     T2 = util:get_now_us(),
-    io:format("[~.1fms] ui_tracker_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
+    %%io:format("[~.1fms] ui_tracker_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
     
     {ok, Req2, undefined_state}.
 
@@ -65,7 +66,7 @@ handle1(Req, Host, Method, Path) ->
     {Event, _} = cowboy_http_req:qs_val(<<"event">>, Req),
     {Compact, _} = cowboy_http_req:qs_val(<<"compact">>, Req),
     %% TODO: numwant w/ checks
-    io:format("Tracker request: ~p ~p ~p ~p ~p ~p ~p ~p~n", [InfoHash, Host, Port, PeerId, Event, Uploaded, Downloaded, Left]),
+    %%io:format("Tracker request: ~p ~p ~p ~p ~p ~p ~p ~p~n", [InfoHash, Host, Port, PeerId, Event, Uploaded, Downloaded, Left]),
 
     handle2(Method, Path, InfoHash,
 	    host_to_binary(Host), binary_to_integer_or(Port, undefined), PeerId,

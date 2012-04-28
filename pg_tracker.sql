@@ -43,7 +43,6 @@ CREATE OR REPLACE FUNCTION set_peer(
         "p_upspeed" BIGINT;
         "p_downspeed" BIGINT;
     BEGIN
-        RAISE NOTICE 'set_peer(%, %)', p_info_hash, p_peer_id;
         SELECT * INTO "old" FROM tracked WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
         IF "old" IS NULL THEN
             INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
@@ -52,7 +51,6 @@ CREATE OR REPLACE FUNCTION set_peer(
                         "p_uploaded", "p_downloaded", "p_left", now());
         ELSE
             "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
-	    RAISE NOTICE 'old_age: %', old_age;
             -- Estimate speeds, with sanity checks first:
             IF "old_age" <= 30 * 60 AND
                "p_uploaded" >= old.uploaded AND
@@ -60,7 +58,6 @@ CREATE OR REPLACE FUNCTION set_peer(
                "p_left" <= old.left THEN
                 "up" := "p_uploaded" - old.uploaded;
                 "down" := "p_downloaded" - old.downloaded;
-	        RAISE NOTICE 'up: % down: %',"up","down";
                 "p_upspeed" := (up / "old_age")::BIGINT;
                 "p_downspeed" := (down / "old_age")::BIGINT;
             END IF;
