@@ -87,8 +87,14 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 	       end,
     {ok, MySeeders} = application:get_env(ui, seeders),
     {ok, TrackerPeers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
-    Peers = [{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
-	     || {PeerHost, PeerPort} <- MySeeders] ++ TrackerPeers,
+    Peers =
+	case IsSeeder of
+	    false ->
+		[{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
+		 || {PeerHost, PeerPort} <- MySeeders];
+	    true ->
+		[]
+	end ++ TrackerPeers,
     %% scrape info:
     %% We return the numbers without the client added for the first time.
     {ok, Leechers, Seeders, _Downspeed, _Downloaded} =
