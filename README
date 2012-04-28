@@ -5,10 +5,13 @@ PritTorrent
 TODO
 ----
 
-! Tracker
-! Seeder
-! ui_link:link_item/3
-* Flattr buttons
+* Seeder app
+* Front page?
+* URL longener?
+* HTTP UA output
+* UI: Detect browser language
+
+! Tracker load tester
 * UI: Detect browser language
 * Stats:
 *! Collecting
