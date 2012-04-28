@@ -60,6 +60,9 @@ header.site .slogan {
 .col1, .col2 {
   max-width: 50%;
 }
+.col1 {
+  margin-right: 1em;
+}
 
 h2 { 
   font-size: 150%;
@@ -105,17 +108,18 @@ h2 .publisher {
 .meta, section {
   min-height: 70px;
 }
-.meta img.logo, section img.logo {
+img.logo {
   float: left;
   vertical-align: top;
-  width: 64px;
-  height: 64px;
+  max-width: 64px;
+  max-height: 64px;
+  object-fit: contain;
   padding: 0;
   margin: 2px 4px 4px 0;
 }
 .item img.logo {
-  width: 40px;
-  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
 }
 .flattr {
   float: right;
