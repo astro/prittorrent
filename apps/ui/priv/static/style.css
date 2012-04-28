@@ -117,6 +117,15 @@ h2 .publisher {
   width: 40px;
   height: 40px;
 }
+.flattr {
+  float: right;
+}
+.flattr:after {
+  clear: right;
+}
+.flattr a.FlattrButton {
+  display: none;
+}
 
 article {
   background-color: white;

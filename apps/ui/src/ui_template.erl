@@ -29,8 +29,23 @@ html(HeadEls, Contents) ->
 		[{p, "Are you a podcast publisher?"},
 		 {p, [{a, [{href, "/signup"}], "Sign up"}]},
 		 {p, [{a, [{href, "/login"}], "Log in"}]}
-		]}
-	      ]}
+		]},
+	       {script, [{type, <<"text/javascript">>}],
+		[<<"/* ">>,
+		 {'!CDATA', <<" */
+(function() {
+    var s = document.createElement('script');
+    var t = document.getElementsByTagName('script')[0];
+
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=1&button=compact';
+
+    t.parentNode.insertBefore(s, t);
+ })();
+/* ">>},
+		 <<" */">>]
+	       }]}
 	]}
       )].
 
@@ -70,7 +85,7 @@ render_meta(Heading, Title, Image, Homepage) ->
     ]}.
 
 
-render_item(Title, Image, Homepage) ->
+render_item(ItemLink, Title, Image, Homepage, Payment) ->
     {'div',
      [if
 	  is_binary(Image),
@@ -80,8 +95,36 @@ render_item(Title, Image, Homepage) ->
 	  true ->
 	      []
       end,
+      {'div', [{class, <<"flattr">>}],
+       [
+	if
+	    is_binary(Payment),
+	    size(Payment) > 0 ->
+		{a, [{class, <<"FlattrButton">>},
+		     {href, Payment},
+		     {'data-flattr-url', Homepage}
+		    ],
+		 <<"Support the podcaster">>};
+	    true ->
+		[]
+	end,
+	{br, []},
+	{a, [{class, <<"FlattrButton">>},
+	     {href, <<"https://flattr.com/profile/Astro">>},
+	     {'data-flattr-url', <<(ui_link:base())/binary,
+				   ItemLink/binary>>},
+	     {'data-flattr-uid', <<"Astro">>},
+	     {'data-flattr-title', <<Title/binary, " on Bitlove">>},
+	     {'data-flattr-description', <<"Automatic Torrentification & Seeding">>},
+	     {'data-flattr-category', <<"rest">>},
+	     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
+	    ],
+	 <<"Support Bitlove">>}
+       ]},
       {'div',
-       [{h3, Title},
+       [{h3,
+	 {a, [{href, ItemLink}], Title}
+	},
 	if
 	    is_binary(Homepage),
 	    size(Homepage) > 0 ->
@@ -171,6 +214,7 @@ render_user(UserName) ->
 	    {error, not_found} ->
 		throw({http, 404})
 	end,
+    UserFeeds = model_users:get_feeds(UserName),
 
     page_2column(
       {header, [{class, "user"}],
@@ -211,20 +255,28 @@ render_user(UserName) ->
 			     _ ->
 				 ""
 			 end
-		 end, model_users:get_feeds(UserName))
+		 end, UserFeeds)
       ],
       [{h2, "Recent Episodes"} |
        lists:map(fun(#feed_item{feed = FeedURL,
 				id = ItemId,
 				title = ItemTitle,
 				image = ItemImage,
-				homepage = ItemHomepage}) ->
+				homepage = ItemHomepage,
+				payment = ItemPayment}) ->
+			 Slug = lists:foldl(
+				  fun({Slug, Feed}, _) when Feed == FeedURL ->
+					  Slug;
+				     (_, Slug) ->
+					  Slug
+				  end, <<"*">>, UserFeeds),
+			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
 			 case model_enclosures:item_torrents(FeedURL, ItemId) of
 			     [] ->
 				 [];
 			     Torrents ->
 				 {article, [{class, "item"}],
-				  [render_item(ItemTitle, ItemImage, ItemHomepage) |
+				  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
 				   lists:map(fun render_enclosure/1, Torrents)
 				  ]}
 			 end
@@ -232,7 +284,7 @@ render_user(UserName) ->
       ]
      ).
 
-render_user_feed(UserName, Feed) ->
+render_user_feed(UserName, Slug) ->
     {UserTitle, _UserImage, _UserHomepage} =
 	case model_users:get_details(UserName) of
 	    {ok, Title1, Image1, Homepage1} ->
@@ -242,7 +294,7 @@ render_user_feed(UserName, Feed) ->
 	end,
 
     FeedURL =
-	case model_users:get_feed(UserName, Feed) of
+	case model_users:get_feed(UserName, Slug) of
 	    {ok, FeedURL1} ->
 		FeedURL1;
 	    {error, not_found} ->
@@ -252,12 +304,12 @@ render_user_feed(UserName, Feed) ->
 	model_feeds:feed_details(FeedURL),
 	    
     page_1column(
-      ui_link:link_user_feed_xml(UserName, Feed),
+      ui_link:link_user_feed_xml(UserName, Slug),
       [{header, [{class, "feed"}],
 	render_meta(h2,
 		    [FeedTitle,
 		     {a, [{class, "feedicon"},
-			  {href, ui_link:link_user_feed_xml(UserName, Feed)}],
+			  {href, ui_link:link_user_feed_xml(UserName, Slug)}],
 		      <<" (Subscribe)">>},
 		     {span, [{class, "publisher"}],
 		      [<<" by ">>,
@@ -269,13 +321,16 @@ render_user_feed(UserName, Feed) ->
        lists:map(fun(#feed_item{id = ItemId,
 				title = ItemTitle,
 				image = ItemImage,
-				homepage = ItemHomepage}) ->
+				homepage = ItemHomepage,
+				payment = ItemPayment}) ->
 			 case model_enclosures:item_torrents(FeedURL, ItemId) of
 			     [] ->
 				 [];
 			     Torrents ->
-				 {article, [{class, "item"}],
-				  [render_item(ItemTitle, ItemImage, ItemHomepage) |
+				 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
+				 {article, [{class, "item"},
+					    {id, ItemId}],
+				  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
 				   lists:map(fun render_enclosure/1, Torrents)
 				  ]}
 			 end

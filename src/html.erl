@@ -18,6 +18,9 @@ to_iolist(S) when is_integer(S) ->
 	    R
     end;
 
+to_iolist({'!CDATA', S}) ->
+    [<<"<![CDATA[">>, S, <<"]]>">>];
+
 to_iolist({El, Children}) when is_atom(El) ->
     to_iolist({atom_to_list(El), Children});
 
