@@ -155,10 +155,17 @@ loop(#state{socket = Socket} = State1) ->
     end.
 
 
+handle_message(<<>>, State) ->
+    %% Keep-alive
+    {ok, State};
+
 handle_message(<<?INTERESTED>>,
 	       #state{socket = Socket} = State) ->
-    io:format("Peer is interested~n"),
     send_message(Socket, <<?UNCHOKE>>),
+    {ok, State};
+
+handle_message(<<?HAVE, _Piece:32>>, State) ->
+    %% TODO: implement piece map to disconnect new seeders
     {ok, State};
 
 handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
