@@ -10,7 +10,7 @@
 base() ->
     case application:get_env(ui, base_url) of
 	undefined ->
-	    <<"">>;
+	    <<"http://bitlove.org">>;
 	{ok, Base} ->
 	    Base
     end.

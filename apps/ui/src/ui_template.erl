@@ -97,15 +97,27 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
       end,
       {'div', [{class, <<"flattr">>}],
        [
-	if
-	    is_binary(Payment),
-	    size(Payment) > 0 ->
+	case Payment of
+	    %% Transform an autosubmit link to Flattr button
+	    <<"https://flattr.com/submit/auto?",
+	      Payment1/binary>> ->
 		{a, [{class, <<"FlattrButton">>},
-		     {href, Payment},
-		     {'data-flattr-url', Homepage}
-		    ],
+		     {href, Payment}
+		     | [case K of
+			    <<"user_id">> ->
+				{"data-flattr-uid", V};
+			    _ ->
+				{"data-flattr-" ++ K, V}
+			end
+			|| {K, V} <- cowboy_http:x_www_form_urlencoded(
+				       Payment1, fun cowboy_http:urldecode/1)
+		       ]],
 		 <<"Support the podcaster">>};
-	    true ->
+	    _ when is_binary(Payment),
+		   size(Payment) > 0 ->
+		{a, [{href, Payment}],
+		 <<"Support the podcaster">>};
+	    _ ->
 		[]
 	end,
 	{br, []},
@@ -115,7 +127,7 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
 				   ItemLink/binary>>},
 	     {'data-flattr-uid', <<"Astro">>},
 	     {'data-flattr-title', <<Title/binary, " on Bitlove">>},
-	     {'data-flattr-description', <<"Automatic Torrentification & Seeding">>},
+	     {'data-flattr-description', <<"Torrentification & Seeding">>},
 	     {'data-flattr-category', <<"rest">>},
 	     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
 	    ],
