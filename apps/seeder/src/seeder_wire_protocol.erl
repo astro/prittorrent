@@ -183,7 +183,6 @@ handle_message(<<?HAVE, Piece:32>>, #state{has = Has} = State1) ->
 	State1#state{has = <<Has1/binary,
 			     (Pieces bor (16#80 bsr (Piece - I * 8))):8,
 			     Has2/binary>>},
-    io:format("Have ~B: ~p~n", [Piece, State2#state.has]),
 
     %% disconnect new seeders:
     check_bitfield(State2);
@@ -245,22 +244,30 @@ handle_message(Data, State) ->
 check_bitfield(#state{has = Has,
 		      data_length = Length,
 		      piece_length = PieceLength} = State) ->
-    IsSeeder = lists:foldl(
-		 fun(_, false) ->
-			 false;
-		    (I, true) ->
-			 J = 8 * size(Has) - I - 1,
-			 case Has of
-			     <<_:I, Bit:1, _:J>> ->
-				 Bit == 1;
-			     _ ->
-				 %% Non-fatal:
-				 io:format("Cannot match bitfield: ~p~n", [Has])
-			 end
-		 end, true, lists:seq(0, trunc((Length - 1) / PieceLength))),
-    case IsSeeder of
+    %% TODO: optimize
+    Pieces = trunc((Length - 1) / PieceLength) + 1,
+    case is_bitfield_seeder(Has, Pieces) of
 	true ->
+	    %% Nothing left to seed
 	    {close, State};
 	false ->
 	    {ok, State}
+    end.
+
+is_bitfield_seeder(Bitfield, Pieces) ->
+    is_bitfield_seeder(Bitfield, 0, Pieces).
+
+is_bitfield_seeder(_, Pieces, Pieces) ->
+    %% All pieces present
+    true;
+is_bitfield_seeder(Bitfield, Piece, Pieces) ->
+    Remain = 8 * size(Bitfield) - Piece - 1,
+    <<_:Piece, Bit:1, _:Remain>> = Bitfield,
+    case Bit of
+	1 ->
+	    %% Peer has piece, look further
+	    is_bitfield_seeder(Bitfield, Piece + 1, Pieces);
+	0 ->
+	    %% Peer doesn't have piece, terminate
+	    false
     end.
