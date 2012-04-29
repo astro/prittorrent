@@ -9,7 +9,7 @@
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
 add_torrent(InfoHash, Name, Size, Torrent) ->
-    ?Q("INSERT INTO torrents (\"info_hash\", \"name\", \"size\", \"torrent\") VALUES ($1, $2)",
+    ?Q("INSERT INTO torrents (\"info_hash\", \"name\", \"size\", \"torrent\") VALUES ($1, $2, $3, $4)",
        [InfoHash, Name, Size, Torrent]).
 
 get_torrent(InfoHash) ->
