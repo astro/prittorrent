@@ -26,9 +26,24 @@ html(HeadEls, Contents) ->
 	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
 	    ]} | Contents] ++
 	      [{footer,
-		[{p, "Are you a podcast publisher?"},
-		 {p, [{a, [{href, "/signup"}], "Sign up"}]},
-		 {p, [{a, [{href, "/login"}], "Log in"}]}
+		[{'div',
+		  [{p,
+		    [<<"Vision by ">>,
+		     {a, [{href, <<"http://tim.geekheim.de/">>}], <<"Tim Pritlove">>}
+		    ]},
+		   {p,
+		    [<<"Open Source by ">>,
+		     {a, [{href, <<"http://spaceboyz.net/~astro/">>}], <<"Astro">>}
+		    ]},
+		   {p,
+		    [<<"Report Bugs ">>,
+		     {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"on Github!">>}
+		    ]}
+		  ]},
+		 {'div',
+		  [{p, <<"Are you a podcast publisher?">>},
+		   {p, <<"Sign up + add your feeds soon!">>}
+		  ]}
 		]},
 	       {script, [{type, <<"text/javascript">>}],
 		[<<"/* ">>,
