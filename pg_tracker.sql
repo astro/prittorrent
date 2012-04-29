@@ -111,6 +111,9 @@ CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
           FROM tracked
          WHERE "info_hash"="t_info_hash";
 
+        "t_upspeed" := COALESCE("t_upspeed", 0);
+        "t_downspeed" := COALESCE("t_downspeed", 0);
+
         -- Is worth an entry?
         IF "t_leechers" > 0 OR "t_seeders" > 0 THEN
             UPDATE scraped
