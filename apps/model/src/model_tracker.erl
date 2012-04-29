@@ -1,6 +1,6 @@
 -module(model_tracker).
 
--export([scrape/1, get_peers/3, set_peer/7, rm_peer/2]).
+-export([scrape/1, scrape_many/1, get_peers/3, set_peer/7, rm_peer/2]).
 
 -include("../include/model.hrl").
 
@@ -10,13 +10,24 @@
 
 
 scrape(InfoHash) ->
-    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\" FROM scraped WHERE \"info_hash\"=$1",
-	    [InfoHash]) of
-	{ok, _, [{Leechers, Seeders, Downspeed}]} ->
-	    {ok, Leechers, Seeders, Downspeed, 0};
-	{ok, _, []} ->
+    case scrape_many([InfoHash]) of
+	{ok, [{Leechers, Seeders, Downspeed, Downloaded}]} ->
+	    {ok, Leechers, Seeders, Downspeed, Downloaded};
+	{ok, []} ->
 	    {ok, 0, 0, 0, 0}
     end.
+
+scrape_many(InfoHashes) ->
+    Cond =
+	string:join(
+	  ["\"info_hash\"=$" ++ integer_to_list(N)
+	   || N <- lists:seq(1, length(InfoHashes))],
+	  " OR "),
+    {ok, _, Scrapes} =
+	?Q("SELECT \"leechers\", \"seeders\", \"downspeed\" FROM scraped WHERE " ++ Cond,
+	   InfoHashes),
+    {ok, [{Leechers, Seeders, Downspeed, 0}
+	  || {Leechers, Seeders, Downspeed} <- Scrapes]}.
 
 %% List
 -spec(get_peers/3 :: (binary(), binary(), true | false)
