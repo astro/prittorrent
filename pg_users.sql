@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION feed_to_update(
 $$ LANGUAGE plpgsql;
 
 
-CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
+CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELETE CASCADE,
        	     		 "id" TEXT NOT NULL,
 			 "title" TEXT,
 			 "homepage" TEXT,
@@ -85,7 +85,9 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
        	     		 "item" TEXT NOT NULL,
 			 "url" TEXT NOT NULL,
 			 PRIMARY KEY ("feed", "item", "url"),
-			 FOREIGN KEY ("feed", "item") REFERENCES "feed_items" ("feed", "id"));
+			 FOREIGN KEY ("feed", "item")
+                             REFERENCES "feed_items" ("feed", "id")
+                             ON DELETE CASCADE);
 CREATE INDEX enclosures_url ON enclosures ("url");
 
 -- Check this with: select * from enclosure_torrents where info_hash not in (select info_hash from torrents);

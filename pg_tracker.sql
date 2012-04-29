@@ -1,5 +1,5 @@
 -- fkey ensures we only track for known torrents:
-CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash"),
+CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash") ON DELETE CASCADE,
        	     	      "peer_id" BYTEA NOT NULL,
 		      "host" BYTEA NOT NULL,
 		      "port" INT NOT NULL,
@@ -143,6 +143,9 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tracked_update_scraped AFTER INSERT OR UPDATE OR DELETE ON tracked
        FOR EACH ROW EXECUTE PROCEDURE tracked_update_scraped();
 
+--
+-- downloads_cache
+--
 
 CREATE TABLE downloads_cache(
        -- Enclosure key:
@@ -150,7 +153,9 @@ CREATE TABLE downloads_cache(
        "item" TEXT,
        "enclosure" TEXT,
        PRIMARY KEY ("feed", "item", "enclosure"),
-       FOREIGN KEY ("feed", "item", "enclosure") REFERENCES "enclosures" ("feed", "item", "url"),
+       FOREIGN KEY ("feed", "item", "enclosure")
+       	   REFERENCES "enclosures" ("feed", "item", "url")
+	   ON DELETE CASCADE,
        -- Torrent data:
        "info_hash" BYTEA,
        -- Item data:
@@ -236,6 +241,6 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_feed_items(
 $$ LANGUAGE plpgsql;
 
 -- downloads_cache depends on feed_items
-CREATE TRIGGER feed_items_update_downloads_cache AFTER INSERT, UPDATE ON feed_items
+CREATE TRIGGER feed_items_update_downloads_cache AFTER INSERT OR UPDATE ON feed_items
        FOR EACH ROW
        EXECUTE PROCEDURE update_downloads_cache_on_feed_items();
