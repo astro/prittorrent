@@ -5,13 +5,12 @@ PritTorrent
 TODO
 ----
 
-* Seeder app
+* 1shot pages
 * Front page?
-* URL longener?
-* HTTP UA output
-* UI: Detect browser language
 
-! Tracker load tester
+* URL longener?
+
+* HTTP UA output
 * UI: Detect browser language
 * Stats:
 *! Collecting
