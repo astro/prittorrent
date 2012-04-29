@@ -10,10 +10,13 @@
 
 
 scrape(InfoHash) ->
-    {ok, _, [{Leechers, Seeders, Downspeed, Downloaded}]} =
-	?Q("SELECT \"t_leechers\", \"t_seeders\", \"t_downspeed\", \"t_downloaded\" FROM scrape_tracker($1)",
-	   [InfoHash]),
-    {ok, Leechers, Seeders, Downspeed, Downloaded}.
+    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\" FROM scraped WHERE \"info_hash\"=$1",
+	    [InfoHash]) of
+	{ok, _, [{Leechers, Seeders, Downspeed}]} ->
+	    {ok, Leechers, Seeders, Downspeed, 0};
+	{ok, _, []} ->
+	    {ok, 0, 0, 0, 0}
+    end.
 
 %% List
 -spec(get_peers/3 :: (binary(), binary(), true | false)

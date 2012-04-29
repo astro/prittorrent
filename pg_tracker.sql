@@ -78,31 +78,64 @@ CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
     END;
 $$ LANGUAGE plpgsql;
 
+CREATE TABLE scraped (
+       "info_hash" BYTEA NOT NULL PRIMARY KEY,
+       "seeders" INT,
+       "leechers" INT,
+       "upspeed" BIGINT,
+       "downspeed" BIGINT
+);
+CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers"));
 
-CREATE OR REPLACE FUNCTION scrape_tracker(
-       t_info_hash BYTEA,
-       OUT t_leechers INT,
-       OUT t_seeders INT,
-       OUT t_downspeed INT,
-       OUT t_downloaded INT
-) RETURNS record AS $$
+CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
+    DECLARE
+        "t_info_hash" BYTEA := CASE TG_OP WHEN 'DELETE' THEN OLD.info_hash ELSE NEW.info_hash END;
+        "scraped_info_hash" BYTEA;
+        "t_seeders" BIGINT;
+        "t_leechers" BIGINT;
+        "t_upspeed" BIGINT;
+        "t_downspeed" BIGINT;
     BEGIN
-	SELECT COUNT(peer_id)
-	  INTO t_seeders
-	  FROM tracked
-	 WHERE info_hash = t_info_hash
-	   AND "left" <= 0;
-	SELECT COUNT(peer_id)
-	  INTO t_leechers
-	  FROM tracked
-	 WHERE info_hash = t_info_hash
-	   AND "left" > 0;
-	SELECT COALESCE(SUM(downspeed), 0)
-	  INTO t_downspeed
-	  FROM tracked
-	 WHERE info_hash = t_info_hash;
-	-- TODO:
-	t_downloaded := 0;
+        -- Collect data
+        SELECT SUM(CASE "left"
+                   WHEN 0 THEN 1
+                   ELSE 0
+                   END),
+               SUM(CASE "left"
+                   WHEN 0 THEN 0
+                   ELSE 1
+                   END),
+               SUM("upspeed"),
+               SUM("downspeed")
+          INTO "t_seeders", "t_leechers", "t_upspeed", "t_downspeed"
+          FROM tracked
+         WHERE "info_hash"="t_info_hash";
+
+        -- Is worth an entry?
+        IF "t_leechers" > 0 OR "t_seeders" > 0 THEN
+            UPDATE scraped
+               SET "seeders"="t_seeders",
+                   "leechers"="t_leechers",
+                   "upspeed"="t_upspeed",
+                   "downspeed"="t_downspeed"  
+             WHERE scraped.info_hash="t_info_hash"
+             RETURNING scraped.info_hash INTO "scraped_info_hash";
+
+             -- Row didn't exist? Create:
+             IF "scraped_info_hash" IS NULL THEN
+                INSERT INTO scraped
+                            ("info_hash", "seeders", "leechers", "upspeed", "downspeed")
+                     VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed);
+             END IF;
+        ELSE
+            -- Discard on idle
+            DELETE FROM scraped
+                  WHERE "info_hash"="t_info_hash";
+        END IF;
+
+        RETURN NEW;
     END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER tracked_update_scraped AFTER INSERT OR UPDATE OR DELETE ON tracked
+       FOR EACH ROW EXECUTE PROCEDURE tracked_update_scraped();
