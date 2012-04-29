@@ -88,11 +88,15 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
 			 FOREIGN KEY ("feed", "item") REFERENCES "feed_items" ("feed", "id"));
 CREATE INDEX enclosures_url ON enclosures ("url");
 
+-- Check this with: select * from enclosure_torrents where info_hash not in (select info_hash from torrents);
+-- Or add a constraint on info_hash with either NULL or FOREIGN KEY torrents (info_hash)
 CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
        	     			 last_update TIMESTAMP,
 				 error TEXT,
 				 info_hash BYTEA);
-CREATE INDEX enclosure_torrents_info_hash ON enclosure_torrents ((length(info_hash)), info_hash);
+CREATE INDEX enclosure_torrents_info_hash
+       ON enclosure_torrents (info_hash)
+       WHERE LENGTH(info_hash) = 20;
 CREATE VIEW enclosures_to_hash AS
        SELECT enclosures.url,
               enclosure_torrents.last_update AS last_update,
