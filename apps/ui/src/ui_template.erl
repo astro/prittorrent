@@ -168,8 +168,7 @@ render_enclosure(#download{name = Name,
 			   size = Size,
 			   seeders = Seeders,
 			   leechers = Leechers,
-			   downspeed = Downspeed} = D) ->
-    io:format("render_enclosure ~p~n", [D]),
+			   downspeed = Downspeed}) ->
     {ok, MySeeders} = application:get_env(ui, seeders),
     render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed).
 
@@ -301,7 +300,7 @@ render_user(UserName) ->
 			  ]}
 		 end, UserFeeds)
       ],
-      [{h2, "Recent Episodes"} |
+      [{h2, "Recent Torrents"} |
        render_downloads(UserDownloads)
       ]
      ).
