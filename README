@@ -5,8 +5,10 @@ PritTorrent
 TODO
 ----
 
-* 1shot pages
-* Front page?
+* Feed summaries: X items, Y torrents
+* Recent Torrents excluding Popular Torrents
+* render_item styles
+* Flattr button on img hover
 
 * URL longener?
 
