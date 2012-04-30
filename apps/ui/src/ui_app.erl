@@ -29,11 +29,22 @@ start(_StartType, _StartArgs) ->
 	       ]
 	 }
 	],
+
+    {IP, Port} =
+	case os:getenv("BIND_IP") of
+	    false ->
+		%% Development
+		{{0, 0, 0, 0, 0, 0, 0, 0}, 8080};
+	    IPS ->
+		%% Production
+		{inet_parse:address(IPS), 80}
+	end,
+
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
     cowboy:start_listener(
       ui_http_listener, 32,
-      cowboy_tcp_transport, [{ip, {0, 0, 0, 0, 0, 0, 0, 0}},
-			     {port, 8080}],
+      cowboy_tcp_transport, [{ip, IP},
+			     {port, Port}],
       cowboy_http_protocol, [{dispatch, Dispatch}]
      ).
 
