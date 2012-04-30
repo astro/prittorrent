@@ -251,7 +251,7 @@ render_user(UserName) ->
       },
       [{h2, "Feeds"} |
        lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
-			 {article,
+			 {article, [{class, "feed"}],
 
 			  [{'div',
 			    [if
