@@ -36,7 +36,12 @@ update(URL) when is_binary(URL) ->
 update(URL) ->
     {ok, Etag1, LastModified1} = model_feeds:prepare_update(URL),
     spawn(fun() ->
-		  update1(URL, Etag1, LastModified1)
+		  case (catch update1(URL, Etag1, LastModified1)) of
+		      {'EXIT', Reason} ->
+			  io:format("feeds update failed for ~s~n~p~n", [URL, Reason]);
+		      _ ->
+			  ok
+		  end
 	  end),
     ok.
 
@@ -88,6 +93,7 @@ update1(URL, Etag1, LastModified1) ->
 	    {error, Reason1} ->
 		{error, {Etag1, LastModified1}, Reason1}
 	catch exit:Reason1 ->
+		io:format("fetching ~s failed: ~p~n", [URL, Reason1]),
 		{error, {Etag1, LastModified1}, Reason1}
 	end,
 
