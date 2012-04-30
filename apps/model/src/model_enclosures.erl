@@ -90,6 +90,23 @@ group_downloads([Download | Downloads]) ->
 		   homepage = Homepage,
 		   payment = Payment,
 		   image = Image,
-		   downloads = [Download | SiblingDownloads]
+		   %% Duplicate downloads may occur for merged
+		   %% feed_items (by homepage):
+		   downloads = unique_downloads([Download | SiblingDownloads])
 		  },
     [FeedItem | group_downloads(OtherDownloads)].
+
+%% Also sorts by name
+unique_downloads(Downloads) ->
+    ByName =
+	lists:foldl(fun(#download{name = Name} = Download, ByName) ->
+			    case gb_trees:is_defined(Name, ByName) of
+				false ->
+				    gb_trees:insert(Name, Download, ByName);
+				true ->
+				    %% Drop duplicate
+				    ByName
+			    end
+		    end, gb_trees:empty(), Downloads),
+    [Download
+     || {_Name, Download} <- gb_trees:to_list(ByName)].
