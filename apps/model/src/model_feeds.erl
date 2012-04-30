@@ -109,13 +109,28 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 					Item#feed_item.xml])
 			 end,
 			 %% Update enclosures
-			 Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2",
-			   [FeedURL, Item#feed_item.id]),
+			 {ok, _, ToDeleteRows} =
+			     Q("SELECT \"url\" FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2",
+			       [FeedURL, Item#feed_item.id]),
+			 ToDelete =
+			     lists:foldl(
+			       fun(Enclosure, ToDelete) ->
+				       case sets:is_element(Enclosure, ToDelete) of
+					   true ->
+					       sets:del_element(Enclosure, ToDelete);
+					   false ->
+					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
+						 [FeedURL, Item#feed_item.id, Enclosure]),
+					       ToDelete
+				       end
+			       end,
+			       sets:from_list([Enclosure || {Enclosure} <- ToDeleteRows]),
+			       Item#feed_item.enclosures),
 			 lists:foreach(
 			   fun(Enclosure) ->
-				   Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
-				     [FeedURL, Item#feed_item.id, Enclosure])
-			   end, Item#feed_item.enclosures)
+				   ?Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+				      [FeedURL, Item#feed_item.id, Enclosure])
+			   end, sets:to_list(ToDelete))
 		 end, Items),
 
 	       ok
