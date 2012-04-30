@@ -1,6 +1,7 @@
 -module(model_enclosures).
 
--export([to_hash/0, set_torrent/3, item_torrents/2]).
+-export([to_hash/0, set_torrent/3, item_torrents/2,
+	 feed_downloads/1]).
 
 -include("../include/model.hrl").
 
@@ -29,7 +30,64 @@ set_torrent(URL, Error, InfoHash) ->
 	       end
        end).
 
+%% TODO: rm, expensive view
 item_torrents(Feed, Item) ->
     {ok, _, Torrents} =
 	?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1 AND \"item\"=$2 ORDER BY \"url\"", [Feed, Item]),
     Torrents.
+
+feed_downloads(Feed) ->
+    io:format("feed_downloads ~p~n", [Feed]),
+    query_downloads("feed=$1", [Feed]).
+
+query_downloads(Cond, Params) ->
+    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\" FROM downloads_cache WHERE " ++ Cond ++ " ORDER BY \"published\" DESC", Params) of
+	{ok, _, Rows} ->
+	    Downloads =
+		[#download{feed = Feed,
+			   item = Item,
+			   enclosure = Enclosure,
+			   info_hash = InfoHash,
+			   name = Name,
+			   size = Size,
+			   title = Title,
+			   published = Published,
+			   homepage = Homepage,
+			   payment = Payment,
+			   image = Image}
+		 || {Feed, Item, Enclosure,
+		     InfoHash, Name, Size,
+		     Title, Published, Homepage, Payment, Image
+		    } <- Rows],
+	    {ok, group_downloads(Downloads)};
+	{error, Reason} ->
+	    {error, Reason}
+    end.
+
+%% By homepage
+group_downloads([]) ->
+    [];
+group_downloads([Download | Downloads]) ->
+    #download{feed = Feed,
+	      item = Item,
+	      title = Title,
+	      published = Published,
+	      homepage = Homepage,
+	      payment = Payment,
+	      image = Image} = Download,
+    {SiblingDownloads, OtherDownloads} =
+	lists:splitwith(
+	  fun(#download{homepage = Homepage1}) ->
+		  Homepage == Homepage1
+	  end, Downloads),
+    FeedItem =
+	#feed_item{feed = Feed,
+		   id = Item,
+		   title = Title,
+		   published = Published,
+		   homepage = Homepage,
+		   payment = Payment,
+		   image = Image,
+		   downloads = [Download | SiblingDownloads]
+		  },
+    [FeedItem | group_downloads(OtherDownloads)].

@@ -163,6 +163,7 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
       ]}
     ]}.
 
+%% TODO: rm slow code path
 render_enclosure({_URL, InfoHash}) ->
     case model_torrents:get_info(InfoHash) of
 	{ok, Name, Size} ->
@@ -173,7 +174,16 @@ render_enclosure({_URL, InfoHash}) ->
 	{error, not_found} ->
 	    io:format("Enclosure not found: ~p ~p~n", [_URL, InfoHash]),
 	    []
-    end.
+    end;
+render_enclosure(#download{name = Name,
+			   info_hash = InfoHash,
+			   size = Size}) ->
+    Seeders = 0, %% TODO
+    Leechers = 0, %% TODO
+    Downspeed = 0, %% TODO
+    {ok, MySeeders} = application:get_env(ui, seeders),
+    render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed).
+
 
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
     {ul, [{class, "download"}],
@@ -330,7 +340,9 @@ render_user_feed(UserName, Slug) ->
 	end,
     {ok, FeedTitle, FeedHomepage, FeedImage} =
 	model_feeds:feed_details(FeedURL),
-	    
+    {ok, FeedDownloads} =
+	model_enclosures:feed_downloads(FeedURL),
+    
     page_1column(
       ui_link:link_user_feed_xml(UserName, Slug),
       [{header, [{class, "feed"}],
@@ -350,19 +362,15 @@ render_user_feed(UserName, Slug) ->
 				title = ItemTitle,
 				image = ItemImage,
 				homepage = ItemHomepage,
-				payment = ItemPayment}) ->
-			 case model_enclosures:item_torrents(FeedURL, ItemId) of
-			     [] ->
-				 [];
-			     Torrents ->
-				 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
-				 {article, [{class, "item"},
-					    {id, ItemId}],
-				  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
-				   lists:map(fun render_enclosure/1, Torrents)
-				  ]}
-			 end
-		 end, model_feeds:feed_items(FeedURL))
+				payment = ItemPayment,
+				downloads = ItemDownloads}) ->
+			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
+			 {article, [{class, "item"},
+				    {id, ItemId}],
+			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
+			   lists:map(fun render_enclosure/1, ItemDownloads)
+			  ]}
+		 end, FeedDownloads)
       ]).
 
 export_feed(UserName, Slug) ->
