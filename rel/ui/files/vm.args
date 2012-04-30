@@ -1,8 +1,8 @@
 ## Name of the node
--name prittorrent@127.0.0.1
+-name ui@127.0.0.1
 
 ## Cookie for distributed erlang
--setcookie prittorrent
+-setcookie ui
 
 ## Heartbeat management; auto-restarts VM if it dies or becomes unresponsive
 ## (Disabled by default..use with caution!)
