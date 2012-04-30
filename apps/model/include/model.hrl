@@ -12,7 +12,12 @@
 	  published :: calendar:datetime(),
 	  homepage :: binary(),
 	  payment :: binary(),
-	  image :: binary()
+	  image :: binary(),
+	  %% Scrape data:
+	  seeders :: integer(),
+	  leechers :: integer(),
+	  upspeed :: integer(),
+	  downspeed :: integer()
 	 }).
 
 -record(feed_item, {feed :: binary(),

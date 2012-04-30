@@ -129,3 +129,11 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER enclosures_update_downloads_cache AFTER INSERT OR UPDATE ON enclosures
        FOR EACH ROW
        EXECUTE PROCEDURE update_downloads_cache_on_enclosures();
+
+
+CREATE VIEW downloads_scraped AS
+       SELECT downloads_cache."feed", downloads_cache."item", downloads_cache."enclosure",
+              downloads_cache."info_hash", downloads_cache."name", downloads_cache."size",
+              downloads_cache."title", downloads_cache."published", downloads_cache."homepage", downloads_cache."payment", downloads_cache."image",
+              scraped.seeders, scraped.leechers, scraped.upspeed, scraped.downspeed
+         FROM downloads_cache LEFT JOIN scraped ON (downloads_cache.info_hash=scraped.info_hash);

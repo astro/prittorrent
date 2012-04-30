@@ -43,7 +43,7 @@ feed_downloads(Feed) ->
     query_downloads("\"feed\"=$1", [Feed]).
 
 query_downloads(Cond, Params) ->
-    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\" FROM downloads_cache WHERE " ++ Cond ++ " ORDER BY \"published\" DESC", Params) of
+    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY \"published\" DESC LIMIT 20", Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		[#download{feed = Feed,
@@ -56,10 +56,15 @@ query_downloads(Cond, Params) ->
 			   published = Published,
 			   homepage = Homepage,
 			   payment = Payment,
-			   image = Image}
+			   image = Image,
+			   seeders = Seeders,
+			   leechers = Leechers,
+			   upspeed = Upspeed,
+			   downspeed = Downspeed}
 		 || {Feed, Item, Enclosure,
 		     InfoHash, Name, Size,
-		     Title, Published, Homepage, Payment, Image
+		     Title, Published, Homepage, Payment, Image,
+		     Seeders, Leechers, Upspeed, Downspeed
 		    } <- Rows],
 	    {ok, group_downloads(Downloads)};
 	{error, Reason} ->
