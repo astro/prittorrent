@@ -154,10 +154,12 @@ CREATE TABLE downloads_cache(
        "enclosure" TEXT,
        PRIMARY KEY ("feed", "item", "enclosure"),
        FOREIGN KEY ("feed", "item", "enclosure")
-       	   REFERENCES "enclosures" ("feed", "item", "url")
-	   ON DELETE CASCADE,
+           REFERENCES "enclosures" ("feed", "item", "url")
+           ON DELETE CASCADE,
        -- Torrent data:
        "info_hash" BYTEA,
+       "name" TEXT,
+       "size" BIGINT,
        -- Item data:
        "title" TEXT,
        "published" TIMESTAMP,
@@ -174,10 +176,12 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
        t_feed TEXT,
        t_item TEXT,
        t_enclosure TEXT,
-       info_hash BYTEA
+       t_info_hash BYTEA
 ) RETURNS void AS $$
     DECLARE
        item_rec RECORD;
+       t_name TEXT;
+       t_size BIGINT;
     BEGIN
         DELETE FROM downloads_cache
               WHERE feed=t_feed
@@ -187,13 +191,16 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
         SELECT * INTO item_rec
           FROM feed_items
          WHERE feed=t_feed AND id=t_item;
+        SELECT "name", "size" INTO t_name, t_size
+          FROM torrents
+          WHERE info_hash=t_info_hash;
 
         INSERT INTO downloads_cache
                (feed, item, enclosure,
-                info_hash,
+                info_hash, "name", "size",
                 title, published, homepage, payment, image)
                VALUES (t_feed, t_item, t_enclosure,
-                       info_hash,
+                       t_info_hash, t_name, t_size,
                        item_rec.title, item_rec.published, item_rec.homepage, item_rec.payment, item_rec.image);
     END;
 $$ LANGUAGE plpgsql;
