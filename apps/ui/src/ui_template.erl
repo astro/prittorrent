@@ -251,7 +251,6 @@ render_user(UserName) ->
       },
       [{h2, "Feeds"} |
        lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
-			 io:format("Details: ~p ~p ~p~n", [Title, Homepage, Image]),
 			 {article,
 
 			  [{'div',
