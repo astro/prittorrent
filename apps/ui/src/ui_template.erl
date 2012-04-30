@@ -163,18 +163,6 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
       ]}
     ]}.
 
-%% TODO: rm slow code path
-render_enclosure({_URL, InfoHash}) ->
-    case model_torrents:get_info(InfoHash) of
-	{ok, Name, Size} ->
-	    {ok, Leechers, Seeders, Downspeed, _Downloaded} =
-		model_tracker:scrape(InfoHash),
-	    {ok, MySeeders} = application:get_env(ui, seeders),
-	    render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed);
-	{error, not_found} ->
-	    io:format("Enclosure not found: ~p ~p~n", [_URL, InfoHash]),
-	    []
-    end;
 render_enclosure(#download{name = Name,
 			   info_hash = InfoHash,
 			   size = Size}) ->
