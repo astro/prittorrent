@@ -3,11 +3,17 @@
 --
 
 CREATE TABLE downloads_cache(
+       -- User key:
+       "user" TEXT,
+       "slug" TEXT,
        -- Enclosure key:
        "feed" TEXT,
        "item" TEXT,
        "enclosure" TEXT,
-       PRIMARY KEY ("feed", "item", "enclosure"),
+       PRIMARY KEY ("user", "slug", "feed", "item", "enclosure"),
+       FOREIGN KEY ("user", "slug", "feed")
+            REFERENCES "user_feeds" ("user", "slug", "feed")
+            ON DELETE CASCADE,
        FOREIGN KEY ("feed", "item", "enclosure")
            REFERENCES "enclosures" ("feed", "item", "url")
            ON DELETE CASCADE,
@@ -28,6 +34,8 @@ CREATE INDEX downloads_cache_feed_published ON downloads_cache ("feed", "publish
 
 
 CREATE OR REPLACE FUNCTION update_downloads_cache(
+       t_user TEXT,
+       t_slug TEXT,
        t_feed TEXT,
        t_item TEXT,
        t_enclosure TEXT,
@@ -39,9 +47,11 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
        t_size BIGINT;
     BEGIN
         DELETE FROM downloads_cache
-              WHERE feed=t_feed
-                AND item=t_item
-                AND enclosure=t_enclosure;
+              WHERE "user"=t_user
+                AND "slug"=t_slug
+                AND "feed"=t_feed
+                AND "item"=t_item
+                AND "enclosure"=t_enclosure;
 
         SELECT * INTO item_rec
           FROM feed_items
@@ -51,12 +61,32 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
           WHERE info_hash=t_info_hash;
 
         INSERT INTO downloads_cache
-               (feed, item, enclosure,
+               ("user", slug, feed, item, enclosure,
                 info_hash, "name", "size",
                 title, published, homepage, payment, image)
-               VALUES (t_feed, t_item, t_enclosure,
+               VALUES (t_user, t_slug, t_feed, t_item, t_enclosure,
                        t_info_hash, t_name, t_size,
                        item_rec.title, item_rec.published, item_rec.homepage, item_rec.payment, item_rec.image);
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_downloads_cache(
+       t_feed TEXT,
+       t_item TEXT,
+       t_enclosure TEXT,
+       t_info_hash BYTEA
+) RETURNS void AS $$
+    DECLARE
+       user_feed RECORD;
+    BEGIN
+        FOR user_feed IN SELECT *
+                           FROM user_feeds
+                          WHERE feed=t_feed
+        LOOP
+            PERFORM update_downloads_cache(user_feed."user", user_feed."slug",
+                                           user_feed."feed",
+                                           t_item, t_enclosure, t_info_hash);
+        END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -131,9 +161,11 @@ CREATE TRIGGER enclosures_update_downloads_cache AFTER INSERT OR UPDATE ON enclo
        EXECUTE PROCEDURE update_downloads_cache_on_enclosures();
 
 
-CREATE VIEW downloads_scraped AS
-       SELECT downloads_cache."feed", downloads_cache."item", downloads_cache."enclosure",
+CREATE OR REPLACE VIEW downloads_scraped AS
+       SELECT downloads_cache."user", downloads_cache."slug",
+              downloads_cache."feed", downloads_cache."item", downloads_cache."enclosure",
               downloads_cache."info_hash", downloads_cache."name", downloads_cache."size",
               downloads_cache."title", downloads_cache."published", downloads_cache."homepage", downloads_cache."payment", downloads_cache."image",
-              scraped.seeders, scraped.leechers, scraped.upspeed, scraped.downspeed
+              COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
+              COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed"
          FROM downloads_cache LEFT JOIN scraped ON (downloads_cache.info_hash=scraped.info_hash);

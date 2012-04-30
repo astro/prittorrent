@@ -1,4 +1,7 @@
 -record(download, {
+	  %% User key:
+	  user :: binary(),
+	  slug :: binary(),
 	  %% Enclosure key:
 	  feed :: binary(),
 	  item :: binary(),
@@ -20,14 +23,17 @@
 	  downspeed :: integer()
 	 }).
 
--record(feed_item, {feed :: binary(),
-		    id :: binary(),
-		    title :: (binary() | null),
-		    published :: calendar:datetime(),
-		    homepage :: binary(),
-		    payment :: binary(),
-		    image :: binary(),
-		    xml :: binary(),
-		    enclosures :: [binary()],
-		    downloads :: [#download{}]
-		   }).
+-record(feed_item, {
+	  user :: binary(),
+	  slug :: binary(),
+	  feed :: binary(),
+	  id :: binary(),
+	  title :: (binary() | null),
+	  published :: calendar:datetime(),
+	  homepage :: binary(),
+	  payment :: binary(),
+	  image :: binary(),
+	  xml :: binary(),
+	  enclosures :: [binary()],
+	  downloads :: [#download{}]
+	 }).

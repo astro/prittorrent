@@ -165,10 +165,11 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
 
 render_enclosure(#download{name = Name,
 			   info_hash = InfoHash,
-			   size = Size}) ->
-    Seeders = 0, %% TODO
-    Leechers = 0, %% TODO
-    Downspeed = 0, %% TODO
+			   size = Size,
+			   seeders = Seeders,
+			   leechers = Leechers,
+			   downspeed = Downspeed} = D) ->
+    io:format("render_enclosure ~p~n", [D]),
     {ok, MySeeders} = application:get_env(ui, seeders),
     render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed).
 
@@ -189,6 +190,23 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
 		{title, "Current Total Bandwidth"}], [size_to_human(Bandwidth), "/s"]}
        ]}
      ]}.
+
+render_downloads(Downloads) ->
+    lists:map(
+      fun(#feed_item{user = User,
+		     slug = Slug,
+		     id = ItemId,
+		     title = ItemTitle,
+		     image = ItemImage,
+		     homepage = ItemHomepage,
+		     payment = ItemPayment,
+		     downloads = ItemDownloads}) ->
+	      ItemLink = ui_link:link_item(User, Slug, ItemId),
+	      {article, [{class, "item"}],
+	       [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
+		lists:map(fun render_enclosure/1, ItemDownloads)
+	       ]}
+      end, Downloads).
 
 page_1column(FeedLink, Col) ->
     HeadEls =
@@ -220,15 +238,20 @@ page_2column(Prologue, Col1, Col2) ->
 
 %% TODO
 render_index() ->
+    {ok, RecentDownloads} =
+	model_enclosures:recent_downloads(),
+    {ok, PopularDownloads} =
+	model_enclosures:popular_downloads(),
+    
     page_2column(
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       []],
+       render_downloads(RecentDownloads)],
       [{'div',
-	[{h2, "Popular Feeds"}
+	[{h2, "Popular Torrents"}
 	]} |
-       []]
+       render_downloads(PopularDownloads)]
      ).
 
 %% Feeds, Recent Episodes
@@ -279,22 +302,7 @@ render_user(UserName) ->
 		 end, UserFeeds)
       ],
       [{h2, "Recent Episodes"} |
-       lists:map(fun(#feed_item{feed = FeedURL,
-				id = ItemId,
-				title = ItemTitle,
-				image = ItemImage,
-				homepage = ItemHomepage,
-				payment = ItemPayment,
-				downloads = ItemDownloads}) ->
-			 {value, Feed} =
-			     lists:keysearch(FeedURL, 2, UserFeeds),
-			 Slug = element(1, Feed),
-			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
-			 {article, [{class, "item"}],
-			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
-			   lists:map(fun render_enclosure/1, ItemDownloads)
-			  ]}
-		 end, UserDownloads)
+       render_downloads(UserDownloads)
       ]
      ).
 
@@ -334,19 +342,7 @@ render_user_feed(UserName, Slug) ->
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
-       lists:map(fun(#feed_item{id = ItemId,
-				title = ItemTitle,
-				image = ItemImage,
-				homepage = ItemHomepage,
-				payment = ItemPayment,
-				downloads = ItemDownloads}) ->
-			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
-			 {article, [{class, "item"},
-				    {id, ItemId}],
-			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
-			   lists:map(fun render_enclosure/1, ItemDownloads)
-			  ]}
-		 end, FeedDownloads)
+       render_downloads(FeedDownloads)
       ]).
 
 export_feed(UserName, Slug) ->

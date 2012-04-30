@@ -1,6 +1,7 @@
 -module(model_enclosures).
 
 -export([to_hash/0, set_torrent/3, item_torrents/2,
+	 recent_downloads/0, popular_downloads/0,
 	 user_downloads/1, feed_downloads/1]).
 
 -include("../include/model.hrl").
@@ -35,46 +36,64 @@ item_torrents(Feed, Item) ->
 	?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1 AND \"item\"=$2 ORDER BY \"url\"", [Feed, Item]),
     Torrents.
 
+recent_downloads() ->
+    query_downloads("TRUE", [],
+		    "\"published\" DESC", 42).
+
+popular_downloads() ->
+    query_downloads("(\"seeders\" + \"leechers\") > 1", [],
+		    "(\"seeders\" + \"leechers\") DESC", 23).
+
 user_downloads(UserName) ->
-    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName], 23).
+    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
+		    "\"published\" DESC", 23).
 
 feed_downloads(Feed) ->
-    query_downloads("\"feed\"=$1", [Feed], 100).
+    query_downloads("\"feed\"=$1", [Feed],
+		    "\"published\" DESC", 50).
 
-query_downloads(Cond, Params, Limit) ->
-    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY \"published\" DESC LIMIT " ++ integer_to_list(Limit), Params) of
+query_downloads(Cond, Params, Order, Limit) ->
+    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY " ++ Order ++ " LIMIT " ++ integer_to_list(Limit), Params) of
 	{ok, _, Rows} ->
 	    Downloads =
-		[#download{feed = Feed,
-			   item = Item,
-			   enclosure = Enclosure,
-			   info_hash = InfoHash,
-			   name = Name,
-			   size = Size,
-			   title = Title,
-			   published = Published,
-			   homepage = Homepage,
-			   payment = Payment,
-			   image = Image,
-			   seeders = Seeders,
-			   leechers = Leechers,
-			   upspeed = Upspeed,
-			   downspeed = Downspeed}
-		 || {Feed, Item, Enclosure,
-		     InfoHash, Name, Size,
-		     Title, Published, Homepage, Payment, Image,
-		     Seeders, Leechers, Upspeed, Downspeed
-		    } <- Rows],
-	    {ok, group_downloads(Downloads)};
+		rows_to_downloads(Rows),
+	    FeedItems = group_downloads(Downloads),
+	    {ok, FeedItems};
 	{error, Reason} ->
 	    {error, Reason}
     end.
+
+rows_to_downloads(Rows) ->
+    [#download{user = User,
+	       slug = Slug,
+	       feed = Feed,
+	       item = Item,
+	       enclosure = Enclosure,
+	       info_hash = InfoHash,
+	       name = Name,
+	       size = Size,
+	       title = Title,
+	       published = Published,
+	       homepage = Homepage,
+	       payment = Payment,
+	       image = Image,
+	       seeders = Seeders,
+	       leechers = Leechers,
+	       upspeed = Upspeed,
+	       downspeed = Downspeed}
+     || {User, Slug, Feed, Item, Enclosure,
+	 InfoHash, Name, Size,
+	 Title, Published, Homepage, Payment, Image,
+	 Seeders, Leechers, Upspeed, Downspeed
+	} <- Rows].
 
 %% By homepage
 group_downloads([]) ->
     [];
 group_downloads([Download | Downloads]) ->
-    #download{feed = Feed,
+    #download{user = User,
+	      slug = Slug,
+	      feed = Feed,
 	      item = Item,
 	      title = Title,
 	      published = Published,
@@ -87,7 +106,9 @@ group_downloads([Download | Downloads]) ->
 		  Homepage == Homepage1
 	  end, Downloads),
     FeedItem =
-	#feed_item{feed = Feed,
+	#feed_item{user = User,
+		   slug = Slug,
+		   feed = Feed,
 		   id = Item,
 		   title = Title,
 		   published = Published,

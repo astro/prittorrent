@@ -59,13 +59,14 @@ header.site .slogan {
   max-width: 40em;
 }
 .col1, .col2 {
-  max-width: 50%;
+  max-width: 49%;
+  min-width: 32em;
 }
 .col1 {
-  margin-right: 1em;
+  margin-right: 0.5em;
 }
 .col2 {
-  min-width: 32em;
+  margin-left: 0.5em;
 }
 
 h2 { 
@@ -160,7 +161,7 @@ h3 {
   font-style: italic;
   font-family: 'Georgia', serif;
 }
-.col2 h3 {
+.col1 h3, .col2 h3 {
   min-width: 42em;
 }
 .homepage {
@@ -182,7 +183,7 @@ h3 {
 .download .torrent {
   float: left;
 }
-.col2 .download .torrent {
+.col1 .download .torrent, .col2 .download .torrent {
   max-width: 18em;
 }
 .torrent a {
