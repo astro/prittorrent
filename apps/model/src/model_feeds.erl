@@ -1,7 +1,7 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/8,
-	 feed_details/1, feed_items/1, user_items/1,
+	 feed_details/1, user_feeds_details/1, feed_items/1, user_items/1,
 	 feed_data/1]).
 
 -include("../include/model.hrl").
@@ -145,6 +145,16 @@ feed_details(FeedURL) ->
 	    {ok, Title, Homepage, Image};
 	{ok, _, []} ->
 	    {error, not_found}
+    end.
+
+
+user_feeds_details(UserName) ->
+    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", feeds.\"title\", feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1",
+	    [UserName]) of
+	{ok, _, Rows} ->
+	    {ok, Rows};
+	{error, Reason} ->
+	    {error, Reason}
     end.
 
 

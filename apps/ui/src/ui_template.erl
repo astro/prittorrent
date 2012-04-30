@@ -240,7 +240,8 @@ render_user(UserName) ->
 	    {error, not_found} ->
 		throw({http, 404})
 	end,
-    UserFeeds = model_users:get_feeds(UserName),
+    {ok, UserFeeds} =
+	model_feeds:user_feeds_details(UserName),
     {ok, UserDownloads} =
 	model_enclosures:user_downloads(UserName),
 
@@ -249,40 +250,33 @@ render_user(UserName) ->
        render_meta(h2, UserTitle, UserImage, UserHomepage)
       },
       [{h2, "Feeds"} |
-       lists:map(fun({Slug, Feed}) ->
-			 case model_feeds:feed_details(Feed) of
-			     {ok, Title, Homepage, Image}
-			       when is_binary(Title),
-				    size(Title) > 0 ->
-				 io:format("Details: ~p ~p ~p~n", [Title, Homepage, Image]),
-				 {article,
-				  
-				  [{'div',
-				    [if
-					 is_binary(Image),
-					 size(Image) > 0 ->
-					     {img, [{src, Image},
-						    {class, "logo"}], ""};
-					 true ->
-					     []
-				     end,
-				     {'div',
-				      [{h3, 
-					[{a, [{href, ui_link:link_user_feed(UserName, Slug)}], Title}]},
-				       if
-					   is_binary(Homepage),
-					   size(Homepage) > 0 ->
-					       {p, [{class, "homepage"}],
-						[render_link(Homepage)]};
-					   true ->
-					       []
-				       end
-				      ]}
-				    ]}
-				  ]};
-			     _ ->
-				 ""
-			 end
+       lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
+			 io:format("Details: ~p ~p ~p~n", [Title, Homepage, Image]),
+			 {article,
+
+			  [{'div',
+			    [if
+				 is_binary(Image),
+				 size(Image) > 0 ->
+				     {img, [{src, Image},
+					    {class, "logo"}], ""};
+				 true ->
+				     []
+			     end,
+			     {'div',
+			      [{h3, 
+				[{a, [{href, ui_link:link_user_feed(UserName, Slug)}], Title}]},
+			       if
+				   is_binary(Homepage),
+				   size(Homepage) > 0 ->
+				       {p, [{class, "homepage"}],
+					[render_link(Homepage)]};
+				   true ->
+				       []
+			       end
+			      ]}
+			    ]}
+			  ]}
 		 end, UserFeeds)
       ],
       [{h2, "Recent Episodes"} |
@@ -293,8 +287,9 @@ render_user(UserName) ->
 				homepage = ItemHomepage,
 				payment = ItemPayment,
 				downloads = ItemDownloads}) ->
-			 {value, {Slug, FeedURL}} =
+			 {value, Feed} =
 			     lists:keysearch(FeedURL, 2, UserFeeds),
+			 Slug = element(1, Feed),
 			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
 			 {article, [{class, "item"}],
 			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
