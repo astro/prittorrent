@@ -253,7 +253,6 @@ render_user(UserName) ->
 		throw({http, 404})
 	end,
     UserFeeds = model_users:get_feeds(UserName),
-    %% TODO: slug map
     {ok, UserDownloads} =
 	model_enclosures:user_downloads(UserName),
 
@@ -306,12 +305,8 @@ render_user(UserName) ->
 				homepage = ItemHomepage,
 				payment = ItemPayment,
 				downloads = ItemDownloads}) ->
-			 Slug = lists:foldl(
-				  fun({Slug, Feed}, _) when Feed == FeedURL ->
-					  Slug;
-				     (_, Slug) ->
-					  Slug
-				  end, <<"">>, UserFeeds),
+			 {value, {Slug, FeedURL}} =
+			     lists:keysearch(FeedURL, 2, UserFeeds),
 			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
 			 {article, [{class, "item"}],
 			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
