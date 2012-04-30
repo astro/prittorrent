@@ -36,14 +36,13 @@ item_torrents(Feed, Item) ->
     Torrents.
 
 user_downloads(UserName) ->
-    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName]).
+    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName], 23).
 
 feed_downloads(Feed) ->
-    io:format("feed_downloads ~p~n", [Feed]),
-    query_downloads("\"feed\"=$1", [Feed]).
+    query_downloads("\"feed\"=$1", [Feed], 100).
 
-query_downloads(Cond, Params) ->
-    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY \"published\" DESC LIMIT 20", Params) of
+query_downloads(Cond, Params, Limit) ->
+    case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY \"published\" DESC LIMIT " ++ integer_to_list(Limit), Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		[#download{feed = Feed,
