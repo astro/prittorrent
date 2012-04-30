@@ -1,7 +1,7 @@
 -module(model_enclosures).
 
 -export([to_hash/0, set_torrent/3, item_torrents/2,
-	 feed_downloads/1]).
+	 user_downloads/1, feed_downloads/1]).
 
 -include("../include/model.hrl").
 
@@ -35,9 +35,12 @@ item_torrents(Feed, Item) ->
 	?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1 AND \"item\"=$2 ORDER BY \"url\"", [Feed, Item]),
     Torrents.
 
+user_downloads(UserName) ->
+    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName]).
+
 feed_downloads(Feed) ->
     io:format("feed_downloads ~p~n", [Feed]),
-    query_downloads("feed=$1", [Feed]).
+    query_downloads("\"feed\"=$1", [Feed]).
 
 query_downloads(Cond, Params) ->
     case ?Q("SELECT \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\" FROM downloads_cache WHERE " ++ Cond ++ " ORDER BY \"published\" DESC", Params) of

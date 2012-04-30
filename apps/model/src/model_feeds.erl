@@ -112,6 +112,7 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 			 {ok, _, ToDeleteRows} =
 			     Q("SELECT \"url\" FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2",
 			       [FeedURL, Item#feed_item.id]),
+			 %% Hrm, ToDelete is not worth the sets overhead 99.9% of the time
 			 ToDelete =
 			     lists:foldl(
 			       fun(Enclosure, ToDelete) ->

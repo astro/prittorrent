@@ -253,6 +253,9 @@ render_user(UserName) ->
 		throw({http, 404})
 	end,
     UserFeeds = model_users:get_feeds(UserName),
+    %% TODO: slug map
+    {ok, UserDownloads} =
+	model_enclosures:user_downloads(UserName),
 
     page_2column(
       {header, [{class, "user"}],
@@ -301,24 +304,20 @@ render_user(UserName) ->
 				title = ItemTitle,
 				image = ItemImage,
 				homepage = ItemHomepage,
-				payment = ItemPayment}) ->
+				payment = ItemPayment,
+				downloads = ItemDownloads}) ->
 			 Slug = lists:foldl(
 				  fun({Slug, Feed}, _) when Feed == FeedURL ->
 					  Slug;
 				     (_, Slug) ->
 					  Slug
-				  end, <<"*">>, UserFeeds),
+				  end, <<"">>, UserFeeds),
 			 ItemLink = ui_link:link_item(UserName, Slug, ItemId),
-			 case model_enclosures:item_torrents(FeedURL, ItemId) of
-			     [] ->
-				 [];
-			     Torrents ->
-				 {article, [{class, "item"}],
-				  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
-				   lists:map(fun render_enclosure/1, Torrents)
-				  ]}
-			 end
-		 end, model_feeds:user_items(UserName))
+			 {article, [{class, "item"}],
+			  [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
+			   lists:map(fun render_enclosure/1, ItemDownloads)
+			  ]}
+		 end, UserDownloads)
       ]
      ).
 
