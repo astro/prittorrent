@@ -15,8 +15,7 @@ to_hash() ->
 	  when is_binary(URL),
 	       size(URL) > 0 ->
 	    {ok, URL};
-	R ->
-	    io:format("to_hash -> ~p~n", [R]),
+	{ok, _, [{null}]} ->
 	    nothing
     end.
 
