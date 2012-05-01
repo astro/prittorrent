@@ -35,9 +35,10 @@ start(_StartType, _StartArgs) ->
 	    false ->
 		%% Development
 		{{0, 0, 0, 0, 0, 0, 0, 0}, 8080};
-	    IPS ->
+	    IP1 ->
 		%% Production
-		{inet_parse:address(IPS), 80}
+		{ok, IP2} = inet_parse:address(IP1),
+		{IP2, 80}
 	end,
 
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
