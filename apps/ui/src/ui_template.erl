@@ -100,7 +100,14 @@ render_meta(Heading, Title, Image, Homepage) ->
     ]}.
 
 
-render_item(ItemLink, Title, Image, Homepage, Payment) ->
+render_item(Opts, #feed_item{user = User,
+			     slug = Slug,
+			     id = ItemId,
+			     title = Title,
+			     image = Image,
+			     homepage = Homepage,
+			     payment = Payment}) ->
+    ItemLink = ui_link:link_item(User, Slug, ItemId),
     {'div',
      [if
 	  is_binary(Image),
@@ -110,58 +117,74 @@ render_item(ItemLink, Title, Image, Homepage, Payment) ->
 	  true ->
 	      []
       end,
-      {'div', [{class, <<"flattr">>}],
-       [
-	case Payment of
-	    %% Transform an autosubmit link to Flattr button
-	    <<"https://flattr.com/submit/auto?",
-	      Payment1/binary>> ->
+      case lists:member(flattr, Opts) of
+	  true ->
+	      {'div', [{class, <<"flattr">>}],
+	       [
+		case Payment of
+		    %% Transform an autosubmit link to Flattr button
+		    <<"https://flattr.com/submit/auto?",
+		      Payment1/binary>> ->
+			{a, [{class, <<"FlattrButton">>},
+			     {href, Payment}
+			     | [case K of
+				    <<"user_id">> ->
+					{"data-flattr-uid", V};
+				    _ ->
+					{"data-flattr-" ++ K, V}
+				end
+				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
+					       Payment1, fun cowboy_http:urldecode/1)
+			       ]],
+			 <<"Support the podcaster">>};
+		    _ when is_binary(Payment),
+			   size(Payment) > 0 ->
+			{a, [{href, Payment}],
+			 <<"Support the podcaster">>};
+		    _ ->
+			[]
+		end,
+		{br, []},
 		{a, [{class, <<"FlattrButton">>},
-		     {href, Payment}
-		     | [case K of
-			    <<"user_id">> ->
-				{"data-flattr-uid", V};
-			    _ ->
-				{"data-flattr-" ++ K, V}
-			end
-			|| {K, V} <- cowboy_http:x_www_form_urlencoded(
-				       Payment1, fun cowboy_http:urldecode/1)
-		       ]],
-		 <<"Support the podcaster">>};
-	    _ when is_binary(Payment),
-		   size(Payment) > 0 ->
-		{a, [{href, Payment}],
-		 <<"Support the podcaster">>};
-	    _ ->
-		[]
-	end,
-	{br, []},
-	{a, [{class, <<"FlattrButton">>},
-	     {href, <<"https://flattr.com/profile/Astro">>},
-	     {'data-flattr-url', <<(ui_link:base())/binary,
-				   ItemLink/binary>>},
-	     {'data-flattr-uid', <<"Astro">>},
-	     {'data-flattr-title', <<Title/binary, " on Bitlove">>},
-	     {'data-flattr-description', <<"Torrentification & Seeding">>},
-	     {'data-flattr-category', <<"rest">>},
-	     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
-	    ],
-	 <<"Support Bitlove">>}
-       ]},
+		     {href, <<"https://flattr.com/profile/Astro">>},
+		     {'data-flattr-url', <<(ui_link:base())/binary,
+					   ItemLink/binary>>},
+		     {'data-flattr-uid', <<"Astro">>},
+		     {'data-flattr-title', <<Title/binary, " on Bitlove">>},
+		     {'data-flattr-description', <<"Torrentification & Seeding">>},
+		     {'data-flattr-category', <<"rest">>},
+		     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
+		    ],
+		 <<"Support Bitlove">>}
+	       ]};
+	  false ->
+	      []
+      end,
       {'div',
        [{h3,
-	 {a, [{href, ItemLink}], Title}
-	},
-	if
-	    is_binary(Homepage),
-	    size(Homepage) > 0 ->
+	 [{a, [{href, ItemLink}], Title},
+	  case lists:member(publisher, Opts) of
+	      true ->
+		  {span, [{class, "publisher"}],
+		   [<<" by ">>,
+		    {a, [{href, ui_link:link_user(User)}],
+		     User}
+		   ]};
+	      false ->
+		  []
+	  end
+	 ]},
+	case lists:member(homepage, Opts) of
+	    true
+	      when is_binary(Homepage),
+		   size(Homepage) > 0 ->
 		{p, [{class, "homepage"}],
 		 render_link(Homepage)};
-	    true ->
+	    _ ->
 		[]
 	end
-      ]}
-    ]}.
+       ]}
+     ]}.
 
 render_enclosure(#download{name = Name,
 			   info_hash = InfoHash,
@@ -189,19 +212,11 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
        ]}
      ]}.
 
-render_downloads(Downloads) ->
+render_downloads(Opts, Downloads) ->
     lists:map(
-      fun(#feed_item{user = User,
-		     slug = Slug,
-		     id = ItemId,
-		     title = ItemTitle,
-		     image = ItemImage,
-		     homepage = ItemHomepage,
-		     payment = ItemPayment,
-		     downloads = ItemDownloads}) ->
-	      ItemLink = ui_link:link_item(User, Slug, ItemId),
+      fun(#feed_item{downloads = ItemDownloads} = Item) ->
 	      {article, [{class, "item"}],
-	       [render_item(ItemLink, ItemTitle, ItemImage, ItemHomepage, ItemPayment) |
+	       [render_item(Opts, Item) |
 		lists:map(fun render_enclosure/1, ItemDownloads)
 	       ]}
       end, Downloads).
@@ -245,11 +260,11 @@ render_index() ->
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       render_downloads(RecentDownloads)],
+       render_downloads([publisher], RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
-       render_downloads(PopularDownloads)]
+       render_downloads([publisher], PopularDownloads)]
      ).
 
 %% Feeds, Recent Episodes
@@ -300,7 +315,7 @@ render_user(UserName) ->
 		 end, UserFeeds)
       ],
       [{h2, "Recent Torrents"} |
-       render_downloads(UserDownloads)
+       render_downloads([flattr], UserDownloads)
       ]
      ).
 
@@ -340,7 +355,7 @@ render_user_feed(UserName, Slug) ->
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
-       render_downloads(FeedDownloads)
+       render_downloads([flattr, homepage], FeedDownloads)
       ]).
 
 export_feed(UserName, Slug) ->
