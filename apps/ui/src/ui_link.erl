@@ -17,14 +17,14 @@ base() ->
 
 
 link_user(UserName) ->
-    <<"/~", UserName/binary>>.
+    <<"/", UserName/binary>>.
 
 link_user_feed(UserName, Slug) ->
-    <<"/~", UserName/binary,
+    <<"/", UserName/binary,
       "/", Slug/binary>>.
 
 link_user_feed_xml(UserName, Slug) ->
-    <<"/~", UserName/binary,
+    <<"/", UserName/binary,
       "/", Slug/binary,
       "/feed">>.
 
@@ -32,7 +32,7 @@ link_user_feed_xml(UserName, Slug) ->
 %% FIXME: Use cowboy_http:urlencode(Id) when the fragments start
 %% causing problems.
 link_item(UserName, Slug, Id) ->
-    <<"/~", UserName/binary,
+    <<"/", UserName/binary,
       "/", Slug/binary,
       "#", Id/binary>>.
     

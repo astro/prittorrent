@@ -36,15 +36,15 @@ html_ok(Body) ->
 handle_request('GET', []) ->
     html_ok(ui_template:render_index());
 
-handle_request('GET', [<<"~", UserName/binary>>]) ->
+handle_request('GET', [<<UserName/binary>>]) ->
     html_ok(ui_template:render_user(UserName));
 
-handle_request('GET', [<<"~", UserName/binary>>, <<Slug/binary>>]) ->
+handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>]) ->
     %% All hashed episodes
     html_ok(ui_template:render_user_feed(UserName, Slug));
 
 %% TODO: support not modified
-handle_request('GET', [<<"~", UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
+handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
     {ok, Type, Body} = ui_template:export_feed(UserName, Slug),
     Headers =
 	[{<<"Content-Type">>, case Type of
