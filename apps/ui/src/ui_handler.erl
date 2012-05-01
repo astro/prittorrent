@@ -33,6 +33,20 @@ terminate(_Req, _State) ->
 html_ok(Body) ->
     {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], Body}.
 
+%% TODO: 'HEAD' too
+handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
+    InfoHash = hex_to_binary(InfoHashHex),
+    case model_torrents:get_torrent(InfoHash) of
+	{ok, Name, Torrent} ->
+	    Headers =
+		[{<<"Content-Type">>, <<"application/x-bittorrent">>},
+		 {<<"Content-Disposition">>,
+		  <<"attachment; filename=", Name/binary, ".torrent">>}],
+	    {ok, 200, Headers, Torrent};
+	{error, not_found} ->
+	    throw({http, 404})
+    end;
+
 handle_request('GET', []) ->
     html_ok(ui_template:render_index());
 
@@ -52,20 +66,6 @@ handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
 				  _ -> <<"application/rss+xml">>
 			      end}],
     {ok, 200, Headers, Body};
-
-%% TODO: 'HEAD' too
-handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
-    InfoHash = hex_to_binary(InfoHashHex),
-    case model_torrents:get_torrent(InfoHash) of
-	{ok, Name, Torrent} ->
-	    Headers =
-		[{<<"Content-Type">>, <<"application/x-bittorrent">>},
-		 {<<"Content-Disposition">>,
-		  <<"attachment; filename=", Name/binary, ".torrent">>}],
-	    {ok, 200, Headers, Torrent};
-	{error, not_found} ->
-	    throw({http, 404})
-    end;
 
 handle_request(_Method, _Path) ->
     throw({http, 404}).
