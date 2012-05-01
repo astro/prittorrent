@@ -9,10 +9,19 @@
 		data_length,
 		piece_length,
 		has,
+		request_queue = queue:new(),
 		storage
 	       }).
+-record(request, {offset,
+		  length,
+		  cb}).
+
 %% For code reload:
 -export([loop/1]).
+
+%% Wait for subsequent chunks of a piece to be requested so they can
+%% be merged into bigger HTTP requests.
+-define(PIECE_DELAY, 50).
 
 %% For testing:
 -export([make_bitfield/2, make_empty_bitfield/2]).
@@ -196,9 +205,26 @@ handle_message(<<?BITFIELD, Bits/binary>>, State) ->
     end;
 
 handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
+	       #state{request_queue = RequestQueue1}) ->
+    %% Add
+    RequestQueue2 =
+	queue:in(
+	  #request{offset = Piece * PieceLength + Offset,
+		   length = Length,
+		   cb = fun(Data) ->
+			end},
+	  RequestQueue1),
+    
+    %% Arm timer
+
+    {ok, #state{request_queue = RequestQueue2}};
+
 	       #state{socket = Socket,
 		      piece_length = PieceLength,
 		      storage = Storage} = State) ->
+
+    
+
     %%io:format("Request ~p+~p-~p~n", [Piece, Offset, Length]),
 
     PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
@@ -271,3 +297,6 @@ is_bitfield_seeder(Bitfield, Piece, Pieces) ->
 	    %% Peer doesn't have piece, terminate
 	    false
     end.
+
+
+send_chunk(
