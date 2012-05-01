@@ -66,7 +66,7 @@ handle1(Req, Host, Method, Path) ->
     {Event, _} = cowboy_http_req:qs_val(<<"event">>, Req),
     {Compact, _} = cowboy_http_req:qs_val(<<"compact">>, Req),
     %% TODO: numwant w/ checks
-    %%io:format("Tracker request: ~p ~p ~p ~p ~p ~p ~p ~p~n", [InfoHash, Host, Port, PeerId, Event, Uploaded, Downloaded, Left]),
+    io:format("Tracker request: info_hash=~p~n\thost=~p port=~p peer_id=~p~n\tevent=~p uploaded=~p downloaded=~p left=~p~n", [InfoHash, Host, Port, PeerId, Event, Uploaded, Downloaded, Left]),
 
     handle2(Method, Path, InfoHash,
 	    host_to_binary(Host), binary_to_integer_or(Port, undefined), PeerId,
@@ -88,12 +88,13 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
     {ok, MySeeders} = application:get_env(ui, seeders),
     {ok, TrackerPeers} = model_tracker:get_peers(InfoHash, PeerId, IsSeeder),
     Peers =
-	case IsSeeder of
-	    false ->
-		[{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
-		 || {PeerHost, PeerPort} <- MySeeders];
+	if
+	    IsSeeder ->
+		[];
 	    true ->
-		[]
+		io:format("Prepending MySeeders=~p~n", [MySeeders]),
+		[{peer_id:generate(), host_to_binary(PeerHost), PeerPort}
+		 || {PeerHost, PeerPort} <- MySeeders]
 	end ++ TrackerPeers,
     %% scrape info:
     %% We return the numbers without the client added for the first time.
@@ -105,6 +106,10 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 	Host, Port, PeerId,
 	Event, Uploaded, Downloaded, Left),
 
+    io:format("Tracker returns ~B+~B peers, leechers=~B seeders=~B~n",
+	      [length(TrackerPeers),
+	       if IsSeeder -> 0; true -> length(MySeeders) end,
+	       Leechers, Seeders]),
     {PeersValue, Peers6Value} =
 	case Compact of
 	    <<"1">> ->
