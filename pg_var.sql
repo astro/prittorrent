@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION enclosure_to_hash(
           INTO next_url
           FROM enclosures_to_hash
          LIMIT 1;
-        IF next_url IS NULL THEN
+        IF next_url IS NULL OR next_url.url IS NULL THEN
             RETURN;
         END IF;
 
