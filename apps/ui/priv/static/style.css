@@ -59,7 +59,7 @@ header.site .slogan {
   max-width: 40em;
 }
 .col1, .col2 {
-  max-width: 49%;
+  max-width: 48%;
   min-width: 32em;
 }
 .col1 {
@@ -144,6 +144,9 @@ article {
   border-top: 1px solid #eee;
   margin: 0;
   padding: 0.5em 0 0.3em;
+}
+article.feed {
+  max-width: 20em;
 }
 .col2 article {
   margin-right: 0;
