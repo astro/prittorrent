@@ -13,4 +13,5 @@ start(_StartType, _StartArgs) ->
     seeder_sup:start_link().
 
 stop(_State) ->
+    seeder_listener:stop(),
     ok.

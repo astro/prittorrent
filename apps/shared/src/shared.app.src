@@ -1,0 +1,9 @@
+%% A few shared modules to depend on
+{application, shared,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                 ]}
+ ]}.

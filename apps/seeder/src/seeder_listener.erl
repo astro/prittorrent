@@ -1,6 +1,6 @@
 -module(seeder_listener).
 
--export([start_link/0]).
+-export([start_link/0, stop/0]).
 
 start_link() ->
     cowboy:start_listener(
@@ -13,3 +13,6 @@ start_link() ->
 			    ],
       seeder_wire_protocol, []
      ).
+
+stop() ->
+    cowboy:stop_listener(seeder_wire_listener).

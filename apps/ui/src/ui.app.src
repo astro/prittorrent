@@ -8,7 +8,8 @@
                   stdlib,
 		  cowboy,
 		  model,
-		  exmpp
+		  exmpp,
+		  shared
                  ]},
   {mod, { ui_app, []}},
   {env, [{seeders,

@@ -8,7 +8,8 @@
                   stdlib,
                   lhttpc,
                   exmpp,
-		  model
+		  model,
+		  shared
                  ]},
   {mod, { feeds_app, []}},
   {env, []}

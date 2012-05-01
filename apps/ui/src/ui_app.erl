@@ -3,7 +3,7 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, prep_stop/1, stop/1]).
+-export([start/2, stop/1]).
 
 %% ===================================================================
 %% Application callbacks
@@ -48,8 +48,5 @@ start(_StartType, _StartArgs) ->
       cowboy_http_protocol, [{dispatch, Dispatch}]
      ).
 
-prep_stop(_State) ->
-    cowboy:stop_listener(ui_http_listener).
-
 stop(_State) ->
-    ok.
+    cowboy:stop_listener(ui_http_listener).
