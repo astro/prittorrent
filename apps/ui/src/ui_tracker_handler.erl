@@ -122,7 +122,7 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 		   {<<"port">>, PeerPort}]
 		  || {PeerPeerId, <<PeerHost:16/binary>>, PeerPort} <- Peers]}
 	end,
-    {ok, PeersValue, Peers6Value, Leechers, Seeders + length(MySeeders)};
+    {ok, PeersValue, Peers6Value, Leechers, Seeders + 1};
 
 handle2(_Method, _Path, _InfoHash,
 	_Host, _Port, _PeerId,

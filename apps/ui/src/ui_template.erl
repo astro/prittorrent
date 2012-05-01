@@ -169,8 +169,7 @@ render_enclosure(#download{name = Name,
 			   seeders = Seeders,
 			   leechers = Leechers,
 			   downspeed = Downspeed}) ->
-    {ok, MySeeders} = application:get_env(ui, seeders),
-    render_torrent(Name, InfoHash, Size, Seeders + length(MySeeders), Leechers, Downspeed).
+    render_torrent(Name, InfoHash, Size, Seeders + 1, Leechers, Downspeed).
 
 
 render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
