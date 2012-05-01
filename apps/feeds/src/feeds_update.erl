@@ -54,7 +54,7 @@ update1(URL, Etag1, LastModified1) ->
 			feeds_parse:pick_items(RootEl),
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
-		    FeedXml1 = exmpp_xml:document_to_binary(FeedEl),
+		    FeedXml1 = exmpp_xml:node_to_binary(FeedEl, [], [{'http://www.w3.org/XML/1998/namespace', "xml"}]),
 		    ChannelEl = feeds_parse:get_channel(FeedEl),
 		    Title1 = feeds_parse:title(ChannelEl),
 		    Homepage1 = feeds_parse:link(ChannelEl),
