@@ -149,7 +149,7 @@ feed_details(FeedURL) ->
 
 
 user_feeds_details(UserName) ->
-    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", feeds.\"title\", feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1",
+    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", feeds.\"title\", feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 ORDER BY LOWER(feeds.\"title\") ASC",
 	    [UserName]) of
 	{ok, _, Rows} ->
 	    {ok, Rows};
