@@ -60,6 +60,9 @@ CREATE OR REPLACE FUNCTION enclosure_to_hash(
           INTO next_url
           FROM enclosures_to_hash
          LIMIT 1;
+        IF next_url IS NULL THEN
+            RETURN;
+        END IF;
 
         IF next_url.last_update IS NULL THEN
             next_url.last_update = '1970-01-01 00:00:00';
