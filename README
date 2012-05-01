@@ -1,9 +1,24 @@
 PritTorrent
 ===========
 
+Build
+-----
+
+```
+rebar get-deps compile generate
+```
+
 
 TODO
 ----
+
+* rel -name & -setcookie
+* delete app
+* close wire
+
+* UI: Detect browser language
+* ATOM feeds
+* Zlib
 
 * Feed summaries: X items, Y torrents
 * Recent Torrents excluding Popular Torrents
@@ -13,7 +28,6 @@ TODO
 * URL longener?
 
 * HTTP UA output
-* UI: Detect browser language
 * Stats:
 *! Collecting
 ** Counters: ULed Swarm+PritTorrent, DLed, Completes
