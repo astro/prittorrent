@@ -8,7 +8,7 @@ start_link() ->
 		 {0, 0, 0, 0, 0, 0, 0, 0};
 	     IP1 ->
 		 {ok, IP2} = inet_parse:address(IP1),
-		 IP2, 80
+		 IP2
 	 end,
     cowboy:start_listener(
       seeder_wire_listener, 32,
