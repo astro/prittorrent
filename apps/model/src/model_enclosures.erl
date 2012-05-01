@@ -41,7 +41,7 @@ recent_downloads() ->
 		    "\"published\" DESC", 42).
 
 popular_downloads() ->
-    query_downloads("(\"seeders\" + \"leechers\") > 1", [],
+    query_downloads("(\"seeders\" + \"leechers\") > 0", [],
 		    "(\"seeders\" + \"leechers\") DESC", 23).
 
 user_downloads(UserName) ->
