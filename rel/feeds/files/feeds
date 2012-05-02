@@ -43,13 +43,6 @@ else
     CONFIG_PATH="$RUNNER_ETC_DIR/app.config"
 fi
 
-# Extract the target node name from node.args
-NAME_ARG=`egrep '^-s?name' $VMARGS_PATH`
-if [ -z "$NAME_ARG" ]; then
-    echo "vm.args needs to have either -name or -sname parameter."
-    exit 1
-fi
-
 # Add ERTS bin dir to our path
 ERTS_PATH=$RUNNER_BASE_DIR/erts-$ERTS_VSN/bin
 
