@@ -50,13 +50,6 @@ if [ -z "$NAME_ARG" ]; then
     exit 1
 fi
 
-# Extract the target cookie
-COOKIE_ARG=`grep '^-setcookie' $VMARGS_PATH`
-if [ -z "$COOKIE_ARG" ]; then
-    echo "vm.args needs to have a -setcookie parameter."
-    exit 1
-fi
-
 # Add ERTS bin dir to our path
 ERTS_PATH=$RUNNER_BASE_DIR/erts-$ERTS_VSN/bin
 
