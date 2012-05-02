@@ -380,10 +380,12 @@ send_piece(Piece, Offset, Socket, Data) ->
 
     %% Length prefixed header
     PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
-    ok =
-	gen_tcp:send(Socket,
-		     <<(size(PieceHeader) + size(Data)):32/big,
-		       PieceHeader/binary, Data/binary>>),
+    case gen_tcp:send(Socket,
+		      <<(size(PieceHeader) + size(Data)):32/big,
+			PieceHeader/binary, Data/binary>>) of
+	ok -> ok;
+	{error, closed} -> throw(tcp_closed)
+    end,
 
     %% Continue receiving & sending in len-prefixed packets
     inet:setopts(Socket, ?PACKET_OPTS).
