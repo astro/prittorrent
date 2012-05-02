@@ -214,8 +214,10 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
 
 render_downloads(Opts, Downloads) ->
     lists:map(
-      fun(#feed_item{downloads = ItemDownloads} = Item) ->
-	      {article, [{class, "item"}],
+      fun(#feed_item{id = ItemId,
+		     downloads = ItemDownloads} = Item) ->
+	      {article, [{class, "item"},
+			 {id, ItemId}],
 	       [render_item(Opts, Item) |
 		lists:map(fun render_enclosure/1, ItemDownloads)
 	       ]}
