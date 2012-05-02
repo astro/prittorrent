@@ -8,7 +8,9 @@ init() ->
 	add_app_paths("apps"),
     R2 =
 	start_deps(),
-    R1 ++ R2.
+    R3 =
+	lists:map(fun application:start/1, [shared, model]),
+    R1 ++ R2 ++ R3.
 
 add_app_paths(BaseDir) ->
     {ok, Filenames} = file:list_dir(BaseDir),
