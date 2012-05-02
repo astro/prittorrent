@@ -335,10 +335,22 @@ request_pieces(#state{request_queue = RequestQueue1,
 	    io:format("Processing ~B requests with ~B bytes~n", [length(Requests), Length]),
 
 	    %% Transfer request by request
-	    {RemainRequests, _} =
-		storage:fold(Storage,
-			     Offset, Length,
-			     fun serve_requests/2, {Requests, <<>>}),
+	    RemainRequests =
+		case (catch storage:fold(Storage,
+					 Offset, Length,
+					 fun collect_data/2, {Requests, <<>>})) of
+		    {'EXIT', Reason} ->
+			io:format("storage request failed: ~p~n", [Reason]),
+			%% Throwing an error means nothing has been processed
+			Requests;
+		    tcp_closed ->
+			%% Re-throw to terminate gen_server. The HTTP
+			%% client hopefully doesn't receive too much
+			%% excess data...
+			throw(tcp_closed);
+		    {RemainRequests1, _} ->
+			RemainRequests1
+		end,
 
 	    %% Retry later
 	    RequestQueue4 =
@@ -366,23 +378,35 @@ collect_contiguous_requests(Offset, RequestQueue1) ->
     end.
 
 %% Used with storage:fold/5
-serve_requests({[], Data1}, Data2) ->
-    {[], <<Data1/binary, Data2/binary>>};
-serve_requests({[#request{length = Length} | Requests], Data1}, Data)
-  when Length =< 0 ->
-    serve_requests({Requests, Data1}, Data);
-serve_requests({[#request{length = ReqLength,
-			  cb = ReqCb} = Req | Requests], Data1}, Data) ->
-    Data2 = <<Data1/binary, Data/binary>>,
+collect_data({[], Data}, <<>>) ->
+    {[], Data};
+
+collect_data({Requests, Data}, <<>>) ->
+    %% No input left, look for next hunk to serve
+    serve_requests(Requests, Data);
+     
+collect_data({Requests, <<>>}, Data) ->
+    %% Fast path
+    collect_data({Requests, Data}, <<>>);
+
+collect_data({Requests, Data1}, Data2) ->
+    %% Merge input
+    collect_data({Requests, <<Data1/binary, Data2/binary>>}, <<>>).
+
+serve_requests([], Data) ->
+    {[], Data};
+
+serve_requests([#request{length = ReqLength,
+			 cb = ReqCb} | Requests2] = Requests1, Data1) ->
     if
-	ReqLength =< size(Data2) ->
+	size(Data1) >= ReqLength ->
 	    %% Next request satisfied
-	    {Data3, Data4} = split_binary(Data2, ReqLength),
-	    ReqCb(Data3),
-	    serve_requests({Requests, <<>>}, Data4);
+	    {Piece, Data2} = split_binary(Data1, ReqLength),
+	    ReqCb(Piece),
+	    serve_requests(Requests2, Data2);
 	true ->
 	    %% Not enough data
-	    {[Req | Requests], Data2}
+	    {Requests1, Data1}
     end.
 
 

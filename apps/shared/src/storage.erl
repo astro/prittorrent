@@ -5,6 +5,7 @@
 -export([make/1, size/1, fold/5, resource_size/1]).
 
 -define(TIMEOUT, 30 * 1000).
+-define(PART_SIZE, 32768).
 
 -record(storage, {urls :: [{binary(), integer()}]}).
 
@@ -104,7 +105,7 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 	   %% process before waiting for an acknowledgement
 	   {window_size, 4},
 	   %% specifies the size the body parts should come in
-	   {part_size, 8192}
+	   {part_size, ?PART_SIZE}
 	  ]}
 	],
     case lhttpc:request(URL, get, ReqHeaders,
@@ -145,11 +146,14 @@ fold_resource1(undefined, _, AccIn) ->
     %% No body, no fold.
     AccIn;
 fold_resource1(Pid, F, AccIn) ->
-    case lhttpc:get_body_part(Pid, ?TIMEOUT) of
+    case (catch lhttpc:get_body_part(Pid, ?TIMEOUT)) of
 	{ok, Data} when is_binary(Data) ->
 	    AccOut = F(AccIn, Data),
 	    fold_resource1(Pid, F, AccOut);
 	{ok, {http_eob, _Trailers}} ->
+	    AccIn;
+	{'EXIT', Reason} ->
+	    io:format("storage fold interrupted: ~p~n", [Reason]),
 	    AccIn
     end.
 
