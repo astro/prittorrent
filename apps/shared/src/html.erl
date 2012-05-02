@@ -2,6 +2,8 @@
 
 -export([to_iolist/1]).
 
+to_iolist(S) when is_atom(S) ->
+    to_iolist(atom_to_list(S));
 
 to_iolist(S) when is_list(S) ->
     %% Recurse

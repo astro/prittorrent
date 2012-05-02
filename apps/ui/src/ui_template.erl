@@ -403,6 +403,8 @@ export_feed(UserName, Slug) ->
 %%
 
 
+size_to_human(Size) when not is_integer(Size) ->
+    "∞";
 size_to_human(Size)
   when Size < 1024 ->
     io_lib:format("~B B", [Size]);
