@@ -20,7 +20,7 @@ TODO
 * UI: Detect browser language
 * Zlib for UI
 
-* Feed summaries: X items, Y torrentsdev
+* Feed summaries: X items, Y torrents
 * Recent Torrents excluding Popular Torrents
 * render_item styles
 * Flattr button on img hover
