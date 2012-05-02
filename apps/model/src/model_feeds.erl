@@ -1,8 +1,8 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/8,
-	 feed_details/1, user_feeds_details/1, feed_items/1, user_items/1,
-	 feed_data/1]).
+	 feed_details/1, user_feeds_details/1,
+	 feed_data/2]).
 
 -include("../include/model.hrl").
 
@@ -157,49 +157,23 @@ user_feeds_details(UserName) ->
 	    {error, Reason}
     end.
 
-
--spec(feed_items/1 :: (string()) -> [#feed_item{}]).
-%% FIXME: Xml not always needed
-feed_items(FeedURL) ->
-    {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"image\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\"=$1 ORDER BY \"published\" DESC", [FeedURL]),
-    [#feed_item{feed = Feed,
-		id = Id,
-		title = Title,
-		published = Published,
-		image = Image,
-		homepage = Homepage,
-		payment = Payment}
-     || {Feed, Id, Title, Image, Homepage, Published, Payment} <- Records].
-
-user_items(UserName) ->
-    {ok, _, Records} =
-	?Q("SELECT \"feed\", \"id\", \"title\", \"image\", \"homepage\", \"published\", \"payment\" FROM torrentified_items WHERE \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1) ORDER BY \"published\" DESC LIMIT 30", [UserName]),
-    [#feed_item{feed = Feed,
-		id = Id,
-		title = Title,
-		published = Published,
-		image = Image,
-		homepage = Homepage,
-		payment = Payment}
-     || {Feed, Id, Title, Image, Homepage, Published, Payment} <- Records].
-
--spec(feed_data/1 :: (binary())
+-spec(feed_data/2 :: (binary(), integer())
 		     -> ({ok, binary(), [binary()], [{binary(), binary()}]} |
 			 {error, not_found})).
-feed_data(FeedURL) ->
+feed_data(FeedURL, MaxEnclosures) ->
     case ?Q("SELECT \"xml\" FROM feeds WHERE \"url\"=$1",
 	    [FeedURL]) of
 	{ok, _, [{FeedXml}]} ->
-	    {ok, _, ItemResults} =
-		?Q("SELECT \"xml\" FROM torrentified_items WHERE \"feed\"=$1 LIMIT 10",
-		   [FeedURL]),
+	    {ok, _, Rows} =
+		?Q("SELECT downloads_cache.\"enclosure\", downloads_cache.\"info_hash\", feed_items.\"xml\" FROM downloads_cache LEFT JOIN feed_items ON (downloads_cache.\"feed\"=feed_items.\"feed\" and downloads_cache.\"item\"=feed_items.\"id\") WHERE downloads_cache.\"feed\"=$1 ORDER BY downloads_cache.\"published\" DESC LIMIT $2",
+		   [FeedURL, MaxEnclosures]),
+	    EnclosureMap =
+		[{URL, InfoHash}
+		 || {URL, InfoHash, _Xml} <- Rows],
 	    ItemXmls =
-		[ItemXml
-		 || {ItemXml} <- ItemResults],
-	    {ok, _, EnclosureMap} =
-		?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1",
-		   [FeedURL]),
+		list_drop_subsequent_dups(
+		  [Xml
+		   || {_URL, _InfoHash, Xml} <- Rows]),
 	    {ok, FeedXml, ItemXmls, EnclosureMap};
 	{ok, _, []} ->
 	    {error, not_found}
@@ -214,3 +188,10 @@ enforce_string(S) when is_binary(S);
     S;
 enforce_string(_) ->
     <<"">>.
+
+list_drop_subsequent_dups([]) ->
+    [];
+list_drop_subsequent_dups([E, E | L]) ->
+    list_drop_subsequent_dups([E | L]);
+list_drop_subsequent_dups([E | L]) ->
+    [E | list_drop_subsequent_dups(L)].

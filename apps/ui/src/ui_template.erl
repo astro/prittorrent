@@ -362,7 +362,7 @@ export_feed(UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of
 	{ok, FeedURL} ->
 	    {ok, FeedXml, ItemXmls, EnclosuresMap} =
-		model_feeds:feed_data(FeedURL),
+		model_feeds:feed_data(FeedURL, 23),
 	    [FeedEl | _] =
 		exmpp_xml:parse_document(FeedXml,
 					 [{names_as_atom, false},

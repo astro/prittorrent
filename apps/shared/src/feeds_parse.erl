@@ -327,14 +327,19 @@ replace_item_enclosures(ItemEl, MapFun) ->
 		      exmpp_xml:get_attribute_as_binary(
 			LinkEl, <<"href">>, undefined)} of
 		    {<<"enclosure">>, Href} ->
-			NewHref = MapFun(Href),
-			LinkEl2 =
-			    exmpp_xml:set_attribute(
-			      LinkEl , <<"href">>, NewHref),
-			LinkEl3 =
-			    exmpp_xml:set_attribute(
-			      LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
-			LinkEl3;
+			case MapFun(Href) of
+			    NewHref when is_binary (NewHref) ->
+				LinkEl2 =
+				    exmpp_xml:set_attribute(
+				      LinkEl , <<"href">>, NewHref),
+				LinkEl3 =
+				    exmpp_xml:set_attribute(
+				      LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
+				LinkEl3;
+			    _ ->
+				%% Drop <link/>
+				exmpp_xml:cdata(<<"">>)
+			end;
 		    {_, _} ->
 			LinkEl
 		end;

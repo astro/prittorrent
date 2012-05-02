@@ -78,35 +78,8 @@ CREATE OR REPLACE FUNCTION enclosure_to_hash(
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE VIEW torrentified AS
-       SELECT enclosures.url,
-       	      enclosure_torrents.last_update AS last_update,
-	      enclosure_torrents.error AS error,
-	      enclosure_torrents.info_hash
-	       FROM enclosures LEFT JOIN enclosure_torrents
-	       ON (enclosures.url=enclosure_torrents.url)
-	        WHERE LENGTH(enclosure_torrents.info_hash)=20 ORDER BY last_update;
-
-
-
-
-
 CREATE VIEW item_torrents AS
        SELECT enclosures.feed, enclosures.item, enclosures.url,
        	      enclosure_torrents.info_hash
        FROM enclosure_torrents LEFT JOIN enclosures ON (enclosures.url=enclosure_torrents.url)
        WHERE LENGTH(info_hash)=20;
-
-CREATE OR REPLACE VIEW torrentified_items AS
-       SELECT *
-       FROM feed_items
-       WHERE EXISTS
-       	     (SELECT "url"
-	      FROM enclosures
-	      WHERE "feed"=feed_items.feed
- 	        AND "item"=feed_items.id
-		AND EXISTS (SELECT "url"
-		    	    FROM torrentified
-			    WHERE "url"=enclosures.url
-			   )
-	     ) ORDER BY "published" DESC;

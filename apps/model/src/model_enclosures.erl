@@ -1,6 +1,6 @@
 -module(model_enclosures).
 
--export([to_hash/0, set_torrent/3, item_torrents/2,
+-export([to_hash/0, set_torrent/3,
 	 recent_downloads/0, popular_downloads/0,
 	 user_downloads/1, feed_downloads/1]).
 
@@ -29,12 +29,6 @@ set_torrent(URL, Error, InfoHash) ->
 		       Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP, \"info_hash\"=$2, \"error\"=$3 WHERE \"url\"=$1", [URL, InfoHash, Error])
 	       end
        end).
-
-%% TODO: rm, expensive view
-item_torrents(Feed, Item) ->
-    {ok, _, Torrents} =
-	?Q("SELECT \"url\", \"info_hash\" FROM item_torrents WHERE \"feed\"=$1 AND \"item\"=$2 ORDER BY \"url\"", [Feed, Item]),
-    Torrents.
 
 recent_downloads() ->
     query_downloads("TRUE", [],
