@@ -5,6 +5,10 @@
 
 -include_lib("model/include/model.hrl").
 
+-record(render_opts, {publisher = false,
+		      homepage = false,
+		      flattr = false}).
+
 html(HeadEls, Contents) ->
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
@@ -117,8 +121,8 @@ render_item(Opts, #feed_item{user = User,
 	  true ->
 	      []
       end,
-      case lists:member(flattr, Opts) of
-	  true ->
+      if
+	  Opts#render_opts.flattr ->
 	      {'div', [{class, <<"flattr">>}],
 	       [
 		case Payment of
@@ -157,30 +161,30 @@ render_item(Opts, #feed_item{user = User,
 		    ],
 		 <<"Support Bitlove">>}
 	       ]};
-	  false ->
+	  true ->
 	      []
       end,
       {'div',
        [{h3,
 	 [{a, [{href, ItemLink}], Title},
-	  case lists:member(publisher, Opts) of
-	      true ->
+	  if
+	      Opts#render_opts.publisher ->
 		  {span, [{class, "publisher"}],
 		   [<<" by ">>,
 		    {a, [{href, ui_link:link_user(User)}],
 		     User}
 		   ]};
-	      false ->
+	      true ->
 		  []
 	  end
 	 ]},
-	case lists:member(homepage, Opts) of
-	    true
-	      when is_binary(Homepage),
-		   size(Homepage) > 0 ->
+	if
+	    Opts#render_opts.homepage,
+	    is_binary(Homepage),
+	    size(Homepage) > 0 ->
 		{p, [{class, "homepage"}],
 		 render_link(Homepage)};
-	    _ ->
+	    true ->
 		[]
 	end
        ]}
@@ -262,11 +266,13 @@ render_index() ->
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       render_downloads([publisher], RecentDownloads)],
+       render_downloads(#render_opts{publisher = true},
+			RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
-       render_downloads([publisher], PopularDownloads)]
+       render_downloads(#render_opts{publisher = true},
+			PopularDownloads)]
      ).
 
 %% Feeds, Recent Episodes
@@ -317,7 +323,7 @@ render_user(UserName) ->
 		 end, UserFeeds)
       ],
       [{h2, "Recent Torrents"} |
-       render_downloads([flattr], UserDownloads)
+       render_downloads(#render_opts{flattr = true}, UserDownloads)
       ]
      ).
 
@@ -357,7 +363,8 @@ render_user_feed(UserName, Slug) ->
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
-       render_downloads([flattr, homepage], FeedDownloads)
+       render_downloads(#render_opts{flattr = true, homepage = true},
+			FeedDownloads)
       ]).
 
 export_feed(UserName, Slug) ->
