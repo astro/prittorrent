@@ -1,6 +1,6 @@
 -module(hasher_worker).
 
--export([start_link/0, loop/0]).
+-export([start_link/0, loop/0, hash/1]).
 
 start_link() ->
     {ok, spawn_link(fun loop/0)}.
