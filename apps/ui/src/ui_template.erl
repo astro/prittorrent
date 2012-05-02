@@ -21,7 +21,7 @@ html(HeadEls, Contents) ->
 	 {body,
 	  [{header, [{class, "site"}],
 	    [{h1, 
-	      {a, [{href, "/"}], "Bitlove"}
+	      {a, [{href, <<"/">>}], <<"Bitlove">>}
 	     },
 	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
 	    ]} | Contents] ++

@@ -27,20 +27,33 @@ header.site {
   font-weight: bold;
 }
 header.site h1 {
+  min-height: 35px;
+  line-height: 1em;
   font-size: 300%;
   margin: 0;
   padding: 0 0;
-  line-height: 1em;
 }
 header.site h1 a {
   background: url('logo.svg') no-repeat center left;
-  min-height: 35px;
   padding-left: 42px;
   display: inline-block;
 }
 header.site h1 a:hover {
   color: #444;
   text-decoration: none;
+}
+header.site h1:after {
+  content: 'Alpha';
+  background-color: #073;
+  padding: 0 2px;
+  margin-left: 4px;
+  color: white;
+  font-size: 30%;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-style: normal;
+  border-radius: 2px;
+  vertical-align: 40%;
 }
 header.site .slogan {
   margin: 0;
