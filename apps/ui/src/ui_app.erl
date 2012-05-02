@@ -25,6 +25,7 @@ start(_StartType, _StartArgs) ->
 			      ]}
 		 ]},
 		{[<<"announce">>], ui_tracker_handler, []},
+		{[<<"scrape">>], ui_tracker_handler, []},
 		{'_', ui_handler, []}
 	       ]
 	 }

@@ -25,13 +25,8 @@ handle(Req, _State) ->
 
     Reply =
 	case (catch handle1(Req, Host, Method, Path)) of
-	    {ok, Peers, Peers6, Leechers, Seeders} ->
-		[{<<"interval">>, tracker_interval()},
-		 {<<"peers">>, Peers},
-		 {<<"peers6">>, Peers6},
-		 {<<"incomplete">>, Leechers},
-		 {<<"complete">>, Seeders}
-		];
+	    {ok, Dict} ->
+		Dict;
 	    {'EXIT', Reason} ->
 		io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
 		[{<<"failure">>, <<"Internal server error">>}]
@@ -128,7 +123,28 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 		   {<<"port">>, PeerPort}]
 		  || {PeerPeerId, <<PeerHost:16/binary>>, PeerPort} <- Peers]}
 	end,
-    {ok, PeersValue, Peers6Value, Leechers, Seeders + 1};
+
+    {ok, [{<<"interval">>, tracker_interval()},
+	  {<<"peers">>, PeersValue},
+	  {<<"peers6">>, Peers6Value},
+	  {<<"incomplete">>, Leechers},
+	  {<<"complete">>, Seeders + 1}
+	 ]};
+
+handle2('GET', [<<"scrape">>], <<InfoHash:20/binary>>,
+	_Host, _port, _PeerId,
+	_Event, _Uploaded, _Downloaded, _Left, _Compact) ->
+    {ok, Leechers, Seeders, _Downspeed, _Downloaded} =
+	model_tracker:scrape(InfoHash),
+    %% TODO: implement `downloaded' & `name'
+    {ok, [{<<"files">>,
+	   [{InfoHash, [{<<"interval">>, tracker_interval()},
+			{<<"incomplete">>, Leechers},
+			{<<"complete">>, Seeders + 1},
+			{<<"downloaded">>, 23000000}
+		       ]}
+	   ]}
+	 ]};
 
 handle2(_Method, _Path, _InfoHash,
 	_Host, _Port, _PeerId,
