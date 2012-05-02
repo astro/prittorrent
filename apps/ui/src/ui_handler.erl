@@ -33,6 +33,9 @@ terminate(_Req, _State) ->
 html_ok(Body) ->
     {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], Body}.
 
+handle_request('GET', [<<"favicon.", _:3/binary>>]) ->
+    {ok, 301, [{<<"Location">>, <<"/static/favicon.png">>}], <<>>};
+
 %% TODO: 'HEAD' too
 handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
     InfoHash = hex_to_binary(InfoHashHex),
