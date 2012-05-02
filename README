@@ -12,31 +12,38 @@ rebar get-deps compile generate
 TODO
 ----
 
+* Thanks Button
+* Collect Some Stats
+* Seeder: iolist folding, larger http chunk size
+* Seeder robustness
+
 * Test Miro
 * ATOM feeds
 * UI: Detect browser language
 * Zlib for UI
 
-* Feed summaries: X items, Y torrents
+* Feed summaries: X items, Y torrentsdev
 * Recent Torrents excluding Popular Torrents
 * render_item styles
 * Flattr button on img hover
 * <atom:link rel="self>
 
+* Storage app
+** Avoid dup connections to 1 HTTP server (IP)
+** Fair queueing
+** Caching
 * URL longener?
 
 * HTTP UA output
 * Stats:
-*! Collecting
 ** Counters: ULed Swarm+PritTorrent, DLed, Completes
 ** Gauges: Seeders, Leechers
 ** DLs by country/client?
 * Publisher mode
 * rebar release
 
-Future Tech features:
+Future features:
 
-* Storage: local caching
 * UI: Wholesome OPML export
 * Super-seeding
 * Slot queues
