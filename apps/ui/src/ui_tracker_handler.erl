@@ -8,7 +8,8 @@ tracker_interval() ->
 
 init({tcp, http}, Req, _Opts) ->
     {MS, S, SS} = erlang:now(),
-    random:seed(MS, S, SS),
+    PS = lists:sum(pid_to_list(self())),
+    random:seed(MS + PS, S, SS),
 
     {ok, Req, undefined_state}.
 

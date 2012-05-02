@@ -3,7 +3,15 @@
 -export([start_link/0, loop/0, hash/1]).
 
 start_link() ->
-    {ok, spawn_link(fun loop/0)}.
+    {ok, spawn_link(fun init/0)}.
+
+
+init() ->
+    {MS, S, SS} = erlang:now(),
+    PS = lists:sum(pid_to_list(self())),
+    random:seed(MS + PS, S, SS),
+
+    loop().
 
 loop() ->
     case model_enclosures:to_hash() of
