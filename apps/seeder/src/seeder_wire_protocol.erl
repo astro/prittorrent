@@ -238,7 +238,6 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 	       #state{piece_length = PieceLength,
 		      request_queue = RequestQueue1,
 		      socket = Socket} = State) ->
-    io:format("Request ~B ~B ~B~n", [Piece,Offset,Length]),
     %% Add
     RequestQueue2 =
 	queue:in(
@@ -344,7 +343,6 @@ serve_requests({[#request{length = Length} | Requests], Data1}, Data)
     serve_requests({Requests, Data1}, Data);
 serve_requests({[#request{length = ReqLength,
 			  cb = ReqCb} = Req | Requests], Data1}, Data) ->
-    io:format("serve_requests ~B ~B ~B~n", [length(Requests) + 1, size(Data1), size(Data)]),
     Data2 = <<Data1/binary, Data/binary>>,
     if
 	ReqLength =< size(Data2) ->
@@ -359,7 +357,6 @@ serve_requests({[#request{length = ReqLength,
 
 
 send_piece(Piece, Offset, Socket, Data) ->
-    io:format("send_piece ~B ~B ~p ~B~n", [Piece,Offset,Socket,size(Data)]),
     %% We switch to manual packetization for streaming
     inet:setopts(Socket, [{packet, raw},
 			  {active, false}]),
@@ -370,7 +367,6 @@ send_piece(Piece, Offset, Socket, Data) ->
 	gen_tcp:send(Socket,
 		     <<(size(PieceHeader) + size(Data)):32/big,
 		       PieceHeader/binary, Data/binary>>),
-    io:format("Sent ~B piece~n", [size(Data)]),
 
     %% Continue receiving & sending in len-prefixed packets
     inet:setopts(Socket, ?PACKET_OPTS).
