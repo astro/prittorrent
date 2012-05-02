@@ -12,18 +12,16 @@ rebar get-deps compile generate
 TODO
 ----
 
-* rel -name & -setcookie
-* delete app
-* close wire
-
-* UI: Detect browser language
+* Test Miro
 * ATOM feeds
-* Zlib
+* UI: Detect browser language
+* Zlib for UI
 
 * Feed summaries: X items, Y torrents
 * Recent Torrents excluding Popular Torrents
 * render_item styles
 * Flattr button on img hover
+* <atom:link rel="self>
 
 * URL longener?
 
