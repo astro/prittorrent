@@ -1,9 +1,22 @@
 -module(seeder_wire_protocol).
--behaviour(cowboy_protocol).
 
-%% API.
+-behaviour(cowboy_protocol).
+-behaviour(gen_server).
+
+%% API
 -export([start_link/4]).
 
+-define(HANDSHAKE_TIMEOUT, 10000). 
+%% Wait for subsequent chunks of a piece to be requested so they can
+%% be merged into bigger HTTP requests.
+-define(PIECE_DELAY, 50).
+
+%% For testing:
+-export([make_bitfield/2, make_empty_bitfield/2]).
+
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+	 terminate/2, code_change/3]).
 
 -record(state, {socket,
 		data_length,
@@ -16,17 +29,6 @@
 -record(request, {offset,
 		  length,
 		  cb}).
-
-%% For code reload:
--export([loop/1]).
-
-%% Wait for subsequent chunks of a piece to be requested so they can
-%% be merged into bigger HTTP requests.
--define(PIECE_DELAY, 50).
-
-%% For testing:
--export([make_bitfield/2, make_empty_bitfield/2]).
-
 
 -define(PACKET_OPTS, [{packet, 4},
 		      {packet_size, 8192}]).
@@ -41,36 +43,21 @@
 -define(PIECE, 7).
 -define(CANCEL, 8).
 
-%%
-%% API
-%%
-
+%%%===================================================================
+%%% API
+%%%===================================================================
+%% Don't block when invoking start_link/4, it waits for peer handshake
+%% to finish.
 -spec start_link(pid(), inet:socket(), module(), any()) -> {ok, pid()}.
 start_link(_ListenerPid, Socket, _Transport, Opts) ->
-    Pid = spawn_link(
-	   fun() ->
-		   case (catch init(Socket, Opts)) of
-		       {'EXIT', Reason} ->
-			   io:format("Wire: ~p exit: ~p~n", [Socket, Reason]);
-		       R ->
-			   io:format("Wire terminated with ~p~n", [R]),
-			   ok
-		   end,
+    gen_server:start_link(?MODULE, [Socket, Opts],
+			  [{timeout, ?HANDSHAKE_TIMEOUT}]).
 
-		   catch gen_tcp:close(Socket)
+%%%===================================================================
+%%% gen_server callbacks
+%%%===================================================================
 
-		   %% TODO: cleanup stats
-	   end),
-    {ok, Pid}.
-
-			    
-
-
-%%
-%% Initialization
-%%
-
-init(Socket, _Opts) ->
+init([Socket, _Opts]) ->
     {ok, Peername} = inet:peername(Socket),
     io:format("Peer ~p just connected~n", [Peername]),
 
@@ -95,17 +82,68 @@ init(Socket, _Opts) ->
 
     %% All following messages will be length-prefixed.
     %% Also, we don't download at all:
-    inet:setopts(Socket, ?PACKET_OPTS),
+    inet:setopts(Socket, [{active, once} | ?PACKET_OPTS]),
 
     %% Initial Bitfield
     send_bitfield(Socket, Length, PieceLength),
     Has = make_empty_bitfield(Length, PieceLength),
 
-    ?MODULE:loop(#state{socket = Socket,
-			data_length = Length,
-			piece_length = PieceLength,
-			has = Has,
-			storage = Storage}).
+    {ok, #state{socket = Socket,
+		data_length = Length,
+		piece_length = PieceLength,
+		has = Has,
+		storage = Storage}}.
+
+handle_call(_Request, _From, State) ->
+    Reply = ok,
+    {reply, Reply, State}.
+
+handle_cast(_Msg, State) ->
+    {noreply, State}.
+
+handle_info({tcp, Socket, Data}, 
+	    #state{socket = Socket} = State1) ->
+    case handle_message(Data, State1) of
+	{ok, State2} ->
+	    inet:setopts(Socket, [{active, once}]),
+	    {noreply, State2};
+	{close, State2} ->
+	    {stop, normal, State2}
+    end;
+
+handle_info({tcp_closed, Socket},
+	    #state{socket = Socket} = State) ->
+    {stop, normal, State};
+
+handle_info(request_pieces,
+	    #state{} = State1) ->
+    State2 = State1#state{timer_armed = false},
+    case (catch request_pieces(State2)) of
+	{ok, State3} ->
+	    State4 = may_arm_timer(State3),
+	    {noreply, State4};
+	tcp_closed ->
+	    {stop, normal, State2};
+	{'EXIT', Reason} ->
+	    io:format("Wire cannot request_pieces: ~p~n", [Reason]),
+	    {stop, Reason, State2}
+    end;
+
+handle_info(_Info, State) ->
+    io:format("Unhandled wire info in ~p: ~p~n", [self(), _Info]),
+    {noreply, State}.
+
+
+terminate(_Reason, #state{socket = Socket}) ->
+    catch gen_tcp:close(Socket),
+    ok.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
 
 lookup_torrent(InfoHash) ->
     case model_torrents:get_torrent(InfoHash) of
@@ -133,9 +171,9 @@ lookup_torrent(InfoHash) ->
 	    {error, Reason}
     end.
 
+
 send_message(Sock, Msg) ->
     ok = gen_tcp:send(Sock, Msg).
-
 
 send_bitfield(Sock, Length, PieceLength) ->
     Map = make_bitfield(Length, PieceLength),
@@ -164,30 +202,6 @@ make_empty_bitfield(Length, PieceLength) ->
     << <<0>>
        || _ <- lists:seq(0, Length - 1, PieceLength * 8) >>.
 
-%%
-%% Main loop
-%%
-
-loop(#state{socket = Socket} = State1) ->
-    ok = inet:setopts(Socket, [{active, once}]),
-
-    receive
-	{tcp, Socket, Data} ->
-	    case handle_message(Data, State1) of
-		{ok, State2} ->
-		    ?MODULE:loop(State2);
-		{close, _State2} ->
-		    close
-	    end;
-	{tcp_closed, Socket} ->
-	    tcp_closed;
-	request_pieces ->
-	    State2 = State1#state{timer_armed = false},
-	    {ok, State3} = request_pieces(State2),
-	    State4 = may_arm_timer(State3),
-	    ?MODULE:loop(State4)
-    end.
-
 may_arm_timer(#state{timer_armed = false,
 		     request_queue = RequestQueue} = State) ->
     case queue:is_empty(RequestQueue) of
@@ -199,7 +213,6 @@ may_arm_timer(#state{timer_armed = false,
     end;
 may_arm_timer(State) ->
     State.
-
 
 %%
 %% Incoming message
@@ -375,8 +388,8 @@ serve_requests({[#request{length = ReqLength,
 
 send_piece(Piece, Offset, Socket, Data) ->
     %% We switch to manual packetization for streaming
-    inet:setopts(Socket, [{packet, raw},
-			  {active, false}]),
+    inet:setopts(Socket, [{active, false},
+			  {packet, raw}]),
 
     %% Length prefixed header
     PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
@@ -388,4 +401,4 @@ send_piece(Piece, Offset, Socket, Data) ->
     end,
 
     %% Continue receiving & sending in len-prefixed packets
-    inet:setopts(Socket, ?PACKET_OPTS).
+    inet:setopts(Socket, [{active, once} | ?PACKET_OPTS]).
