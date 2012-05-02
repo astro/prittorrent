@@ -10,6 +10,7 @@
 		piece_length,
 		has,
 		request_queue = queue:new(),
+		timer_armed = false,
 		storage
 	       }).
 -record(request, {offset,
@@ -51,9 +52,13 @@ start_link(_ListenerPid, Socket, _Transport, Opts) ->
 		   case (catch init(Socket, Opts)) of
 		       {'EXIT', Reason} ->
 			   io:format("Wire: ~p exit: ~p~n", [Socket, Reason]);
-		       _ ->
+		       R ->
+			   io:format("Wire terminated with ~p~n", [R]),
 			   ok
-		   end
+		   end,
+
+		   catch gen_tcp:close(Socket)
+
 		   %% TODO: cleanup stats
 	   end),
     {ok, Pid}.
@@ -62,7 +67,7 @@ start_link(_ListenerPid, Socket, _Transport, Opts) ->
 
 
 %%
-%% FSM
+%% Initialization
 %%
 
 init(Socket, _Opts) ->
@@ -159,6 +164,10 @@ make_empty_bitfield(Length, PieceLength) ->
     << <<0>>
        || _ <- lists:seq(0, Length - 1, PieceLength * 8) >>.
 
+%%
+%% Main loop
+%%
+
 loop(#state{socket = Socket} = State1) ->
     ok = inet:setopts(Socket, [{active, once}]),
 
@@ -171,9 +180,30 @@ loop(#state{socket = Socket} = State1) ->
 		    close
 	    end;
 	{tcp_closed, Socket} ->
-	    tcp_closed
+	    tcp_closed;
+	request_pieces ->
+	    State2 = State1#state{timer_armed = false},
+	    {ok, State3} = request_pieces(State2),
+	    State4 = may_arm_timer(State3),
+	    ?MODULE:loop(State4)
     end.
 
+may_arm_timer(#state{timer_armed = false,
+		     request_queue = RequestQueue} = State) ->
+    case queue:is_empty(RequestQueue) of
+	false ->
+	    timer:send_after(?PIECE_DELAY, request_pieces),
+	    State#state{timer_armed = true};
+	true ->
+	    State
+    end;
+may_arm_timer(State) ->
+    State.
+
+
+%%
+%% Incoming message
+%%
 
 handle_message(<<>>, State) ->
     %% Keep-alive
@@ -205,63 +235,22 @@ handle_message(<<?BITFIELD, Bits/binary>>, State) ->
     end;
 
 handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
-	       #state{request_queue = RequestQueue1}) ->
+	       #state{piece_length = PieceLength,
+		      request_queue = RequestQueue1,
+		      socket = Socket} = State) ->
+    io:format("Request ~B ~B ~B~n", [Piece,Offset,Length]),
     %% Add
     RequestQueue2 =
 	queue:in(
 	  #request{offset = Piece * PieceLength + Offset,
 		   length = Length,
 		   cb = fun(Data) ->
+				send_piece(Piece, Offset,
+					   Socket, Data)
 			end},
 	  RequestQueue1),
-    
-    %% Arm timer
 
-    {ok, #state{request_queue = RequestQueue2}};
-
-	       #state{socket = Socket,
-		      piece_length = PieceLength,
-		      storage = Storage} = State) ->
-
-    
-
-    %%io:format("Request ~p+~p-~p~n", [Piece, Offset, Length]),
-
-    PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
-    %% We switch to manual packetization for streaming
-    inet:setopts(Socket, [{packet, raw}]),
-    ok =
-	gen_tcp:send(Socket,
-		     <<(Length + size(PieceHeader)):32/big,
-		       PieceHeader/binary>>),
-    Transmitted =
-	storage:fold(
-	  Storage,
-	  Piece * PieceLength + Offset, Length,
-	  fun(Transmitted, Data) ->
-		  ok = gen_tcp:send(Socket, Data),
-		  Transmitted + size(Data)
-	  end, 0),
-    %%io:format("Piece ~p+~p-~p~n", [Piece, Offset, Transmitted]),
-    if
-	Transmitted < Length ->
-	    io:format("Short read from HTTP: ~p~n", [Storage]),
-	    %% Make them fail hash check. Perhaps they will retry
-	    %% later when the file is up on HTTP completely.
-	    ok =
-		gen_tcp:send(<< <<0>>
-				|| _ <- lists:seq(1, Length - Transmitted)
-			     >>);
-	Transmitted > Length ->
-	    %% Yikes
-	    io:format("Excess data from HTTP: ~p~n", [Storage]);
-	true ->
-	    alright
-    end,
-
-    %% Continue receiving & sending in len-prefixed packets
-    inet:setopts(Socket, ?PACKET_OPTS),
-    {ok, State};
+    {ok, may_arm_timer(State#state{request_queue = RequestQueue2})};
 
 handle_message(Data, State) ->
     io:format("Unhandled wire message: ~p~n", [Data]),
@@ -298,5 +287,90 @@ is_bitfield_seeder(Bitfield, Piece, Pieces) ->
 	    false
     end.
 
+%%
+%% Data Transfer
+%%
 
-send_chunk(
+
+request_pieces(#state{request_queue = RequestQueue1,
+		      storage = Storage} = State) ->
+    {{value, #request{offset = Offset} = Request}, RequestQueue2} =
+	queue:out(RequestQueue1),
+    {SubsequentRequests, RequestQueue3} =
+	collect_contiguous_requests(Request#request.offset + Request#request.length,
+				    RequestQueue2),
+    Requests = [Request | SubsequentRequests],
+    %% TODO: could be returned by collect_contiguous_requests/2 for
+    %% performance reasons
+    Length = lists:foldl(fun(#request{length = Length1}, Length) ->
+				 Length + Length1
+			 end, 0, Requests),
+    io:format("Processing ~B requests with ~B bytes~n", [length(Requests), Length]),
+    
+    %% Transfer request by request
+    io:format("Storage fold ~B+~B for ~B reqs~n", [Offset,Length,length(Requests)]),
+    {RemainRequests, _} =
+	storage:fold(Storage,
+		     Offset, Length,
+		     fun serve_requests/2, {Requests, <<>>}),
+
+    %% Retry later
+    RequestQueue4 =
+	lists:foldl(fun(RemainRequest, RequestQueue) ->
+			    queue:in(RemainRequest, RequestQueue)
+		    end, RequestQueue3, RemainRequests),
+
+    {ok, may_arm_timer(State#state{request_queue = RequestQueue4})}.
+
+collect_contiguous_requests(Offset, RequestQueue1) ->
+    case queue:peek(RequestQueue1) of
+	{value, #request{offset = Offset1,
+			 length = Length1}}
+	  when Offset == Offset1 ->
+	    {{value, Request}, RequestQueue2} =
+		queue:out(RequestQueue1),
+	    {Requests, RequestQueue3} =
+		collect_contiguous_requests(Offset + Length1, RequestQueue2),
+	    {[Request | Requests], RequestQueue3};
+	_ ->
+	    {[], RequestQueue1}
+    end.
+
+%% Used with storage:fold/5
+serve_requests({[], Data1}, Data2) ->
+    {[], <<Data1/binary, Data2/binary>>};
+serve_requests({[#request{length = Length} | Requests], Data1}, Data)
+  when Length =< 0 ->
+    serve_requests({Requests, Data1}, Data);
+serve_requests({[#request{length = ReqLength,
+			  cb = ReqCb} = Req | Requests], Data1}, Data) ->
+    io:format("serve_requests ~B ~B ~B~n", [length(Requests) + 1, size(Data1), size(Data)]),
+    Data2 = <<Data1/binary, Data/binary>>,
+    if
+	ReqLength =< size(Data2) ->
+	    %% Next request satisfied
+	    {Data3, Data4} = split_binary(Data2, ReqLength),
+	    ReqCb(Data3),
+	    serve_requests({Requests, <<>>}, Data4);
+	true ->
+	    %% Not enough data
+	    {[Req | Requests], Data2}
+    end.
+
+
+send_piece(Piece, Offset, Socket, Data) ->
+    io:format("send_piece ~B ~B ~p ~B~n", [Piece,Offset,Socket,size(Data)]),
+    %% We switch to manual packetization for streaming
+    inet:setopts(Socket, [{packet, raw},
+			  {active, false}]),
+
+    %% Length prefixed header
+    PieceHeader = <<?PIECE, Piece:32/big, Offset:32/big>>,
+    ok =
+	gen_tcp:send(Socket,
+		     <<(size(PieceHeader) + size(Data)):32/big,
+		       PieceHeader/binary, Data/binary>>),
+    io:format("Sent ~B piece~n", [size(Data)]),
+
+    %% Continue receiving & sending in len-prefixed packets
+    inet:setopts(Socket, ?PACKET_OPTS).
