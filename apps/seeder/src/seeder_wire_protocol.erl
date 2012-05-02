@@ -251,6 +251,21 @@ handle_message(<<?REQUEST, Piece:32, Offset:32, Length:32/big>>,
 
     {ok, may_arm_timer(State#state{request_queue = RequestQueue2})};
 
+handle_message(<<?CANCEL, Piece:32, Offset:32, Length:32/big>>,
+	       #state{piece_length = PieceLength,
+		      request_queue = RequestQueue1} = State) ->
+    Offset1 = Piece * PieceLength + Offset,
+    %% Remove from queue (though we could be requesting them already)
+    RequestQueue2 =
+	queue:filter(fun(#request{offset = Offset2,
+				  length = Length1})
+			   when Offset1 == Offset2, Length == Length1 ->
+			     false;
+			(_) ->
+			     true
+		     end, RequestQueue1),
+    {ok, State#state{request_queue = RequestQueue2}};
+
 handle_message(Data, State) ->
     io:format("Unhandled wire message: ~p~n", [Data]),
     {ok, State}.
@@ -293,33 +308,35 @@ is_bitfield_seeder(Bitfield, Piece, Pieces) ->
 
 request_pieces(#state{request_queue = RequestQueue1,
 		      storage = Storage} = State) ->
-    {{value, #request{offset = Offset} = Request}, RequestQueue2} =
-	queue:out(RequestQueue1),
-    {SubsequentRequests, RequestQueue3} =
-	collect_contiguous_requests(Request#request.offset + Request#request.length,
-				    RequestQueue2),
-    Requests = [Request | SubsequentRequests],
-    %% TODO: could be returned by collect_contiguous_requests/2 for
-    %% performance reasons
-    Length = lists:foldl(fun(#request{length = Length1}, Length) ->
-				 Length + Length1
-			 end, 0, Requests),
-    io:format("Processing ~B requests with ~B bytes~n", [length(Requests), Length]),
-    
-    %% Transfer request by request
-    io:format("Storage fold ~B+~B for ~B reqs~n", [Offset,Length,length(Requests)]),
-    {RemainRequests, _} =
-	storage:fold(Storage,
-		     Offset, Length,
-		     fun serve_requests/2, {Requests, <<>>}),
+    case queue:out(RequestQueue1) of
+	{{value, #request{offset = Offset} = Request}, RequestQueue2} ->
+	    {SubsequentRequests, RequestQueue3} =
+		collect_contiguous_requests(Request#request.offset + Request#request.length,
+					    RequestQueue2),
+	    Requests = [Request | SubsequentRequests],
+	    %% TODO: could be returned by collect_contiguous_requests/2 for
+	    %% performance reasons
+	    Length = lists:foldl(fun(#request{length = Length1}, Length) ->
+					 Length + Length1
+				 end, 0, Requests),
+	    io:format("Processing ~B requests with ~B bytes~n", [length(Requests), Length]),
 
-    %% Retry later
-    RequestQueue4 =
-	lists:foldl(fun(RemainRequest, RequestQueue) ->
-			    queue:in(RemainRequest, RequestQueue)
-		    end, RequestQueue3, RemainRequests),
+	    %% Transfer request by request
+	    {RemainRequests, _} =
+		storage:fold(Storage,
+			     Offset, Length,
+			     fun serve_requests/2, {Requests, <<>>}),
 
-    {ok, may_arm_timer(State#state{request_queue = RequestQueue4})}.
+	    %% Retry later
+	    RequestQueue4 =
+		lists:foldl(fun(RemainRequest, RequestQueue) ->
+				    queue:in(RemainRequest, RequestQueue)
+			    end, RequestQueue3, RemainRequests),
+
+	    {ok, may_arm_timer(State#state{request_queue = RequestQueue4})};
+	{empty, RequestQueue1} ->
+	    {ok, State}
+    end.
 
 collect_contiguous_requests(Offset, RequestQueue1) ->
     case queue:peek(RequestQueue1) of
