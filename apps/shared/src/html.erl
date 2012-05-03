@@ -62,22 +62,30 @@ to_iolist({El, Attrs, Children}) ->
 
 escape(Bin) when is_binary(Bin) ->
     escape(binary_to_list(Bin));
-escape(S) ->
-    [case C of
-	 $& -> <<"&amp;">>;
-	 $< -> <<"&lt;">>;
-	 $> -> <<"&gt;">>;
-	 _ -> C
-     end || C <- S].
+escape(L) when is_list(L) ->
+    lists:map(fun escape/1, L);
+escape($&) ->
+    <<"&amp;">>;
+escape($<) ->
+    <<"&lt;">>;
+escape($>) ->
+    <<"&gt;">>;
+escape(C) when is_integer(C) ->
+    C.
 
 escape_attr(Bin) when is_binary(Bin) ->
     escape_attr(binary_to_list(Bin));
-escape_attr(S) ->
-    [case C of
-	 $& -> <<"&amp;">>;
-	 $< -> <<"&lt;">>;
-	 $> -> <<"&gt;">>;
-	 $' -> <<"&apos;">>;
-	 $" -> <<"&quot;">>;
-	 _ -> C
-     end || C <- S].
+escape_attr(L) when is_list(L) ->
+    lists:map(fun escape_attr/1, L);
+escape_attr($&) ->
+    <<"&amp;">>;
+escape_attr($<) ->
+    <<"&lt;">>;
+escape_attr($>) ->
+    <<"&gt;">>;
+escape_attr($') ->
+    <<"&apos;">>;
+escape_attr($") ->
+    <<"&quot;">>;
+escape_attr(C) when is_integer(C) ->
+    C.
