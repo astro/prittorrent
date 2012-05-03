@@ -61,8 +61,8 @@ rm_peer(InfoHash, PeerId, Uploaded, Downloaded) ->
     case ?Q("DELETE FROM tracked WHERE \"info_hash\"=$1 AND \"peer_id\"=$2 RETURNING \"uploaded\", \"downloaded\"",
 	    [InfoHash, PeerId]) of
 	{ok, 1, _, [{OldUploaded, OldDownloaded}]}
-	  when Uploaded > OldDownloaded,
-	       Downloaded > OldDownloaded ->
+	  when Uploaded >= OldDownloaded,
+	       Downloaded >= OldDownloaded ->
 	    model_stats:add_counter(up, InfoHash, Uploaded - OldUploaded),
 	    model_stats:add_counter(down, InfoHash, Downloaded - OldDownloaded);
 	{ok, _, _, _} ->
