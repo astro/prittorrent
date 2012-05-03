@@ -12,11 +12,9 @@ rebar get-deps compile generate
 TODO
 ----
 
-* Thanks Button
-* Collect Some Stats
-
-* Test Miro
+* Stats
 * ATOM feeds
+* Test Miro
 * UI: Detect browser language
 * Zlib for UI
 
@@ -42,6 +40,8 @@ TODO
 
 Future features:
 
+* UDP tracker
+* UTP wire protocol
 * UI: Wholesome OPML export
 * Super-seeding
 * Slot queues
