@@ -46,25 +46,17 @@ html(HeadEls, Contents) ->
 		  ]},
 		 {'div',
 		  [{p, <<"Are you a podcast publisher?">>},
-		   {p, <<"Sign up + add your feeds soon!">>}
+		   {p, <<"Sign up + add your feeds soon!">>},
+		   {p, 
+		    [{a, [{href, <<"mailto:mail@bitlove.org">>}],
+		      <<"Contact us">>},
+		     <<" to become a beta publisher">>
+		    ]}
 		  ]}
 		]},
-	       {script, [{type, <<"text/javascript">>}],
-		[<<"/* ">>,
-		 {'!CDATA', <<" */
-(function() {
-    var s = document.createElement('script');
-    var t = document.getElementsByTagName('script')[0];
-
-    s.type = 'text/javascript';
-    s.async = true;
-    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=1&button=compact';
-
-    t.parentNode.insertBefore(s, t);
- })();
-/* ">>},
-		 <<" */">>]
-	       }]}
+	       {script, [{src, <<"/static/flattrdropdown.js">>},
+			 {type, <<"text/javascript">>}], <<" ">>}
+	      ]}
 	]}
       )].
 
@@ -123,44 +115,58 @@ render_item(Opts, #feed_item{user = User,
       end,
       if
 	  Opts#render_opts.flattr ->
-	      {'div', [{class, <<"flattr">>}],
-	       [
-		case Payment of
-		    %% Transform an autosubmit link to Flattr button
-		    <<"https://flattr.com/submit/auto?",
-		      Payment1/binary>> ->
-			{a, [{class, <<"FlattrButton">>},
-			     {href, Payment}
-			     | [case K of
-				    <<"user_id">> ->
-					{"data-flattr-uid", V};
-				    _ ->
-					{"data-flattr-" ++ K, V}
-				end
-				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
-					       Payment1, fun cowboy_http:urldecode/1)
-			       ]],
-			 <<"Support the podcaster">>};
-		    _ when is_binary(Payment),
-			   size(Payment) > 0 ->
-			{a, [{href, Payment}],
-			 <<"Support the podcaster">>};
-		    _ ->
-			[]
-		end,
-		{br, []},
-		{a, [{class, <<"FlattrButton">>},
-		     {href, <<"https://flattr.com/profile/Astro">>},
-		     {'data-flattr-url', <<(ui_link:base())/binary,
-					   ItemLink/binary>>},
-		     {'data-flattr-uid', <<"Astro">>},
-		     {'data-flattr-title', <<Title/binary, " on Bitlove">>},
-		     {'data-flattr-description', <<"Torrentification & Seeding">>},
-		     {'data-flattr-category', <<"rest">>},
-		     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
-		    ],
-		 <<"Support Bitlove">>}
-	       ]};
+	      PaymentData1 =
+		  if
+		      is_binary(Payment),
+		      size(Payment) > 0 ->
+			  [{dl, [{class, <<"flattr">>}],
+			    [{dt, [<<"Support ">>, User]},
+			     {dd,
+			      case Payment of
+				  %% Transform an autosubmit link to Flattr button
+				  <<"https://flattr.com/submit/auto?",
+				    Payment1/binary>> ->
+				      {a, [{class, <<"FlattrButton">>},
+					   {href, Payment}
+					   | [case K of
+						  <<"user_id">> ->
+						      {"data-flattr-uid", V};
+						  _ ->
+						      {"data-flattr-" ++ binary_to_list(K), V}
+					      end
+					      || {K, V} <- cowboy_http:x_www_form_urlencoded(
+							     Payment1, fun cowboy_http:urldecode/1)
+					     ]],
+				       <<"Support the publisher">>};
+				  _  ->
+				      {a, [{href, Payment}],
+				       <<Payment>>}
+			      end}
+			     ]}];
+		      true ->
+			  []
+		  end,
+	      PaymentData2 =
+		  [{dl, [{class, <<"flattr">>}],
+		    [{dt, <<"Support bitlove.org">>},
+		     {dd,
+		      {a, [{class, <<"FlattrButton">>},
+			   {href, <<"https://flattr.com/profile/Astro">>},
+			   {'data-flattr-url', <<(ui_link:base())/binary,
+						 ItemLink/binary>>},
+			   {'data-flattr-uid', <<"Astro">>},
+			   {'data-flattr-title', <<"Torrent for ", Title/binary, " on Bitlove">>},
+			   {'data-flattr-description', <<"Torrentification & Seeding">>},
+			   {'data-flattr-category', <<"rest">>},
+			   {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
+			  ], <<"on Flattr">>}
+		     }
+		    ]}],
+
+	      {'div', [{class, <<"flattrdropdown">>},
+		       {title, <<"Support the podcaster and Bitlove">>},
+		       {'data-payment', [html:to_iolist(PaymentData1), html:to_iolist(PaymentData2)]}
+		      ], <<"Flattr ▾">>};
 	  true ->
 	      []
       end,
@@ -266,12 +272,12 @@ render_index() ->
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true},
+       render_downloads(#render_opts{publisher = true, flattr = true},
 			RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true},
+       render_downloads(#render_opts{publisher = true, flattr = true},
 			PopularDownloads)]
      ).
 

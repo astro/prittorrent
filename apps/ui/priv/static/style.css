@@ -139,16 +139,59 @@ img.logo {
   max-width: 40px;
   max-height: 40px;
 }
-.flattr {
+.flattrdropdown {
   float: right;
   text-align: right;
+  font-size: 80%;
+  margin-left: 0.2em;
+  padding: 0.08em 0.4em 0.1em;
+  vertical-align: middle;
+  line-height: 1.3em;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 -1px rgba(0, 0, 0, 0.55);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.34);
+  border-bottom-color: rgba(0, 0, 0, 0.55);
+  background-color: #83AC35;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset,0 1.5px rgba(0,0,0,0.155),0 -0.65em rgba(0,0,0,0.15) inset;
+  cursor: default;
+}
+.flattrdropdown:hover {
+  border: 1px solid #333;
+  margin-bottom: 1px;
+  text-shadow: 0 -1px black;
+  background-color: #639C15;
+}
+.flattrdropdown, .flattrdropdown:hover {
+  transition: background-color 0.3s ease-in;
+  -webkit-transition: background-color 0.3s ease-in;
+  -moz-transition: background-color 0.3s ease-in;
+  -ms-transition: background-color 0.3s ease-in;
+  -o-transition: background-color 0.3s ease-in;
+}
+.flattr {
+  clear: left;  /* Below img.logo */
+  color: #666;
+  font-size: 80%;
+  font-weight: bold;
   padding: 0 0.2em;
 }
 .flattr a {
   font-size: 70%;
 }
-.flattr a.FlattrButton {
-  display: none;
+dl.flattr dt, dl.flattr dd {
+  margin: 0 auto;
+  padding: 0;
+  vertical-align: top;
+}
+dl.flattr dt {
+  float: left;
+  width: 48%;
+  text-align: right;
+}
+dl.flattr dd {
+  margin-left: 50%;
 }
 
 article {
