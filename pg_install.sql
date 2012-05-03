@@ -4,3 +4,4 @@ SET default_tablespace = fast;
 \i pg_var.sql
 \i pg_tracker.sql
 \i pg_downloads.sql
+\i pg_stats.sql
