@@ -181,8 +181,15 @@ set_peer(InfoHash,
     %% TODO: count "completed" for stats
     case Event of
 	<<"stopped">> ->
-	    model_tracker:rm_peer(InfoHash, PeerId);
+	    model_tracker:rm_peer(InfoHash, PeerId, Uploaded, Downloaded);
 	_ ->
+	    case Event of
+		<<"completed">> ->
+		    model_stats:add_counter(complete, InfoHash, 1);
+		_ ->
+		    ok
+	    end,
+
 	    model_tracker:set_peer(InfoHash, Host, Port, PeerId,
 				   Uploaded, Downloaded, Left)
     end.

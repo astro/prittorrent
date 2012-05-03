@@ -19,6 +19,7 @@
 	 terminate/2, code_change/3]).
 
 -record(state, {socket,
+		info_hash,
 		data_length,
 		piece_length,
 		has,
@@ -89,6 +90,7 @@ init([Socket, _Opts]) ->
     Has = make_empty_bitfield(Length, PieceLength),
 
     {ok, #state{socket = Socket,
+		info_hash = InfoHash,
 		data_length = Length,
 		piece_length = PieceLength,
 		has = Has,
@@ -320,7 +322,8 @@ is_bitfield_seeder(Bitfield, Piece, Pieces) ->
 
 
 request_pieces(#state{request_queue = RequestQueue1,
-		      storage = Storage} = State) ->
+		      storage = Storage,
+		      info_hash = InfoHash} = State) ->
     case queue:out(RequestQueue1) of
 	{{value, #request{offset = Offset} = Request}, RequestQueue2} ->
 	    {SubsequentRequests, RequestQueue3} =
@@ -351,6 +354,14 @@ request_pieces(#state{request_queue = RequestQueue1,
 		    {RemainRequests1, _} ->
 			RemainRequests1
 		end,
+
+	    %% Calculate stats
+	    NotTransferred =
+		lists:foldl(fun(#request{length = Length1}, NotTransferred) ->
+				    NotTransferred + Length1
+			    end, 0, RemainRequests),
+	    model_stats:add_counter(up_seeder, InfoHash, Length - NotTransferred),
+	    model_stats:add_counter(storage_fail, InfoHash, NotTransferred),
 
 	    %% Retry later
 	    RequestQueue4 =

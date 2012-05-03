@@ -71,13 +71,14 @@ CREATE OR REPLACE FUNCTION set_peer(
     END;
 $$ LANGUAGE plpgsql;
 
--- periodic tracked cleaner
+-- periodic "tracked" cleaner
 CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
     BEGIN
         DELETE FROM tracked WHERE "last_request" <= CURRENT_TIMESTAMP - maxage;
     END;
 $$ LANGUAGE plpgsql;
 
+-- Caches "tracked" sums by info_hash
 CREATE TABLE scraped (
        "info_hash" BYTEA NOT NULL PRIMARY KEY,
        "seeders" INT,
@@ -90,7 +91,6 @@ CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers"));
 CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
     DECLARE
         "t_info_hash" BYTEA := CASE TG_OP WHEN 'DELETE' THEN OLD.info_hash ELSE NEW.info_hash END;
-        "scraped_info_hash" BYTEA;
         "t_seeders" BIGINT;
         "t_leechers" BIGINT;
         "t_upspeed" BIGINT;
@@ -121,11 +121,10 @@ CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
                    "leechers"="t_leechers",
                    "upspeed"="t_upspeed",
                    "downspeed"="t_downspeed"  
-             WHERE scraped.info_hash="t_info_hash"
-             RETURNING scraped.info_hash INTO "scraped_info_hash";
+             WHERE scraped.info_hash="t_info_hash";
 
              -- Row didn't exist? Create:
-             IF "scraped_info_hash" IS NULL THEN
+             IF NOT FOUND THEN
                 INSERT INTO scraped
                             ("info_hash", "seeders", "leechers", "upspeed", "downspeed")
                      VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed);

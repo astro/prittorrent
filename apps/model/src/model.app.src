@@ -28,7 +28,13 @@
 			   {host, "localhost"},
 			   {database, "prittorrent"},
 			   {user, "prittorrent"},
-			   {password, "1234"}]}
+			   {password, "1234"}]},
+	   {pool_stats, [{size, 2},
+			 {max_overflow, 8},
+			 {host, "localhost"},
+			 {database, "prittorrent"},
+			 {user, "prittorrent"},
+			 {password, "1234"}]}
 	  ]}
 	]}
  ]}.

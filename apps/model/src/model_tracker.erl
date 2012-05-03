@@ -1,6 +1,6 @@
 -module(model_tracker).
 
--export([scrape/1, scrape_many/1, get_peers/3, set_peer/7, rm_peer/2]).
+-export([scrape/1, scrape_many/1, get_peers/3, set_peer/7, rm_peer/4]).
 
 -include("../include/model.hrl").
 
@@ -57,10 +57,14 @@ set_peer(InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left) ->
     {ok}.
 
 %% Remove
-rm_peer(InfoHash, PeerId) ->
-    {ok, _} =
-	?Q("DELETE FROM tracked WHERE \"info_hash\"=$1 AND \"peer_id\"=$2",
-	   [InfoHash, PeerId]),
-
-    %% TODO: Report back deltas:
-    {ok}.
+rm_peer(InfoHash, PeerId, Uploaded, Downloaded) ->
+    case ?Q("DELETE FROM tracked WHERE \"info_hash\"=$1 AND \"peer_id\"=$2 RETURNING \"uploaded\", \"downloaded\"",
+	    [InfoHash, PeerId]) of
+	{ok, 1, _, [{OldUploaded, OldDownloaded}]}
+	  when Uploaded > OldDownloaded,
+	       Downloaded > OldDownloaded ->
+	    model_stats:add_counter(up, InfoHash, Uploaded - OldUploaded),
+	    model_stats:add_counter(down, InfoHash, Downloaded - OldDownloaded);
+	{ok, _, _, _} ->
+	    ignore
+    end.
