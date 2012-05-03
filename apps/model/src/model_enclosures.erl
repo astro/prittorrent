@@ -36,7 +36,7 @@ recent_downloads() ->
 
 popular_downloads() ->
     query_downloads("(\"seeders\" + \"leechers\") > 0", [],
-		    "(\"seeders\" + \"leechers\") DESC", 23).
+		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 23).
 
 user_downloads(UserName) ->
     query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
