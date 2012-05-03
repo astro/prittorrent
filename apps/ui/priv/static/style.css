@@ -139,7 +139,11 @@ img.logo {
   max-width: 40px;
   max-height: 40px;
 }
+.flattrdropdown.shown {
+  display: block;
+}
 .flattrdropdown {
+  display: none;
   float: right;
   text-align: right;
   font-size: 80%;

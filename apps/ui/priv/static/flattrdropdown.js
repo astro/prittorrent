@@ -33,6 +33,7 @@ function setupButton(buttonEl) {
 	    buttonEl.textContent = "Flattr ▾";
 	}
     };
+    buttonEl.setAttribute('class', buttonEl.getAttribute('class') + " shown");
 }
 
 var buttonEls = document.getElementsByClassName('flattrdropdown');
