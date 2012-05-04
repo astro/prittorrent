@@ -15,6 +15,8 @@ handle(Req, State) ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, Body, Req),
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
+
+	    count_request(Method, Path),
 	    {ok, Req2, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
@@ -73,6 +75,18 @@ handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
 handle_request(_Method, _Path) ->
     throw({http, 404}).
     
+
+count_request(Method, []) ->
+    count_request(Method, <<"/">>);
+count_request(Method, Path) when is_list(Path) ->
+    count_request(Method,
+		  list_to_binary([[$/, P] || P <- Path]));
+
+count_request(Method, Path) ->
+    model_stats:add_counter(
+      list_to_binary(io_lib:format("~p/http", [node()])),
+      list_to_binary(io_lib:format("~s ~s", [Method, Path])),
+      1).
 
 hex_to_binary(Hex) when is_binary(Hex) ->
     iolist_to_binary(
