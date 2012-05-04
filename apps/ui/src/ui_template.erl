@@ -9,12 +9,12 @@
 		      homepage = false,
 		      flattr = false}).
 
-html(HeadEls, Contents) ->
+html(HtmlTitle, HeadEls, Contents) ->
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
 	[{head,
-	  [{title, "Bitlove"},
+	  [{title, HtmlTitle},
 	   {link, [{rel, "stylesheet"},
 		   {type, "text/css"},
 		   {href, "/static/style.css"}], ""},
@@ -239,7 +239,8 @@ render_downloads(Opts, Downloads) ->
 	       ]}
       end, Downloads).
 
-page_1column(FeedLink, Col) ->
+page_1column(Title,
+	     FeedLink, Col) ->
     HeadEls =
 	if
 	    is_binary(FeedLink),
@@ -254,14 +255,16 @@ page_1column(FeedLink, Col) ->
 	    true ->
 		[]
 	end,
-    html(HeadEls,
+    html(Title,
+	 HeadEls,
 	 [{section, [{class, "col"}], Col}]).
 
-page_2column(Col1, Col2) ->
-    page_2column([], Col1, Col2).
+page_2column(Title,
+	     Col1, Col2) ->
+    page_2column(Title, [], Col1, Col2).
 
-page_2column(Prologue, Col1, Col2) ->
-    html([],
+page_2column(Title, Prologue, Col1, Col2) ->
+    html(Title, [],
 	 [Prologue,
 	  {section, [{class, "col1"}], Col1},
 	  {section, [{class, "col2"}], Col2}
@@ -275,6 +278,7 @@ render_index() ->
 	model_enclosures:popular_downloads(),
     
     page_2column(
+      <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
@@ -302,6 +306,7 @@ render_user(UserName) ->
 	model_enclosures:user_downloads(UserName),
 
     page_2column(
+      [UserName, <<" at Bitlove">>],
       {header, [{class, "user"}],
        render_meta(h2, UserTitle, UserImage, UserHomepage)
       },
@@ -361,6 +366,7 @@ render_user_feed(UserName, Slug) ->
 	model_enclosures:feed_downloads(FeedURL),
     
     page_1column(
+      [FeedTitle, <<" on Bitlove">>],
       ui_link:link_user_feed_xml(UserName, Slug),
       [{header, [{class, "feed"}],
 	render_meta(h2,
