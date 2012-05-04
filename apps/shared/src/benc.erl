@@ -12,8 +12,6 @@ parse_file(Filename) ->
     parse(Data).
 
 parse(Data) ->
-    crypto:start(),
-
     {Value, <<>>} = parse_value(Data),
     Value.
 
@@ -101,6 +99,7 @@ to_binary(<<String/binary>>) ->
      
 
 hash(Dict) ->
+    crypto:start(),
     crypto:sha(to_binary(Dict)).
 
 
