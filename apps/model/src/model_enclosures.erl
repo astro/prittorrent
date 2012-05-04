@@ -47,7 +47,7 @@ feed_downloads(Feed) ->
 		    "\"published\" DESC", 50).
 
 query_downloads(Cond, Params, Order, Limit) ->
-    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY " ++ Order ++ " LIMIT " ++ integer_to_list(Limit), Params) of
+    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY " ++ Order ++ " LIMIT " ++ integer_to_list(Limit), Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		rows_to_downloads(Rows),
@@ -66,6 +66,7 @@ rows_to_downloads(Rows) ->
 	       info_hash = InfoHash,
 	       name = Name,
 	       size = Size,
+	       feed_title = FeedTitle,
 	       title = Title,
 	       published = Published,
 	       homepage = Homepage,
@@ -77,6 +78,7 @@ rows_to_downloads(Rows) ->
 	       downspeed = Downspeed}
      || {User, Slug, Feed, Item, Enclosure,
 	 InfoHash, Name, Size,
+	 FeedTitle,
 	 Title, Published, Homepage, Payment, Image,
 	 Seeders, Leechers, Upspeed, Downspeed
 	} <- Rows].
@@ -89,6 +91,7 @@ group_downloads([Download | Downloads]) ->
 	      slug = Slug,
 	      feed = Feed,
 	      item = Item,
+	      feed_title = FeedTitle,
 	      title = Title,
 	      published = Published,
 	      homepage = Homepage,
@@ -104,6 +107,7 @@ group_downloads([Download | Downloads]) ->
 		   slug = Slug,
 		   feed = Feed,
 		   id = Item,
+		   feed_title = FeedTitle,
 		   title = Title,
 		   published = Published,
 		   homepage = Homepage,

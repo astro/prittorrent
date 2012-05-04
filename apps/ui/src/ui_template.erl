@@ -99,6 +99,7 @@ render_meta(Heading, Title, Image, Homepage) ->
 render_item(Opts, #feed_item{user = User,
 			     slug = Slug,
 			     id = ItemId,
+			     feed_title = FeedTitle,
 			     title = Title,
 			     image = Image,
 			     homepage = Homepage,
@@ -171,18 +172,23 @@ render_item(Opts, #feed_item{user = User,
 	      []
       end,
       {'div',
-       [{h3,
-	 [{a, [{href, ItemLink}], Title},
-	  if
-	      Opts#render_opts.publisher ->
+       [if
+	    Opts#render_opts.publisher ->
+		{h3, [{class, "feed"}],
+		 [{a, [{href, ui_link:link_user_feed(User, Slug)}],
+		   [FeedTitle
+		   ]},
 		  {span, [{class, "publisher"}],
 		   [<<" by ">>,
 		    {a, [{href, ui_link:link_user(User)}],
 		     User}
-		   ]};
-	      true ->
-		  []
-	  end
+		   ]}
+		 ]};
+	    true ->
+		[]
+	end,
+	{h3,
+	 [{a, [{href, ItemLink}], Title}
 	 ]},
 	if
 	    Opts#render_opts.homepage,

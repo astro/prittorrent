@@ -11,6 +11,7 @@
 	  name :: binary(),
 	  size :: integer(),
 	  %% Item data:
+	  feed_title :: (binary() | null),
 	  title :: binary(),
 	  published :: calendar:datetime(),
 	  homepage :: binary(),
@@ -28,6 +29,7 @@
 	  slug :: binary(),
 	  feed :: binary(),
 	  id :: binary(),
+	  feed_title :: (binary() | null),
 	  title :: (binary() | null),
 	  published :: calendar:datetime(),
 	  homepage :: binary(),

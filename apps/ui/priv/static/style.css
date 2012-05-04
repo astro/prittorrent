@@ -117,11 +117,8 @@ h2 .feedicon {
   padding-left: 16px;
   background: url('rss.png') no-repeat center top;
 }
-h2 .publisher {
-  font-size: 50%;
-  font-style: normal;
-  font-family: sans-serif;
-  white-space: nowrap;
+h3.feed {
+  font-size: 100%;
 }
 .meta, section {
   min-height: 70px;

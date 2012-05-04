@@ -17,6 +17,8 @@ CREATE TABLE downloads_cache(
        FOREIGN KEY ("feed", "item", "enclosure")
            REFERENCES "enclosures" ("feed", "item", "url")
            ON DELETE CASCADE,
+       -- Feed data
+       "feed_title" TEXT,
        -- Torrent data:
        "info_hash" BYTEA,
        "name" TEXT,
@@ -42,6 +44,7 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
        t_info_hash BYTEA
 ) RETURNS void AS $$
     DECLARE
+       feed_rec RECORD;
        item_rec RECORD;
        t_name TEXT;
        t_size BIGINT;
@@ -53,6 +56,9 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
                 AND "item"=t_item
                 AND "enclosure"=t_enclosure;
 
+        SELECT * INTO feed_rec
+          FROM feeds
+         WHERE url=t_feed;
         SELECT * INTO item_rec
           FROM feed_items
          WHERE feed=t_feed AND id=t_item;
@@ -63,9 +69,11 @@ CREATE OR REPLACE FUNCTION update_downloads_cache(
         INSERT INTO downloads_cache
                ("user", slug, feed, item, enclosure,
                 info_hash, "name", "size",
+                feed_title,
                 title, published, homepage, payment, image)
                VALUES (t_user, t_slug, t_feed, t_item, t_enclosure,
                        t_info_hash, t_name, t_size,
+                       feed_rec.title,
                        item_rec.title, item_rec.published, item_rec.homepage, item_rec.payment, item_rec.image);
     END;
 $$ LANGUAGE plpgsql;
@@ -133,9 +141,31 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_feed_items(
 $$ LANGUAGE plpgsql;
 
 -- downloads_cache depends on feed_items
-CREATE TRIGGER feed_items_update_downloads_cache AFTER INSERT OR UPDATE ON feed_items
+CREATE TRIGGER feeds_update_downloads_cache AFTER INSERT OR UPDATE ON feeds
        FOR EACH ROW
-       EXECUTE PROCEDURE update_downloads_cache_on_feed_items();
+       EXECUTE PROCEDURE update_downloads_cache_on_feeds();
+
+CREATE OR REPLACE FUNCTION update_downloads_cache_on_feeds(
+) RETURNS trigger AS $$
+    DECLARE
+       enclosure RECORD;
+    BEGIN
+        FOR enclosure IN SELECT *
+                           FROM item_torrents
+                          WHERE feed=NEW.url
+        LOOP
+            PERFORM update_downloads_cache(enclosure.feed, enclosure.item, enclosure.url,
+                                           enclosure.info_hash);
+        END LOOP;
+
+        RETURN NEW;
+    END;
+$$ LANGUAGE plpgsql;
+
+-- downloads_cache depends on feeds
+CREATE TRIGGER feeds_update_downloads_cache AFTER INSERT OR UPDATE ON feeds
+       FOR EACH ROW
+       EXECUTE PROCEDURE update_downloads_cache_on_feeds();
 
 -- Because enclosures get deleted and reinserted, not updated
 CREATE OR REPLACE FUNCTION update_downloads_cache_on_enclosures(
@@ -165,6 +195,7 @@ CREATE OR REPLACE VIEW downloads_scraped AS
        SELECT downloads_cache."user", downloads_cache."slug",
               downloads_cache."feed", downloads_cache."item", downloads_cache."enclosure",
               downloads_cache."info_hash", downloads_cache."name", downloads_cache."size",
+              downloads_cache."feed_title",
               downloads_cache."title", downloads_cache."published", downloads_cache."homepage", downloads_cache."payment", downloads_cache."image",
               COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
               COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed"
