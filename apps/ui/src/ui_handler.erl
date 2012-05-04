@@ -23,8 +23,8 @@ handle(Req, State) ->
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, Path]),
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
 	    {ok, Req2, State};
-	{'EXIT', Reason} ->
-	    io:format("Error handling ~s ~p:~n~p~n", [Method, Path, Reason]),
+	E ->
+	    io:format("Error handling ~s ~p:~n~p~n", [Method, Path, E]),
 	    {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
 	    {ok, Req2, State}
     end.		    
