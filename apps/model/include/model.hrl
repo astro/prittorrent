@@ -21,7 +21,8 @@
 	  seeders :: integer(),
 	  leechers :: integer(),
 	  upspeed :: integer(),
-	  downspeed :: integer()
+	  downspeed :: integer(),
+	  downloaded :: integer()
 	 }).
 
 -record(feed_item, {

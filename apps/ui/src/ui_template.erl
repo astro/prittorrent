@@ -207,11 +207,13 @@ render_enclosure(#download{name = Name,
 			   size = Size,
 			   seeders = Seeders,
 			   leechers = Leechers,
-			   downspeed = Downspeed}) ->
-    render_torrent(Name, InfoHash, Size, Seeders + 1, Leechers, Downspeed).
+			   downspeed = Downspeed,
+			   downloaded = Downloaded}) ->
+    io:format("~s downloaded=~B~n", [Name, Downloaded]),
+    render_torrent(Name, InfoHash, Size, Seeders + 1, Leechers, Downspeed, Downloaded).
 
 
-render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
+render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth, Downloaded) ->
     {ul, [{class, "download"}],
      [{li, [{class, "torrent"}],
        {a, [{href, ui_link:torrent(InfoHash)}], Title}
@@ -219,6 +221,8 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth) ->
       {li, [{class, "stats"}],
        [{span, [{class, "size"},
 		{title, "Download size"}], size_to_human(Size)},
+	{span, [{class, "d"},
+		{title, "Complete downloads"}], integer_to_list(Downloaded)},
 	{span, [{class, "s"},
 		{title, "Seeders"}], integer_to_list(Seeders)},
 	{span, [{class, "l"},

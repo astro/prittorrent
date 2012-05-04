@@ -84,17 +84,20 @@ CREATE TABLE scraped (
        "seeders" INT,
        "leechers" INT,
        "upspeed" BIGINT,
-       "downspeed" BIGINT
+       "downspeed" BIGINT,
+       "downloaded" BIGINT,
 );
 CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers"));
 
-CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION update_scraped(
+    "t_info_hash" BYTEA
+) RETURNS void AS $$
     DECLARE
-        "t_info_hash" BYTEA := CASE TG_OP WHEN 'DELETE' THEN OLD.info_hash ELSE NEW.info_hash END;
         "t_seeders" BIGINT;
         "t_leechers" BIGINT;
         "t_upspeed" BIGINT;
         "t_downspeed" BIGINT;
+        "t_downloaded" BIGINT;
     BEGIN
         -- Collect data
         SELECT SUM(CASE "left"
@@ -114,27 +117,43 @@ CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
         "t_upspeed" := COALESCE("t_upspeed", 0);
         "t_downspeed" := COALESCE("t_downspeed", 0);
 
+        SELECT SUM("value")
+          INTO "t_downloaded"
+          FROM counters
+         WHERE "kind"='complete'
+           AND "info_hash"=t_info_hash;
+
         -- Is worth an entry?
-        IF "t_leechers" > 0 OR "t_seeders" > 0 THEN
+        IF "t_leechers" > 0 OR "t_seeders" > 0 OR "t_downloaded" > 0 THEN
             UPDATE scraped
                SET "seeders"="t_seeders",
                    "leechers"="t_leechers",
                    "upspeed"="t_upspeed",
-                   "downspeed"="t_downspeed"  
+                   "downspeed"="t_downspeed",
+                   "downloaded"="t_downloaded"
              WHERE scraped.info_hash="t_info_hash";
 
              -- Row didn't exist? Create:
              IF NOT FOUND THEN
                 INSERT INTO scraped
-                            ("info_hash", "seeders", "leechers", "upspeed", "downspeed")
-                     VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed);
+                            ("info_hash", "seeders", "leechers", "upspeed", "downspeed", "downloaded")
+                     VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed, "t_downloaded");
              END IF;
         ELSE
             -- Discard on idle
             DELETE FROM scraped
                   WHERE "info_hash"="t_info_hash";
         END IF;
+    END;
+$$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
+    BEGIN
+        IF TG_OP = 'DELETE' THEN
+            PERFORM update_scraped(OLD.info_hash);
+        ELSE
+            PERFORM update_scraped(NEW.info_hash);
+        END IF;
         RETURN NEW;
     END;
 $$ LANGUAGE plpgsql;

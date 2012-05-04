@@ -65,21 +65,23 @@ header.site .slogan {
 .col, .col1, .col2 {
   margin: 0;
   padding: 0;
-  vertical-align: top;
-  display: inline-block;
+}
+.col1 {
+  float: left;
 }
 .col {
   max-width: 40em;
+  display: inline-block;
 }
 .col1, .col2 {
   max-width: 48%;
-  min-width: 32em;
 }
 .col1 {
-  margin-right: 0.5em;
+  padding-right: 0.5em;
 }
 .col2 {
-  margin-left: 0.5em;
+  padding-left: 0.5em;
+  margin-left: 51%;
 }
 
 h2 { 
@@ -172,7 +174,6 @@ img.logo {
   -o-transition: background-color 0.3s ease-in;
 }
 .flattr {
-  clear: left;  /* Below img.logo */
   color: #666;
   font-size: 80%;
   font-weight: bold;
@@ -196,7 +197,6 @@ dl.flattr dd {
 }
 
 article {
-  clear: both;
   background-color: white;
   border-top: 1px solid #eee;
   margin: 0;
@@ -210,6 +210,12 @@ article.feed {
 }
 article:first-child {
   border-top: none;
+}
+article.feed {
+  min-height: 64px;
+}
+article.item {
+  min-height: 40px;
 }
 h3 {
   font-size: 120%;
@@ -225,6 +231,7 @@ h3 {
 }
 .homepage {
   margin: 0;
+  margin-top: 0.5em;
   font-size: 70%;
 }
 .homepage a {
@@ -234,16 +241,10 @@ h3 {
 
 .download {
   list-style-type: none;
-  margin: 0.5em 0 0;
   padding: 0;
+  margin: 0.6em 0 0.1em 44px;
   /* meta & flattr floats above */
-  clear: both;
-}
-.download .torrent {
-  float: left;
-}
-.col1 .download .torrent, .col2 .download .torrent {
-  max-width: 18em;
+  display: block;
 }
 .torrent a {
   color: #090;
@@ -258,42 +259,43 @@ h3 {
   background: url('download.png') no-repeat top left;
 }
 .stats {
-  margin: 0 0 0 1em;
-  white-space: nowrap;
-  text-align: right;
-}
-.stats .size, .stats .l, .stats .s, .stats .bw {
-  font-size: 70%;
+  padding-left: 15px;
+  padding-top: 3px;
+  font-size: 50%;
   color: #333;
-  padding: 3px 0.4em 2px;
-  margin: 0 0.2em;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+}
+.stats > * {
+  margin: 0 2em 0.2em 0;
+  white-space: nowrap;
   display: inline-block;
-  box-shadow: #eee 2px 2px 4px inset;
+  min-width: 3em;
+  min-height: 14px;
 }
 .stats .size {
-  background: url('size.svg') no-repeat 3% 50%;
-  padding-left: 11px;
   min-width: 5em;
+  background: url('size.svg') no-repeat left top;
+  padding-left: 10px;
+}
+.stats .d {
+  background: url('d.svg') no-repeat left top;
+  padding-left: 13px;
 }
 .stats .s {
-  background: url('s.svg') no-repeat 5% 50%;
+  background: url('s.svg') no-repeat left top;
   padding-left: 11px;
-  min-width: 1.5em;
 }
 .stats .l {
-  background: url('l.svg') no-repeat 5% 50%;
-  padding-left: 11px;
-  min-width: 1.5em;
+  background: url('l.svg') no-repeat left top;
+  padding-left: 12px;
 }
 .stats .bw {
-  background: url('swarm.svg') no-repeat 8% 50%;
-  padding-left: 18px;
-  min-width: 4em;
+  background: url('swarm.svg') no-repeat left top;
+  padding-left: 15px;
+  min-width: 5em;
 }
 
 footer {
+  clear: both;
   margin: 2em auto 0;
   padding: 0;
   padding-top: 0.1em;

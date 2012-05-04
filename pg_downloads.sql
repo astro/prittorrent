@@ -198,5 +198,6 @@ CREATE OR REPLACE VIEW downloads_scraped AS
               downloads_cache."feed_title",
               downloads_cache."title", downloads_cache."published", downloads_cache."homepage", downloads_cache."payment", downloads_cache."image",
               COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-              COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed"
+              COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
+              COALESCE(scraped.downloaded, 0) AS "downloaded"
          FROM downloads_cache LEFT JOIN scraped ON (downloads_cache.info_hash=scraped.info_hash);
