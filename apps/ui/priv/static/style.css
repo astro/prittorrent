@@ -250,10 +250,15 @@ h3 {
 }
 .torrent a {
   color: #090;
-  background: url('favicon.png') no-repeat top left;
-  padding-left: 19px;
+  background: url('torrent.png') no-repeat top left;
+  padding-left: 14px;
+  padding-top: 3px;
+  line-height: 16px;
   font-size: 90%;
   display: block;
+}
+.torrent:hover a {
+  background: url('download.png') no-repeat top left;
 }
 .stats {
   margin: 0 0 0 1em;
