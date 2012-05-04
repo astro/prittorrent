@@ -1,4 +1,3 @@
-
 -module(model_sup).
 
 -behaviour(supervisor).
@@ -39,10 +38,12 @@ transaction(PoolId, Fun) ->
 
 init([Pools]) ->
     ChildSpecs =
-	[{Id, {poolboy, start_link, [[{name, {local, Id}},
-				      {worker_module, model_worker}]
-				     ++ Options]},
-	  permanent, 2000, worker, [model_pool]}
-	 || {Id, Options} <- Pools],
+	[{model_stats_cache, {model_stats_cache, start_link, []},
+	  permanent, 2000, worker, [model_stats_cache, model_stats]} |
+	 [{Id, {poolboy, start_link, [[{name, {local, Id}},
+				       {worker_module, model_worker}]
+				      ++ Options]},
+	   permanent, 2000, worker, [model_pool]}
+	  || {Id, Options} <- Pools]],
     {ok, { {one_for_one, 5, 10}, ChildSpecs} }.
 
