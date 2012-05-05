@@ -60,12 +60,12 @@ html(HtmlTitle, HeadEls, Contents) ->
 	]}
       )].
 
+
 render_link(URL = <<"http://", URL1/binary>>) ->
     render_link(URL, URL1);
 render_link(URL = <<"https://", URL1/binary>>) ->
     render_link(URL, URL1);
 render_link(URL) ->
-    io:format("render_link ~p~n", [URL]),
     render_link(URL, URL).
 
 render_link(URL, Text1) ->
@@ -228,7 +228,6 @@ render_enclosure(#download{name = Name,
 			   leechers = Leechers,
 			   downspeed = Downspeed,
 			   downloaded = Downloaded}) ->
-    io:format("~s downloaded=~B~n", [Name, Downloaded]),
     render_torrent(Name, InfoHash, Size, Seeders + 1, Leechers, Downspeed, Downloaded).
 
 
