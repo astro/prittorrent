@@ -68,8 +68,27 @@ render_link(URL) ->
     io:format("render_link ~p~n", [URL]),
     render_link(URL, URL).
 
-render_link(URL, Text) ->
-    {a, [{href, URL}], Text}.
+render_link(URL, Text1) ->
+    Text3 =
+	case ends_with_only_slash(Text1) of
+	    true ->
+		{Text2, _} =
+		    split_binary(Text1, size(Text1) - 1),
+		Text2;
+	    false ->
+		Text1
+	end,
+    {a, [{href, URL}], Text3}.
+
+ends_with_only_slash(<<$/>>) ->
+    true;
+ends_with_only_slash(<<>>) ->
+    false;
+ends_with_only_slash(<<$/, _/binary>>) ->
+    false;
+ends_with_only_slash(<<_, Bin/binary>>) ->
+    ends_with_only_slash(Bin).
+
 
 
 render_meta(Heading, Title, Image, Homepage) ->
