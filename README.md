@@ -12,17 +12,23 @@ rebar get-deps compile generate
 TODO
 ----
 
-* Stats
-* ATOM feeds
-* Test Miro
 * UI: Detect browser language
 * Zlib for UI
+
+* Login
+** Signup
+** Session management
+** Logged in indicator
+** Edit user
+** List feeds (status)
+** Add/Edit feeds
+** Private feeds
 
 * Feed summaries: X items, Y torrents
 * Recent Torrents excluding Popular Torrents
 * render_item styles
 * Flattr button on img hover
-* <atom:link rel="self>
+* <atom:link rel="self">
 
 * Storage app
 ** Avoid dup connections to 1 HTTP server (IP)
