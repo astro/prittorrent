@@ -177,23 +177,27 @@ img.logo {
   color: #666;
   font-size: 80%;
   font-weight: bold;
+  margin-left: 66px;
   padding: 0 0.2em;
+  display: block;
+  text-align: right;
+  line-height: 1.2em;
 }
 .flattr a {
   font-size: 70%;
 }
 dl.flattr dt, dl.flattr dd {
-  margin: 0 auto;
+  display: inline-block;
+  margin: 0;
   padding: 0;
-  vertical-align: top;
-}
-dl.flattr dt {
-  float: left;
-  width: 48%;
   text-align: right;
 }
+dl.flattr dt {
+  padding-bottom: 0.5em;
+}
 dl.flattr dd {
-  margin-left: 50%;
+  width: 120px;
+  vertical-align: bottom;
 }
 
 article {
