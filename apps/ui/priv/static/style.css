@@ -92,6 +92,10 @@ h2 {
   color: #999;
   margin: 0.4em 0 0.1em;
 }
+.col1 h2 {
+  /* col1 floats left and is off: */
+  margin-top: 0;
+}
 header {
   text-align: center;
   margin: 0 auto;
