@@ -39,7 +39,7 @@ handle(Req, _State) ->
 			      Body, Req),
 
     T2 = util:get_now_us(),
-    %%io:format("[~.1fms] ui_tracker_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
+    io:format("[~.1fms] ui_tracker_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
     
     {ok, Req2, undefined_state}.
 
@@ -161,6 +161,7 @@ spawn_set_peer(InfoHash,
 	       Event, Uploaded, Downloaded, Left) ->
     spawn(
       fun() ->
+	      T1 = util:get_now_us(),
 	      case (catch set_peer(InfoHash, 
 				   Host, Port, PeerId,
 				   Event, Uploaded, Downloaded, Left)) of
@@ -171,6 +172,8 @@ spawn_set_peer(InfoHash,
 				 Event, Uploaded, Downloaded, Left,
 				 Reason]);
 		  _ ->
+		      T2 = util:get_now_us(),
+		      io:format("[~.1fms] set_peer~n", [(T2 - T1) / 1000]),
 		      ok
 	      end
       end).
