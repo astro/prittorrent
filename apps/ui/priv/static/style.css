@@ -279,8 +279,6 @@ h3 {
 }
 .stats .size {
   min-width: 5em;
-  background: url('size.svg') no-repeat left center;
-  padding-left: 10px;
 }
 .stats .d {
   background: url('d.svg') no-repeat left center;
