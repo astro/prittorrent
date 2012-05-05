@@ -12,7 +12,7 @@
 scrape(InfoHash) ->
     case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\", \"downloaded\" FROM scraped WHERE \"info_hash\"=$1",
 	    [InfoHash]) of
-	{ok, _, [{Leechers, Seeders, Downspeed}]} ->
+	{ok, _, [{Leechers, Seeders, Downspeed, Downloaded}]} ->
 	    {ok, Leechers, Seeders, Downspeed, Downloaded};
 	{ok, _, []} ->
 	    {ok, 0, 0, 0, 0}
@@ -55,5 +55,7 @@ rm_peer(InfoHash, PeerId, Uploaded, Downloaded) ->
 	    model_stats:add_counter(up, InfoHash, Uploaded - OldUploaded),
 	    model_stats:add_counter(down, InfoHash, Downloaded - OldDownloaded);
 	{ok, _, _, _} ->
+	    ignore;
+	{ok, _} ->
 	    ignore
     end.
