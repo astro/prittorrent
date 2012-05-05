@@ -3,10 +3,9 @@ body {
   color: black;
   background: white;
   font-family: sans-serif;
-  margin: 0;
+  margin: 0 auto;
+  max-width: 65em;
   padding: 0;
-}
-body > * {
   text-align: left;
 }
 a {
