@@ -121,6 +121,7 @@ CREATE TRIGGER tracked_update_up_down_counter AFTER UPDATE ON tracked
        FOR EACH ROW EXECUTE PROCEDURE tracked_update_up_down_counter();
 
 
+-- Only for trigger when "kind"='complete'
 CREATE OR REPLACE FUNCTION counters_update_scraped_downloaded() RETURNS trigger AS $$
     BEGIN
         PERFORM update_scraped(NEW.info_hash);
@@ -131,4 +132,6 @@ $$ LANGUAGE plpgsql;
 
 -- Push "downloaded" count to "scraped" cache
 CREATE TRIGGER counters_update_downloaded AFTER INSERT OR UPDATE ON counters
-       FOR EACH ROW EXECUTE PROCEDURE counters_update_scraped_downloaded();
+       FOR EACH ROW
+       WHEN (NEW.kind = 'complete')
+       EXECUTE PROCEDURE counters_update_scraped_downloaded();
