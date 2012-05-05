@@ -6,6 +6,9 @@ body {
   margin: 0 auto;
   max-width: 65em;
   padding: 0;
+  text-align: center;
+}
+body > * {
   text-align: left;
 }
 a {
@@ -255,7 +258,7 @@ h3 {
   padding-left: 14px;
   padding-top: 3px;
   line-height: 16px;
-  font-size: 90%;
+  font-size: 95%;
   display: block;
 }
 .torrent:hover a {
@@ -264,35 +267,35 @@ h3 {
 .stats {
   padding-left: 15px;
   padding-top: 3px;
-  font-size: 50%;
+  font-size: 80%;
   color: #333;
 }
 .stats > * {
-  margin: 0 2em 0.2em 0;
+  margin: 0 0.5em 0.2em 0;
   white-space: nowrap;
   display: inline-block;
-  min-width: 3em;
+  min-width: 2.5em;
   min-height: 14px;
 }
 .stats .size {
   min-width: 5em;
-  background: url('size.svg') no-repeat left top;
+  background: url('size.svg') no-repeat left center;
   padding-left: 10px;
 }
 .stats .d {
-  background: url('d.svg') no-repeat left top;
+  background: url('d.svg') no-repeat left center;
   padding-left: 13px;
 }
 .stats .s {
-  background: url('s.svg') no-repeat left top;
+  background: url('s.svg') no-repeat left center;
   padding-left: 11px;
 }
 .stats .l {
-  background: url('l.svg') no-repeat left top;
+  background: url('l.svg') no-repeat left center;
   padding-left: 12px;
 }
 .stats .bw {
-  background: url('swarm.svg') no-repeat left top;
+  background: url('swarm.svg') no-repeat left center;
   padding-left: 15px;
   min-width: 5em;
 }
