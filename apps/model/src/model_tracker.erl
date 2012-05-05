@@ -10,10 +10,10 @@
 
 
 scrape(InfoHash) ->
-    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\" FROM scraped WHERE \"info_hash\"=$1",
+    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\", \"downloaded\" FROM scraped WHERE \"info_hash\"=$1",
 	    [InfoHash]) of
 	{ok, _, [{Leechers, Seeders, Downspeed}]} ->
-	    {ok, Leechers, Seeders, Downspeed, 0};
+	    {ok, Leechers, Seeders, Downspeed, Downloaded};
 	{ok, _, []} ->
 	    {ok, 0, 0, 0, 0}
     end.

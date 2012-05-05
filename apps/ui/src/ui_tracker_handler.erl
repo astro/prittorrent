@@ -134,14 +134,14 @@ handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>,
 handle2('GET', [<<"scrape">>], <<InfoHash:20/binary>>,
 	_Host, _port, _PeerId,
 	_Event, _Uploaded, _Downloaded, _Left, _Compact) ->
-    {ok, Leechers, Seeders, _Downspeed, _Downloaded} =
+    {ok, Leechers, Seeders, _Downspeed, Downloaded} =
 	model_tracker:scrape(InfoHash),
-    %% TODO: implement `downloaded' & `name'
+    %% TODO: implement `name' if available from query
     {ok, [{<<"files">>,
 	   [{InfoHash, [{<<"interval">>, tracker_interval()},
 			{<<"incomplete">>, Leechers},
 			{<<"complete">>, Seeders + 1},
-			{<<"downloaded">>, 23000000}
+			{<<"downloaded">>, Downloaded}
 		       ]}
 	   ]}
 	 ]};
