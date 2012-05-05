@@ -5,7 +5,6 @@
 -include_lib("model/include/model.hrl").
 
 -define(INTERVAL, 600).
--define(DEFAULT_XMLNS, [{"http://www.w3.org/XML/1998/namespace", "xml"}]).
 
 start_link() ->
     {ok, spawn_link(fun update_loop/0)}.
@@ -55,7 +54,7 @@ update1(URL, Etag1, LastModified1) ->
 			feeds_parse:pick_items(RootEl),
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
-		    FeedXml1 = exmpp_xml:node_to_binary(FeedEl, [], ?DEFAULT_XMLNS),
+		    FeedXml1 = iolist_to_binary(feeds_parse:serialize(FeedEl)),
 		    ChannelEl = feeds_parse:get_channel(FeedEl),
 		    Title1 = feeds_parse:title(ChannelEl),
 		    Homepage1 = feeds_parse:link(ChannelEl),
@@ -128,7 +127,7 @@ xml_to_feed_item(Feed, Xml) ->
     Homepage = feeds_parse:item_link(Xml),
     Payment = feeds_parse:item_payment(Xml),
     Image = feeds_parse:item_image(Xml),
-    XmlSerialized = exmpp_xml:node_to_binary(Xml, [], ?DEFAULT_XMLNS),
+    XmlSerialized = iolist_to_binary(feeds_parse:serialize(Xml)),
     Enclosures = feeds_parse:item_enclosures(Xml),
     if
 	is_binary(Id),

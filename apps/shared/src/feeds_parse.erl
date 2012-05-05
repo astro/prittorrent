@@ -1,6 +1,7 @@
 -module(feeds_parse).
 
--export([get_type/1, get_channel/1,
+-export([serialize/1,
+	 get_type/1, get_channel/1,
 	 title/1, link/1, image/1,
 	 pick_items/1, merge_items/2,
 	 item_id/1, item_title/1, item_enclosures/1,
@@ -11,6 +12,10 @@
 
 -define(NS_ATOM, "http://www.w3.org/2005/Atom").
 
+-define(DEFAULT_XMLNS, [{"http://www.w3.org/XML/1998/namespace", "xml"}]).
+
+serialize(Xml) ->
+    exmpp_xml:node_to_binary(Xml, [], ?DEFAULT_XMLNS).
 
 get_type(Xml) ->
     case exmpp_xml:get_ns_as_list(Xml) of
@@ -100,7 +105,7 @@ pick_items(#xmlel{} = RootEl) ->
 			  false
 		  end, RootEl#xmlel.children),
 	    {ok,
-	     RootEl#xmlel{children = lists:reverse(FeedChildren)},
+	     RootEl#xmlel{children = FeedChildren},
 	     lists:reverse(Entries)};
 
 	%% Assume RSS

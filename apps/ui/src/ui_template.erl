@@ -431,7 +431,7 @@ export_feed(UserName, Slug) ->
 			    end)
 		  end, ItemXmls), 
 	    CompleteFeedEl = feeds_parse:merge_items(FeedEl, ItemEls),
-	    Body = exmpp_xml:document_to_iolist(CompleteFeedEl),
+	    Body = feeds_parse:serialize(CompleteFeedEl),
 	    {ok, Type,
 	     [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
 	      Body]};
