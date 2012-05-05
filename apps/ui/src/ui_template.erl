@@ -368,14 +368,6 @@ render_user(UserName) ->
      ).
 
 render_user_feed(UserName, Slug) ->
-    {UserTitle, _UserImage, _UserHomepage} =
-	case model_users:get_details(UserName) of
-	    {ok, Title1, Image1, Homepage1} ->
-		{Title1, Image1, Homepage1};
-	    {error, not_found} ->
-		throw({http, 404})
-	end,
-
     FeedURL =
 	case model_users:get_feed(UserName, Slug) of
 	    {ok, FeedURL1} ->
@@ -400,7 +392,7 @@ render_user_feed(UserName, Slug) ->
 		     {span, [{class, "publisher"}],
 		      [<<" by ">>,
 		       {a, [{href, ui_link:link_user(UserName)}],
-			UserTitle}
+			UserName}
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
