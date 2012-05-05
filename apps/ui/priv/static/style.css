@@ -281,19 +281,19 @@ h3 {
   min-width: 5em;
 }
 .stats .d {
-  background: url('d.svg') no-repeat left center;
+  background: url('d.png') no-repeat left center;
   padding-left: 13px;
 }
 .stats .s {
-  background: url('s.svg') no-repeat left center;
+  background: url('s.png') no-repeat left center;
   padding-left: 11px;
 }
 .stats .l {
-  background: url('l.svg') no-repeat left center;
+  background: url('l.png') no-repeat left center;
   padding-left: 12px;
 }
 .stats .bw {
-  background: url('swarm.svg') no-repeat left center;
+  background: url('swarm.png') no-repeat left center;
   padding-left: 15px;
   min-width: 5em;
 }
