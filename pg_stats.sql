@@ -9,7 +9,7 @@ CREATE TABLE gauges (
 );
 -- TODO: test whether this actually accelerates querying with time
 -- ranges (like in the deduplication below)
-CREATE INDEX gauges_time_kind_info_hash ON gauges ("time","kind","info_hash");
+CREATE INDEX gauges_kind_info_hash_time ON gauges ("kind","info_hash","time");
 
 CREATE OR REPLACE FUNCTION set_gauge(
        "e_kind" TEXT,
@@ -24,7 +24,6 @@ CREATE OR REPLACE FUNCTION set_gauge(
             FROM gauges
            WHERE "kind"="e_kind"
              AND "info_hash"="e_info_hash"
-             AND "time" <= NOW()
            ORDER BY "time" DESC
            LIMIT 1;
         IF prev_value IS NULL OR prev_value != e_value THEN
