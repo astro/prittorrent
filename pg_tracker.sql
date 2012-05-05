@@ -114,6 +114,8 @@ CREATE OR REPLACE FUNCTION update_scraped(
           FROM tracked
          WHERE "info_hash"="t_info_hash";
 
+        "t_seeders" := COALESCE("t_seeders", 0);
+        "t_leechers" := COALESCE("t_leechers", 0);
         "t_upspeed" := COALESCE("t_upspeed", 0);
         "t_downspeed" := COALESCE("t_downspeed", 0);
 
@@ -122,6 +124,8 @@ CREATE OR REPLACE FUNCTION update_scraped(
           FROM counters
          WHERE "kind"='complete'
            AND "info_hash"=t_info_hash;
+
+        "t_downloaded" := COALESCE("t_downloaded", 0);
 
         -- Is worth an entry?
         IF "t_leechers" > 0 OR "t_seeders" > 0 OR "t_downloaded" > 0 THEN
