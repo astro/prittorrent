@@ -267,8 +267,8 @@ h3 {
 .stats {
   padding-left: 15px;
   padding-top: 3px;
-  font-size: 80%;
-  color: #333;
+  font-size: 75%;
+  color: #444;
 }
 .stats > * {
   margin: 0 0.5em 0.2em 0;
