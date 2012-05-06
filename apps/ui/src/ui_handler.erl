@@ -3,6 +3,8 @@
 
 -behaviour(cowboy_http_handler).
 
+-include("../include/ui.hrl").
+
 init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
@@ -10,21 +12,22 @@ handle(Req, State) ->
     T1 = util:get_now_us(),
     {Method, _} = cowboy_http_req:method(Req),
     {Path, _} = cowboy_http_req:path(Req),
-    case (catch handle_request(Method, Path)) of
+    {RawPath, _} = cowboy_http_req:raw_path(Req),
+    case (catch handle_request1(Req)) of
 	{ok, Status, Headers, Body} ->
 	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, Body, Req),
 	    T2 = util:get_now_us(),
-	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, Path]),
+	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
 
 	    count_request(Method, Path),
 	    {ok, Req2, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
-	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, Path]),
+	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
 	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
 	    {ok, Req2, State};
 	E ->
-	    io:format("Error handling ~s ~p:~n~p~n", [Method, Path, E]),
+	    io:format("Error handling ~s ~p:~n~p~n", [Method, RawPath, E]),
 	    {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
 	    {ok, Req2, State}
     end.		    
@@ -35,11 +38,30 @@ terminate(_Req, _State) ->
 html_ok(Body) ->
     {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], Body}.
 
-handle_request('GET', [<<"favicon.", _:3/binary>>]) ->
+%% Attention: last point where Req is a cowboy_http_req, not a #req{}
+handle_request1(Req) ->
+    {Method, _} = cowboy_http_req:method(Req),
+    {Path, _} = cowboy_http_req:path(Req),
+    {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
+    {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
+    {Sid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
+    io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,Sid]),
+    handle_request2(#req{method = Method,
+			 path = Path,
+			 encodings = Encodings,
+			 languages = Languages,
+			 sid = Sid
+			}).
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"favicon.", _:3/binary>>]
+		    }) ->
     {ok, 301, [{<<"Location">>, <<"/static/favicon.png">>}], <<>>};
 
 %% TODO: 'HEAD' too
-handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
+handle_request2(#req{method = 'GET',
+		     path = [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]
+		    }) ->
     InfoHash = hex_to_binary(InfoHashHex),
     case model_torrents:get_torrent(InfoHash) of
 	{ok, Name, Torrent} ->
@@ -53,18 +75,26 @@ handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
 	    throw({http, 404})
     end;
 
-handle_request('GET', []) ->
+handle_request2(#req{method = 'GET',
+		     path = []
+		    }) ->
     html_ok(ui_template:render_index());
 
-handle_request('GET', [<<UserName/binary>>]) ->
+handle_request2(#req{method = 'GET',
+		     path =[<<UserName/binary>>]
+		    }) ->
     html_ok(ui_template:render_user(UserName));
 
-handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>]) ->
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>]
+		    }) ->
     %% All hashed episodes
     html_ok(ui_template:render_user_feed(UserName, Slug));
 
 %% TODO: support not modified
-handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]
+		    }) ->
     {ok, Type, Body} = ui_template:export_feed(UserName, Slug),
     Headers =
 	[{<<"Content-Type">>, case Type of
@@ -73,7 +103,7 @@ handle_request('GET', [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]) ->
 			      end}],
     {ok, 200, Headers, Body};
 
-handle_request(_Method, _Path) ->
+handle_request2(_Req) ->
     throw({http, 404}).
     
 
