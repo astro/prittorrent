@@ -11,11 +11,14 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="11"
-   height="11"
+   height="9"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.1 r9760"
-   sodipodi:docname="s.svg">
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="d.svg"
+   inkscape:export-filename="/home/stephan/programming/erlang/prittorrent/apps/ui/priv/static/d.png"
+   inkscape:export-xdpi="98.690002"
+   inkscape:export-ydpi="98.690002">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -54,24 +57,30 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="6.3573852"
+     inkscape:zoom="22.627417"
+     inkscape:cx="8.3573852"
      inkscape:cy="9.9126933"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1916"
+     inkscape:window-width="956"
      inkscape:window-height="1057"
-     inkscape:window-x="0"
+     inkscape:window-x="2400"
      inkscape:window-y="19"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
     <inkscape:grid
        type="xygrid"
        id="grid2985"
        empspacing="5"
        visible="true"
        enabled="true"
-       snapvisiblegridlinesonly="true" />
+       snapvisiblegridlinesonly="true"
+       originx="0px"
+       originy="0px" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -89,7 +98,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-1041.3622)">
+     transform="translate(0,-1043.3622)">
     <path
        style="fill:url(#linearGradient3768);fill-opacity:1;fill-rule:evenodd;stroke:none"
        d="m 2,1046.3622 2,3 5,-6 2,2 -7,7 0,0 -4,-4 z"

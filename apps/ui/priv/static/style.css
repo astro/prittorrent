@@ -304,11 +304,11 @@ h3 {
 }
 .stats .l {
   background: url('l.png') no-repeat left center;
-  padding-left: 12px;
+  padding-left: 11px;
 }
 .stats .bw {
   background: url('swarm.png') no-repeat left center;
-  padding-left: 15px;
+  padding-left: 19px;
   min-width: 5em;
 }
 

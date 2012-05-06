@@ -10,12 +10,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="11"
+   width="9"
    height="11"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.1 r9760"
-   sodipodi:docname="s.svg">
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="s.svg"
+   inkscape:export-filename="/home/stephan/programming/erlang/prittorrent/apps/ui/priv/static/s.png"
+   inkscape:export-xdpi="98.690002"
+   inkscape:export-ydpi="98.690002">
   <defs
      id="defs4">
     <linearGradient
@@ -48,23 +51,29 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="16"
-     inkscape:cx="6.2323852"
+     inkscape:cx="5.3573852"
      inkscape:cy="4.6093924"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="710"
-     inkscape:window-height="453"
-     inkscape:window-x="835"
+     inkscape:window-width="956"
+     inkscape:window-height="1057"
+     inkscape:window-x="1440"
      inkscape:window-y="19"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
     <inkscape:grid
        type="xygrid"
        id="grid2985"
        empspacing="5"
        visible="true"
        enabled="true"
-       snapvisiblegridlinesonly="true" />
+       snapvisiblegridlinesonly="true"
+       originx="-1px"
+       originy="0px" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -74,7 +83,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -82,7 +91,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-1041.3622)">
+     transform="translate(-1,-1041.3622)">
     <path
        style="fill:url(#linearGradient3768);fill-opacity:1;fill-rule:evenodd;stroke:none"
        d="m 5.5,1041.3622 4.5,5 -3,0 0,6 -3,0 0.022097,-5.9779 L 1,1046.3622 z"
