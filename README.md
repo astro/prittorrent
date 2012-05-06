@@ -32,6 +32,8 @@ TODO
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
 
+* Embedabble Widget
+
 * Storage app
   - Avoid dup connections to 1 HTTP server (IP)
   - Fair queueing
