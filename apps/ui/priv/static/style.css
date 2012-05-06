@@ -227,6 +227,16 @@ article.feed {
 article.item {
   min-height: 40px;
 }
+article:target {
+  background: #cfb; /* Old browsers */
+  background: -moz-linear-gradient(top, #cfb 0%, #efe 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfb), color-stop(100%,#efe)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #cfb 0%,#efe 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #cfb 0%,#efe 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #cfb 0%,#efe 100%); /* IE10+ */
+  background: linear-gradient(top, #cfb 0%,#efe 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cfb', endColorstr='#efe',GradientType=0 ); /* IE6-9 */
+}
 h3 {
   font-size: 120%;
   margin: 0;
