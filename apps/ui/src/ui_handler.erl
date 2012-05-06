@@ -43,10 +43,11 @@ handle_request('GET', [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]) ->
     InfoHash = hex_to_binary(InfoHashHex),
     case model_torrents:get_torrent(InfoHash) of
 	{ok, Name, Torrent} ->
+	    NameE = escape_bin(Name, $\"),
 	    Headers =
 		[{<<"Content-Type">>, <<"application/x-bittorrent">>},
 		 {<<"Content-Disposition">>,
-		  <<"attachment; filename=", Name/binary, ".torrent">>}],
+		  <<"attachment; filename=\"", NameE/binary, ".torrent\"">>}],
 	    {ok, 200, Headers, Torrent};
 	{error, not_found} ->
 	    throw({http, 404})
@@ -111,3 +112,10 @@ parse_hex(H)
     H - $a + 16#a;
 parse_hex(_) ->
     error(invalid_hex).
+
+escape_bin(<<>>, _) ->
+    <<>>;
+escape_bin(<<C:8, Bin/binary>>, C) ->
+    <<"\\", C:8, (escape_bin(Bin, C))/binary>>;
+escape_bin(<<C:1/binary, Bin/binary>>, E) ->
+    <<C/binary, (escape_bin(Bin, E))/binary>>.

@@ -11,7 +11,7 @@ make_torrent(URL) when is_binary(URL) ->
 make_torrent(URLs) ->
     {ok, Size, Pieces} = hash_torrent(URLs),
     io:format("hash_torrent ~p - Size: ~p, Pieces: ~p~n", [URLs, Size, length(Pieces)]),
-    Name = list_to_binary(extract_name_from_urls(URLs)),
+    Name = extract_name_from_urls(URLs),
     InfoValue =
 	[{<<"name">>, Name},
 	 {<<"piece length">>, ?DEFAULT_PIECE_LENGTH},
@@ -33,12 +33,41 @@ make_torrent(URLs) ->
     InfoHash = benc:hash(InfoValue),
     {ok, InfoHash, Name, Size, benc:to_binary(Torrent)}.
 
-extract_name_from_urls([URL]) when is_binary(URL) ->
-    extract_name_from_urls([binary_to_list(URL)]);
-extract_name_from_urls([URL]) ->
-    lists:foldl(fun([_ | _] = Token, _) ->
-			Token
-		end, "unnamed", string:tokens(URL, "/")).
+extract_name_from_urls(URLs) when is_list(URLs) ->
+    Name = lists:foldl(
+	     fun(URL, undefined) ->
+		     case extract_name_from_url(URL) of
+			 Name
+			   when is_binary(Name),
+				size(Name) > 0 ->
+			     Name;
+			 _ ->
+			     undefined
+		     end;
+		(_, R) ->
+		     R
+	     end, undefined, URLs),
+    case Name of
+	undefined ->
+	    exit(no_suitable_name_found);
+	_ ->
+	    Name
+    end.
+
+extract_name_from_url(URL) ->
+    {Parts, _, _} =
+	cowboy_dispatcher:split_path(URL, fun cowboy_http:urldecode/1),
+    io:format("Parts: ~p~n", [Parts]),
+    lists:foldl(fun(Part, R) ->
+			if
+			    is_binary(Part),
+			    size(Part) > 0 ->
+				Part;
+			    true ->
+				R
+			end
+		end, undefined, Parts).
+
 
 -spec(hash_torrent/1 :: ([binary()]) -> [binary()]).
 
