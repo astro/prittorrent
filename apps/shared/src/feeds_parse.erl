@@ -50,7 +50,8 @@ title(Xml) ->
 
 -spec(image/1 :: (xmlel()) -> binary() | undefined).
 image(Xml) ->
-    image1(Xml, ["image", "logo", "icon"]).
+    image1(Xml, ["image", "logo", "icon", "itunes:image"]).
+%% TODO: "itunes:"? What happened to XML namespaces?
 
 image1(_, []) ->
     undefined;
@@ -58,6 +59,7 @@ image1(Xml, [ChildName | ChildNames]) ->
     R =
 	lists:foldl(
 	  fun(Child, undefined) ->
+		  %% Default: @url
 		  URL1 =
 		      case exmpp_xml:get_elements(Child, "url") of
 			  [UrlEl | _] ->
@@ -70,13 +72,15 @@ image1(Xml, [ChildName | ChildNames]) ->
 		      size(URL1) > 0 ->
 			  URL1;
 		      true ->
+			  %% Fallback 1: text()
 			  case exmpp_xml:get_cdata(Child) of
 			      Cdata
 				when is_binary(Cdata),
 				     size(Cdata) > 0 ->
 				  Cdata;
 			      _ ->
-				  undefined
+				  %% Fallback 2: @href
+				  exmpp_xml:get_attribute_as_binary(Child, <<"href">>, undefined)
 			  end
 		  end;
 	     (_, R) ->
