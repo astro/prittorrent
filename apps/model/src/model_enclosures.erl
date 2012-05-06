@@ -101,8 +101,15 @@ group_downloads([Download | Downloads]) ->
 	      image = Image} = Download,
     {SiblingDownloads, OtherDownloads} =
 	lists:splitwith(
-	  fun(#download{homepage = Homepage1}) ->
-		  Homepage == Homepage1
+	  fun(#download{item = Item1,
+			homepage = Homepage1}) ->
+		  if
+		      is_binary(Homepage1),
+		      size(Homepage1) > 0 ->
+			  Homepage == Homepage1;
+		      true ->
+			  Item == Item1
+		  end
 	  end, Downloads),
     FeedItem =
 	#feed_item{user = User,
