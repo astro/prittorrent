@@ -6,7 +6,6 @@
   {applications, [
                   kernel,
                   stdlib,
-		  cowboy,  %% for cowboy_dispatcher:split_path/2
 		  lhttpc,
 		  model,
 		  shared
