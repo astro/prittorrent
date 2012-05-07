@@ -68,18 +68,17 @@ header.site .slogan {
   margin: 0;
   padding: 0;
 }
-.col1 {
-  float: left;
-}
 .col {
   max-width: 40em;
   display: inline-block;
 }
+.col1 {
+  clear: both;
+  float: left;
+  padding-right: 0.5em;
+}
 .col1, .col2 {
   max-width: 48%;
-}
-.col1 {
-  padding-right: 0.5em;
 }
 .col2 {
   padding-left: 0.5em;
@@ -90,11 +89,8 @@ h2 {
   font-size: 150%;
   font-weight: normal;
   color: #999;
-  margin: 0.4em 0 0.1em;
-}
-.col1 h2 {
-  /* col1 floats left and is off: */
-  margin-top: 0;
+  padding: 0.4em 0 0.1em;
+  margin: 0;
 }
 header {
   text-align: center;
