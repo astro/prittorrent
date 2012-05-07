@@ -74,6 +74,8 @@ CREATE TABLE counters (
        "value" BIGINT NOT NULL
 );
 
+CREATE INDEX counters_kind_info_hash_time ON counters ("kind","info_hash","time");
+
 CREATE OR REPLACE FUNCTION add_counter(
        "e_kind" TEXT,
        "e_info_hash" BYTEA,
