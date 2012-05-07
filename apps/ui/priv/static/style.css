@@ -128,9 +128,11 @@ h3.feed {
 .published {
   float: right;
   display: inline;
+  text-align: right;
   margin: 0 0 0.1em 0.5em;
   padding: 0 2px;
   font-size: 50%;
+  line-height: 1em;
   /*background-color: #070;
   color: white;
   border-radius: 2px;*/

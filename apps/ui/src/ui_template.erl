@@ -205,9 +205,12 @@ render_item(Opts, #feed_item{user = User,
 	case Published of
 	    {{Y, Mo, D}, {H, M, _S}} ->
 		{p, [{class, "published"}],
-		 io_lib:format("~B-~2..0B-~2..0B ~2..0B:~2..0B",
-			       [Y, Mo, D, H, M])
-		};
+		 [io_lib:format("~B-~2..0B-~2..0B",
+				[Y, Mo, D]),
+		  {br, []},
+		  io_lib:format("~2..0B:~2..0B",
+				[H, M])
+		 ]};
 	    _ ->
 		[]
 	end,
