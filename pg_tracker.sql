@@ -85,7 +85,7 @@ CREATE TABLE scraped (
        "leechers" INT,
        "upspeed" BIGINT,
        "downspeed" BIGINT,
-       "downloaded" BIGINT,
+       "downloaded" BIGINT
 );
 CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers"));
 
