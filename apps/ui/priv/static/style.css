@@ -144,9 +144,7 @@ img.logo {
   max-width: 40px;
   max-height: 40px;
 }
-.flattrdropdown.shown {
-  display: block;
-}
+
 .flattrdropdown {
   display: none;
   float: right;
@@ -212,6 +210,12 @@ article {
   margin: 0;
   padding: 0.5em 0 0.3em;
 }
+
+article:hover .flattrdropdown,
+article:focus .flattrdropdown{
+  display: block;
+}
+
 article.feed {
   max-width: 20em;
 }
