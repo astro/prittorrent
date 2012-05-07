@@ -32,11 +32,11 @@ set_torrent(URL, Error, InfoHash) ->
 
 recent_downloads() ->
     query_downloads("TRUE", [],
-		    "\"published\" DESC", 42).
+		    "\"published\" DESC", 32).
 
 popular_downloads() ->
     query_downloads("(\"seeders\" + \"leechers\") > 0", [],
-		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 23).
+		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 24).
 
 user_downloads(UserName) ->
     query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
