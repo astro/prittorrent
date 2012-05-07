@@ -96,8 +96,16 @@ map_pieces(Remain, N, F) ->
     [F(Offset, Length) | map_pieces(Remain - Length, N + 1, F)].
 
 hash_piece(Storage, Offset, Length) ->
-    Sha =
+    {Sha, ActualLength} =
 	storage:fold(Storage, Offset, Length,
-		     fun crypto:sha_update/2, crypto:sha_init()),
+		     fun(Data, {Sha, ActualLength}) ->
+			     {crypto:sha_update(Data, Sha),
+			      ActualLength + size(Data)}
+		     end, {crypto:sha_init(), 0}),
     Digest = crypto:sha_final(Sha),
-    Digest.
+    if
+	ActualLength == Length ->
+	    Digest;
+	true ->
+	    exit({expected_but_received, Length, ActualLength})
+    end.
