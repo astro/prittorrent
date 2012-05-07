@@ -98,7 +98,7 @@ map_pieces(Remain, N, F) ->
 hash_piece(Storage, Offset, Length) ->
     {Sha, ActualLength} =
 	storage:fold(Storage, Offset, Length,
-		     fun(Data, {Sha, ActualLength}) ->
+		     fun({Sha, ActualLength}, Data) ->
 			     {crypto:sha_update(Data, Sha),
 			      ActualLength + size(Data)}
 		     end, {crypto:sha_init(), 0}),
