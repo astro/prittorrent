@@ -474,7 +474,7 @@ downloads_exclude_downloads(Items1, ExcludeItems) ->
 	  end, Items1),
     Items3 =
 	lists:filter(
-	  fun(#feed_item{enclosures = []}) ->
+	  fun(#feed_item{downloads = []}) ->
 		  false;
 	     (#feed_item{}) ->
 		  true
