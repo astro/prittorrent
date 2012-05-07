@@ -119,6 +119,7 @@ render_item(Opts, #feed_item{user = User,
 			     slug = Slug,
 			     id = ItemId,
 			     feed_title = FeedTitle,
+			     published = Published,
 			     title = Title,
 			     image = Image,
 			     homepage = Homepage,
@@ -196,16 +197,21 @@ render_item(Opts, #feed_item{user = User,
 		{h3, [{class, "feed"}],
 		 [{a, [{href, ui_link:link_user_feed(User, Slug)}],
 		   [FeedTitle
-		   ]},
-		  {span, [{class, "publisher"}],
-		   [<<" by ">>,
-		    {a, [{href, ui_link:link_user(User)}],
-		     User}
 		   ]}
 		 ]};
 	    true ->
 		[]
 	end,
+	case Published of
+	    {{Y, Mo, D}, {H, M, _S}} ->
+		{p, [{class, "published"}],
+		 io_lib:format("~B-~2..0B-~2..0B ~2..0B:~2..0B",
+			       [Y, Mo, D, H, M])
+		};
+	    _ ->
+		[]
+	end,
+
 	{h3,
 	 [{a, [{href, ItemLink}], Title}
 	 ]},
@@ -252,12 +258,23 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth, Downloaded) 
 
 render_downloads(Opts, Downloads) ->
     lists:map(
-      fun(#feed_item{id = ItemId,
+      fun(#feed_item{user = User,
+		     id = ItemId,
 		     downloads = ItemDownloads} = Item) ->
 	      {article, [{class, "item"},
 			 {id, ItemId}],
-	       [render_item(Opts, Item) |
-		lists:map(fun render_enclosure/1, ItemDownloads)
+	       [render_item(Opts, Item),
+		lists:map(fun render_enclosure/1, ItemDownloads),
+		if
+		    Opts#render_opts.publisher ->
+			{p, [{class, "moreby"}],
+			 [<<"More by ">>,
+			  {a, [{href, ui_link:link_user(User)}],
+			   User}
+			 ]};
+		    true ->
+			[]
+		end
 	       ]}
       end, Downloads).
 

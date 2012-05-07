@@ -123,6 +123,18 @@ h2 .feedicon {
 }
 h3.feed {
   font-size: 100%;
+  display: inline;
+}
+.published {
+  float: right;
+  display: inline;
+  margin: 0 0 0.1em 0.5em;
+  padding: 0 2px;
+  font-size: 50%;
+  /*background-color: #070;
+  color: white;
+  border-radius: 2px;*/
+  color: #888;
 }
 .meta, section {
   min-height: 70px;
@@ -139,6 +151,13 @@ img.logo {
 .item img.logo {
   max-width: 40px;
   max-height: 40px;
+}
+.moreby {
+  font-size: 70%;
+  font-weight: bold;
+  color: #aaa;
+  text-align: right;
+  margin: 1em 0 0;
 }
 .flattrdropdown.shown {
   display: block;
