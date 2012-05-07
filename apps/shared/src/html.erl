@@ -1,3 +1,4 @@
+%% This actually produces XHTML. Don't forget the <?xml ...?>!
 -module(html).
 
 -export([to_iolist/1]).
@@ -57,7 +58,10 @@ to_iolist({El, Attrs, Children}) ->
 	     [<<">">>,
 	      to_iolist(Children),
 	      <<"</">>, El, <<">">>]
-     end].
+     end];
+
+to_iolist(X) ->
+    exit({invalid_html, X}).
 
 
 escape(Bin) when is_binary(Bin) ->
