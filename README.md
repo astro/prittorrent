@@ -12,8 +12,10 @@ rebar get-deps compile generate
 TODO
 ----
 
+* http://bitlove.org/channelcast + Flattr error?
 * UI: Detect browser language
 * Zlib for UI
+* lhttpc + https
 
 * Login
   - Signup
@@ -25,9 +27,6 @@ TODO
   - Private feeds
 
 * Feed summaries: X items, Y torrents
-* Recent Torrents excluding Popular Torrents
-* render_item styles
-* Flattr button on img hover
 * <atom:link rel="self">
 
 * Storage app
@@ -35,14 +34,13 @@ TODO
   - Fair queueing
   - Caching
 * URL longener?
-
 * OEmbed
+* Widgets
+* API
 
-* HTTP UA output
 * Stats:
   - Render pretty graphs
   - DLs by country/client?
-* Publisher mode
 
 Future features:
 
