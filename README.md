@@ -15,7 +15,7 @@ TODO
 * http://bitlove.org/channelcast + Flattr error?
 * UI: Detect browser language
 * Zlib for UI
-* lhttpc + https
+* lhttpc + https! + zlib
 
 * Login
   - Signup
@@ -25,6 +25,7 @@ TODO
   - List feeds (status)
   - Add/Edit feeds
   - Private feeds
+  - cowboy + ssl, enforce https for login
 
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
