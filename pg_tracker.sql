@@ -58,6 +58,9 @@ CREATE OR REPLACE FUNCTION set_peer(
                "p_left" <= old.left THEN
                 "up" := "p_uploaded" - old.uploaded;
                 "down" := "p_downloaded" - old.downloaded;
+                PERFORM add_counter('up', p_info_hash, "up");
+                PERFORM add_counter('down', p_info_hash, "down");
+
                 "p_upspeed" := (up / "old_age")::BIGINT;
                 "p_downspeed" := (down / "old_age")::BIGINT;
             END IF;

@@ -106,23 +106,6 @@ CREATE OR REPLACE FUNCTION add_counter(
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION tracked_update_up_down_counter() RETURNS trigger AS $$
-    BEGIN
-        PERFORM add_counter('up', NEW.info_hash, NEW.uploaded);
-        PERFORM add_counter('down', NEW.info_hash, NEW.downloaded);
-
-        RETURN NEW;
-    END;
-$$ LANGUAGE plpgsql;
-
--- Obtain up/down deltas when a tracked peer is updated
---
--- TODO: that doesn't catch uploaded/downloaded counters submitted
--- with event=stopped
-CREATE TRIGGER tracked_update_up_down_counter AFTER UPDATE ON tracked
-       FOR EACH ROW EXECUTE PROCEDURE tracked_update_up_down_counter();
-
-
 -- Only for trigger when "kind"='complete'
 CREATE OR REPLACE FUNCTION counters_update_scraped_downloaded() RETURNS trigger AS $$
     BEGIN
@@ -137,3 +120,34 @@ CREATE TRIGGER counters_update_downloaded AFTER INSERT OR UPDATE ON counters
        FOR EACH ROW
        WHEN (NEW.kind = 'complete')
        EXECUTE PROCEDURE counters_update_scraped_downloaded();
+
+
+CREATE OR REPLACE FUNCTION fix_up_down_counters() RETURNS void AS $$
+    DECLARE
+        stime TIMESTAMP;
+        skind TEXT;
+        prev_skind TEXT;
+        sih BYTEA;
+        prev_sih BYTEA;
+        svalue BIGINT;
+        prev_svalue BIGINT;
+        diff BIGINT;
+    BEGIN
+        FOR stime, skind, sih, svalue IN
+            SELECT "time", "kind", "info_hash", "value"
+              FROM counters
+             WHERE kind='up' OR kind='down'
+          ORDER BY "kind", "info_hash", "time" ASC
+        LOOP
+            IF skind = prev_skind AND sih = prev_sih AND prev_svalue IS NOT NULL THEN
+                diff := svalue - prev_svalue;
+                IF diff < 0 THEN
+                   diff := 0;
+                END IF;
+                UPDATE counters
+                   SET "value"=diff
+                 WHERE "time"=stime AND "kind"=skind AND "info_hash"=sih;
+            END IF;
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
