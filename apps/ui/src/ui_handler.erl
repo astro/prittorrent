@@ -58,6 +58,10 @@ handle_request2(#req{method = 'GET',
 		    }) ->
     {ok, 301, [{<<"Location">>, <<"/static/favicon.png">>}], <<>>};
 
+handle_request2(#req{method = 'GET',
+		     path = [<<"login">>]}) ->
+    html_ok(ui_template:render_login());
+
 %% TODO: 'HEAD' too
 handle_request2(#req{method = 'GET',
 		     path = [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]

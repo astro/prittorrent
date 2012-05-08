@@ -1,6 +1,7 @@
 -module(ui_template).
 
--export([render_index/0, render_user/1,
+-export([render_login/0,
+	 render_index/0, render_user/1,
 	 render_user_feed/2, export_feed/2]).
 
 -include_lib("model/include/model.hrl").
@@ -326,7 +327,18 @@ page_2column(Title, Prologue, Col1, Col2) ->
 	  {section, [{class, "col2"}], Col2}
 	 ]).
 
-%% TODO
+render_login() ->
+    page_1column(
+      <<"Bitlove: Login">>,
+      no_feed,
+      [{noscript,
+	<<"JavaScript is mandatory beyond this point">>},
+       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>},
+       {script, [{src, <<"/static/login.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>}
+       ]).
+
 render_index() ->
     {ok, RecentDownloads} =
 	model_enclosures:recent_downloads_without_popular(),

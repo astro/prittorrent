@@ -350,3 +350,21 @@ footer a {
   color: #777;
   font-weight: bold;
 }
+
+.login {
+  text-align: right;
+}
+.login label {
+  display: inline-block;
+  padding-right: 1em;
+}
+.login #username, .login #password {
+  width: 8em;
+}
+.login input[type=submit] {
+}
+.login #progress {
+  color: #aaa;
+  font-weight: bold;
+  font-size: 70%;
+}
