@@ -2,6 +2,7 @@
 
 -export([to_hash/0, set_torrent/3,
 	 recent_downloads/0, popular_downloads/0,
+	 recent_downloads_without_popular/0,
 	 user_downloads/1, feed_downloads/1]).
 
 -include("../include/model.hrl").
@@ -37,6 +38,10 @@ recent_downloads() ->
 popular_downloads() ->
     query_downloads("(\"seeders\" + \"leechers\") > 0", [],
 		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 24).
+
+recent_downloads_without_popular() ->
+    query_downloads("\"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_scraped WHERE (\"seeders\" + \"leechers\") > 0 ORDER BY (\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC LIMIT 24)", [],
+		    "\"published\" DESC", 24).
 
 user_downloads(UserName) ->
     query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],

@@ -314,12 +314,10 @@ page_2column(Title, Prologue, Col1, Col2) ->
 
 %% TODO
 render_index() ->
-    {ok, RecentDownloads1} =
-	model_enclosures:recent_downloads(),
+    {ok, RecentDownloads} =
+	model_enclosures:recent_downloads_without_popular(),
     {ok, PopularDownloads} =
 	model_enclosures:popular_downloads(),
-    RecentDownloads2 =
-	downloads_exclude_downloads(RecentDownloads1, PopularDownloads),
     
     page_2column(
       <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
@@ -327,7 +325,7 @@ render_index() ->
 	[{h2, "Recent Torrents"}
 	]} |
        render_downloads(#render_opts{publisher = true, flattr = true},
-			RecentDownloads2)],
+			RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
@@ -464,43 +462,6 @@ export_feed(UserName, Slug) ->
 %%
 %% Helpers
 %%
-
-
-downloads_exclude_downloads(Items1, ExcludeItems) ->
-    Items2 =
-	lists:map(
-	  fun(#feed_item{feed = Feed1,
-			 id = Id1,
-			 downloads = Downloads1} = Item) ->
-		  Downloads2 =
-		      lists:filter(
-			fun(#download{info_hash = InfoHash1}) ->
-				case lists:partition(
-				       fun(#feed_item{feed = Feed2,
-						      id = Id2}) ->
-					       Feed1 =/= Feed2 orelse
-						   Id1 =/= Id2
-				       end, ExcludeItems) of
-				    {_, [#feed_item{downloads = ExcludeDownloads} | _]} ->
-					lists:all(
-					  fun(#download{info_hash = InfoHash2}) ->
-						  InfoHash1 =/= InfoHash2
-					  end, ExcludeDownloads);
-				    _ ->
-					true
-				end
-			end, Downloads1),
-		  Item#feed_item{downloads = Downloads2}
-	  end, Items1),
-    Items3 =
-	lists:filter(
-	  fun(#feed_item{downloads = []}) ->
-		  false;
-	     (#feed_item{}) ->
-		  true
-	  end, Items2),
-    Items3.
-
 
 size_to_human(Size) when not is_integer(Size) ->
     "∞";
