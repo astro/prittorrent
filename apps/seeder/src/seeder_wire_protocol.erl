@@ -59,6 +59,14 @@ start_link(_ListenerPid, Socket, _Transport, Opts) ->
 %%%===================================================================
 
 init([Socket, _Opts]) ->
+    gen_server:cast(self(), handshake),
+    {ok, #state{socket = Socket}}.
+
+handle_call(_Request, _From, State) ->
+    Reply = ok,
+    {reply, Reply, State}.
+
+handle_cast(handshake, #state{socket = Socket} = State) ->
     {ok, Peername} = inet:peername(Socket),
     io:format("Peer ~p just connected~n", [Peername]),
 
@@ -89,19 +97,11 @@ init([Socket, _Opts]) ->
     send_bitfield(Socket, Length, PieceLength),
     Has = make_empty_bitfield(Length, PieceLength),
 
-    {ok, #state{socket = Socket,
-		info_hash = InfoHash,
-		data_length = Length,
-		piece_length = PieceLength,
-		has = Has,
-		storage = Storage}}.
-
-handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+    {noreply, State#state{info_hash = InfoHash,
+			  data_length = Length,
+			  piece_length = PieceLength,
+			  has = Has,
+			  storage = Storage}}.
 
 handle_info({tcp, Socket, Data}, 
 	    #state{socket = Socket} = State1) ->
