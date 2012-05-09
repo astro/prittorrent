@@ -36,7 +36,7 @@ html(HtmlTitle, HeadEls, Contents) ->
 		     {a, [{href, <<"http://tim.geekheim.de/">>}], <<"Tim Pritlove">>}
 		    ]},
 		   {p,
-		    [<<"Open Source by ">>,
+		    [<<"Open Source & Service by ">>,
 		     {a, [{href, <<"http://spaceboyz.net/~astro/">>}], <<"Astro">>}
 		    ]},
 		   {p,
@@ -45,12 +45,19 @@ html(HtmlTitle, HeadEls, Contents) ->
 		    ]}
 		  ]},
 		 {'div',
+		  [{p,
+		    [<<"Follow us on Twitter:">>,
+		     {br, []},
+		     {a, [{href, <<"http://twitter.com/bitlove_org">>}],
+		      <<"@bitlove_org">>}
+		    ]}
+		  ]},
+		 {'div',
 		  [{p, <<"Are you a podcast publisher?">>},
 		   {p, <<"Sign up + add your feeds soon!">>},
 		   {p, 
 		    [{a, [{href, <<"mailto:mail@bitlove.org">>}],
-		      <<"Contact us">>},
-		     <<" to become a beta publisher">>
+		      <<"mail@bitlove.org">>}
 		    ]}
 		  ]}
 		]},
