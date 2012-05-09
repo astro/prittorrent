@@ -27,6 +27,8 @@ TODO
   - Private feeds
   - cowboy + ssl, enforce https for login
 
+* Check U-A & replace RSS links with Miro subscribe URLs
+
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
 
