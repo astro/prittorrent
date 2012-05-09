@@ -254,8 +254,13 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth, Downloaded) 
 		{title, "Seeders"}], integer_to_list(Seeders)},
 	{span, [{class, "l"},
 		{title, "Leechers"}], integer_to_list(Leechers)},
-	{span, [{class, "bw"},
-		{title, "Current Total Bandwidth"}], [size_to_human(Bandwidth), "/s"]}
+	if
+	    Bandwidth > 0 ->
+		{span, [{class, "bw"},
+			{title, "Current Total Bandwidth"}], [size_to_human(Bandwidth), "/s"]};
+	    true ->
+		[]
+	end
        ]}
      ]}.
 
