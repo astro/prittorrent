@@ -168,7 +168,7 @@ render_item(Opts, #feed_item{user = User,
 				       <<"Support the publisher">>};
 				  _  ->
 				      {a, [{href, Payment}],
-				       <<Payment>>}
+				       Payment}
 			      end}
 			     ]}];
 		      true ->
