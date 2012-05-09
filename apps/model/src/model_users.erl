@@ -1,6 +1,6 @@
 -module(model_users).
 
--export([register/3, authenticate/2, activate/1,
+-export([register/3, get_salted/1, authenticate/2, activate/1,
 	 get_details/1,
 	 get_feeds/1, get_feed/2, add_feed/2]).
 
@@ -11,6 +11,14 @@
 register(Name, Email, Password) ->
     ?Q("INSERT INTO users (\"name\", \"email\", \"password\") VALUES ($1, $2, $3)",
        [Name, Email, Password]).
+
+get_salted(Name) ->
+    case ?Q("SELECT \"salted\", \"salt\" FROM users WHERE \"name\"=$1", [Name]) of
+	{ok, _, [{Salted, Salt}]} ->
+	    {ok, Salted, Salt};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
 
 authenticate(Name, Password) ->
     case ?Q("SELECT \"name\" FROM users WHERE \"name\"=$1 AND \"password\"=$2 AND \"activated\"",

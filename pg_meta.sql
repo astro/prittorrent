@@ -1,15 +1,16 @@
 CREATE TABLE users ("name" TEXT NOT NULL,
        	     	    "email" TEXT NOT NULL,
-		    "password" TEXT NOT NULL,
-		    "activated" BOOLEAN DEFAULT FALSE,
+		    "salt" TEXT NOT NULL,
+		    "salted" TEXT,
+		    "activation" TEXT,
 		    "title" TEXT,
 		    "image" TEXT,
 		    "homepage" TEXT,
 		    PRIMARY KEY ("name"));
-CREATE VIEW activated_users AS
-       SELECT "name", "email", "password"
-       FROM users
-       WHERE "activated";
+-- CREATE VIEW activated_users AS
+--        SELECT "name", "email", "password"
+--        FROM users
+--        WHERE "activated";
 
 CREATE TABLE feeds ("url" TEXT NOT NULL,
        	     	    "last_update" TIMESTAMP,

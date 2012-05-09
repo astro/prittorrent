@@ -8,6 +8,7 @@
                   stdlib,
 		  cowboy,
 		  model,
+		  mnesia,
 		  exmpp,
 		  shared
                  ]},

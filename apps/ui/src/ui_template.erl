@@ -335,6 +335,8 @@ render_login() ->
 	<<"JavaScript is mandatory beyond this point">>},
        {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>},
+       {script, [{src, <<"/static/jsSHA.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>},
        {script, [{src, <<"/static/login.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>}
        ]).

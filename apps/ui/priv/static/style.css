@@ -354,14 +354,15 @@ footer a {
 .login {
   text-align: right;
 }
+.login * {
+  margin: 0.3em 0;
+}
 .login label {
   display: inline-block;
   padding-right: 1em;
 }
 .login #username, .login #password {
   width: 8em;
-}
-.login input[type=submit] {
 }
 .login #progress {
   color: #aaa;

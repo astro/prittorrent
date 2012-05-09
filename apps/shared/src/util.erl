@@ -1,7 +1,7 @@
 -module(util).
 
 -export([get_now/0, get_now_us/0, measure/2,
-	 pmap/2]).
+	 pmap/2, binary_to_hex/1, hex_to_binary/1]).
 
 get_now() ->
     {MS, S, SS} = erlang:now(),
@@ -33,3 +33,29 @@ pmap(F, L) ->
 	 {ok, Pid, E2} ->
 	     E2
      end || Pid <- Pids].
+
+binary_to_hex(<<>>) ->
+    [];
+binary_to_hex(<<C:8, Bin/binary>>) ->
+    iolist_to_binary(
+      [io_lib:format("~2.16.0b", [C]) | binary_to_hex(Bin)]
+     ).
+
+hex_to_binary(<<>>) ->
+    <<>>;
+hex_to_binary(<<A:8, B:8, Rest/binary>>) ->
+    <<((hex_to_binary1(A) bsl 4) bor hex_to_binary1(B)):8,
+      (hex_to_binary(Rest))/binary>>.
+
+hex_to_binary1(C)
+  when C >= $0,
+       C =< $9 ->
+    C - $0;
+hex_to_binary1(C)
+  when C >= $a,
+       C =< $f ->
+    C + 10 - $a;
+hex_to_binary1(C)
+  when C >= $A,
+       C =< $F ->
+    C + 10 - $A.
