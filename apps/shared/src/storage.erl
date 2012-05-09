@@ -132,12 +132,9 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 	    end;
 	{ok, {{Status, _}, _Headers, Pid}} ->
 	    %% Finalize this response:
-	    fold_resource1(Pid, fun(_, _) ->
-					ok
-				end, undefined),
+	    exit(Pid, kill),
 
 	    exit({http, Status});
-
 	{error, Reason} ->
 	    exit(Reason)
     end.
