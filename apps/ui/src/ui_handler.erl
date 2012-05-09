@@ -5,6 +5,12 @@
 
 -include("../include/ui.hrl").
 
+-define(COOKIE_OPTS, [{secure, true},
+		      {http_only, true},
+		      {max_age, 30 * 24 * 60 * 60}
+		     ]).
+
+
 init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
@@ -14,13 +20,19 @@ handle(Req, State) ->
     {Path, _} = cowboy_http_req:path(Req),
     {RawPath, _} = cowboy_http_req:raw_path(Req),
     case (catch handle_request1(Req)) of
-	{ok, Status, Headers, Body} ->
-	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, Body, Req),
+	{ok, Status, Headers, Cookies, Body} ->
+	    Req2 = lists:foldl(
+		     fun({CookieName, CookieValue}, Req2) ->
+			     cowboy_http_req:set_resp_cookie(
+			       CookieName, CookieValue,
+			       ?COOKIE_OPTS, Req2)
+		     end, Req, Cookies),
+	    {ok, Req3} = cowboy_http_req:reply(Status, Headers, Body, Req2),
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
 
 	    count_request(Method, Path),
-	    {ok, Req2, State};
+	    {ok, Req3, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
@@ -36,11 +48,13 @@ terminate(_Req, _State) ->
     ok.
 
 html_ok(Body) ->
-    {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], Body}.
+    {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], [], Body}.
 
 json_ok(JSON) ->
+    json_ok(JSON, []).
+json_ok(JSON, Cookies) ->
     Body = rfc4627:encode(JSON),
-    {ok, 200, [{<<"Content-Type">>, <<"application/json">>}], Body}.
+    {ok, 200, [{<<"Content-Type">>, <<"application/json">>}], Cookies, Body}.
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
@@ -109,10 +123,14 @@ handle_request2(#req{method = 'POST',
 		    ChallengeResponse = util:hex_to_binary(HexResponse),
 		    if
 			ChallengeResponse == ExpectedResponse ->
-			    %% TODO: create & set Sid
+			    %% create & set Sid
+			    {ok, Sid} = ui_model_sessions:create(UserName1),
+			    %% reply with new cookie sid
 			    HomeLink = iolist_to_binary(
 					 ui_link:link_user(UserName1)),
-			    json_ok({obj, [{welcome, HomeLink}]});
+			    json_ok({obj, [{welcome, HomeLink}]},
+				    [{<<"sid">>, Sid}
+				    ]);
 			true ->
 			    io:format("Wrong password for ~p~nChallengeResponse: ~p~nExpectedResponse: ~p~n", [UserName1, ChallengeResponse, ExpectedResponse]),
 			    json_ok({obj, [{error, <<"Wrong password">>}]})
