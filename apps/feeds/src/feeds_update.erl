@@ -133,7 +133,8 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
     Image = NormalizeURL(feeds_parse:item_image(Xml)),
     XmlSerialized = iolist_to_binary(feeds_parse:serialize(Xml)),
-    Enclosures = feeds_parse:item_enclosures(Xml),
+    Enclosures = lists:map(NormalizeURL,
+			   feeds_parse:item_enclosures(Xml)),
     if
 	is_binary(Id),
 	is_binary(Title),
