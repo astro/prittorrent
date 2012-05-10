@@ -23,7 +23,7 @@ function setupButton(buttonEl) {
 
 	    div = document.createElement('div');
 	    div.innerHTML = buttonEl.getAttribute('data-payment');
-	    buttonEl.parentNode.insertBefore(div, buttonEl.nextSibling.nextSibling);
+	    buttonEl.parentNode.parentNode.appendChild(div);
 
 	    buttonEl.textContent = "Flattr ▴";
             FlattrLoader.setup();

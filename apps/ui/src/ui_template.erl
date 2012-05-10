@@ -141,75 +141,8 @@ render_item(Opts, #feed_item{user = User,
 	  true ->
 	      []
       end,
-      if
-	  Opts#render_opts.flattr ->
-	      PaymentData1 =
-		  if
-		      is_binary(Payment),
-		      size(Payment) > 0 ->
-			  [{dl, [{class, <<"flattr">>}],
-			    [{dt, [<<"Support ">>, User]},
-			     {dd,
-			      case Payment of
-				  %% Transform an autosubmit link to Flattr button
-				  <<"https://flattr.com/submit/auto?",
-				    Payment1/binary>> ->
-				      {a, [{class, <<"FlattrButton">>},
-					   {href, Payment}
-					   | [case K of
-						  <<"user_id">> ->
-						      {"data-flattr-uid", V};
-						  _ ->
-						      {"data-flattr-" ++ binary_to_list(K), V}
-					      end
-					      || {K, V} <- cowboy_http:x_www_form_urlencoded(
-							     Payment1, fun cowboy_http:urldecode/1)
-					     ]],
-				       <<"Support the publisher">>};
-				  _  ->
-				      {a, [{href, Payment}],
-				       Payment}
-			      end}
-			     ]}];
-		      true ->
-			  []
-		  end,
-	      PaymentData2 =
-		  [{dl, [{class, <<"flattr">>}],
-		    [{dt, <<"Support bitlove.org">>},
-		     {dd,
-		      {a, [{class, <<"FlattrButton">>},
-			   {href, <<"https://flattr.com/profile/Astro">>},
-			   {'data-flattr-url', <<(ui_link:base())/binary,
-						 ItemLink/binary>>},
-			   {'data-flattr-uid', <<"Astro">>},
-			   {'data-flattr-title', <<"Torrent for ", Title/binary, " on Bitlove">>},
-			   {'data-flattr-description', <<"Torrentification & Seeding">>},
-			   {'data-flattr-category', <<"rest">>},
-			   {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
-			  ], <<"on Flattr">>}
-		     }
-		    ]}],
-
-	      {'div', [{class, <<"flattrdropdown">>},
-		       {title, <<"Support the podcaster and Bitlove">>},
-		       {'data-payment', [html:to_iolist(PaymentData1), html:to_iolist(PaymentData2)]}
-		      ], <<"Flattr ▾">>};
-	  true ->
-	      []
-      end,
-      {'div',
-       [if
-	    Opts#render_opts.publisher ->
-		{h3, [{class, "feed"}],
-		 [{a, [{href, ui_link:link_user_feed(User, Slug)}],
-		   [FeedTitle
-		   ]}
-		 ]};
-	    true ->
-		[]
-	end,
-	case Published of
+      {'div', [{class, <<"right">>}],
+       [case Published of
 	    {{Y, Mo, D}, {H, M, _S}} ->
 		{p, [{class, "published"}],
 		 [io_lib:format("~B-~2..0B-~2..0B",
@@ -219,6 +152,75 @@ render_item(Opts, #feed_item{user = User,
 				[H, M])
 		 ]};
 	    _ ->
+		[]
+	end,
+	if
+	    Opts#render_opts.flattr ->
+		PaymentData1 =
+		    if
+			is_binary(Payment),
+			size(Payment) > 0 ->
+			    [{dl, [{class, <<"flattr">>}],
+			      [{dt, [<<"Support ">>, User]},
+			       {dd,
+				case Payment of
+				    %% Transform an autosubmit link to Flattr button
+				    <<"https://flattr.com/submit/auto?",
+				      Payment1/binary>> ->
+					{a, [{class, <<"FlattrButton">>},
+					     {href, Payment}
+					     | [case K of
+						    <<"user_id">> ->
+							{"data-flattr-uid", V};
+						    _ ->
+							{"data-flattr-" ++ binary_to_list(K), V}
+						end
+						|| {K, V} <- cowboy_http:x_www_form_urlencoded(
+							       Payment1, fun cowboy_http:urldecode/1)
+					       ]],
+					 <<"Support the publisher">>};
+				    _  ->
+					{a, [{href, Payment}],
+					 Payment}
+				end}
+			      ]}];
+			true ->
+			    []
+		    end,
+		PaymentData2 =
+		    [{dl, [{class, <<"flattr">>}],
+		      [{dt, <<"Support bitlove.org">>},
+		       {dd,
+			{a, [{class, <<"FlattrButton">>},
+			     {href, <<"https://flattr.com/profile/Astro">>},
+			     {'data-flattr-url', <<(ui_link:base())/binary,
+						   ItemLink/binary>>},
+			     {'data-flattr-uid', <<"Astro">>},
+			     {'data-flattr-title', <<"Torrent for ", Title/binary, " on Bitlove">>},
+			     {'data-flattr-description', <<"Torrentification & Seeding">>},
+			     {'data-flattr-category', <<"rest">>},
+			     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
+			    ], <<"on Flattr">>}
+		       }
+		      ]}],
+
+		{'div', [{class, <<"flattrdropdown">>},
+			 {title, <<"Support the podcaster and Bitlove">>},
+			 {'data-payment', [html:to_iolist(PaymentData1), html:to_iolist(PaymentData2)]}
+			], <<"Flattr ▾">>};
+	    true ->
+		[]
+	end
+       ]},
+      {'div',
+       [if
+	    Opts#render_opts.publisher ->
+		{h3, [{class, "feed"}],
+		 [{a, [{href, ui_link:link_user_feed(User, Slug)}],
+		   [FeedTitle
+		   ]}
+		 ]};
+	    true ->
 		[]
 	end,
 

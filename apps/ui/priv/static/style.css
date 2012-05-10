@@ -124,9 +124,6 @@ h3.feed {
   display: inline;
 }
 .published {
-  float: right;
-  display: inline;
-  text-align: right;
   margin: 0 0 0.1em 0.5em;
   padding: 0 2px;
   font-size: 50%;
@@ -159,12 +156,15 @@ img.logo {
   text-align: right;
   margin: 1em 0 0;
 }
+.right {
+  float: right;
+  text-align: right;
+}
 .flattrdropdown.shown {
   display: block;
 }
 .flattrdropdown {
   display: none;
-  float: right;
   text-align: right;
   font-size: 80%;
   margin-left: 0.2em;
