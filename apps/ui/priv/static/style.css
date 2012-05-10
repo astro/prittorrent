@@ -66,7 +66,7 @@ header.site .slogan {
 
 .col, .col1, .col2 {
   margin: 0 0 2em;
-  padding: 0;
+  padding: 0 1em;
 }
 .col {
   max-width: 40em;
@@ -75,13 +75,11 @@ header.site .slogan {
 .col1 {
   clear: both;
   float: left;
-  padding-right: 0.5em;
 }
 .col1, .col2 {
   max-width: 48%;
 }
 .col2 {
-  padding-left: 0.5em;
   margin-left: 51%;
 }
 
