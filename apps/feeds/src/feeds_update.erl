@@ -46,6 +46,11 @@ update(URL) ->
     ok.
 
 update1(URL, Etag1, LastModified1) ->
+    NormalizeURL = fun(undefined) ->
+			   undefined;
+		      (URL1) ->
+			   url:join(URL, URL1)
+		   end,
     R1 =
 	try feeds_fetch:fetch(URL, Etag1, LastModified1) of
 	    {ok, {Etag, LastModified}, RootEl} ->
@@ -57,12 +62,12 @@ update1(URL, Etag1, LastModified1) ->
 		    FeedXml1 = iolist_to_binary(feeds_parse:serialize(FeedEl)),
 		    ChannelEl = feeds_parse:get_channel(FeedEl),
 		    Title1 = feeds_parse:title(ChannelEl),
-		    Homepage1 = feeds_parse:link(ChannelEl),
-		    Image1 = feeds_parse:image(ChannelEl),
+		    Homepage1 = NormalizeURL(feeds_parse:link(ChannelEl)),
+		    Image1 = NormalizeURL(feeds_parse:image(ChannelEl)),
 		    Items2 =
 			lists:foldl(
 			  fun(ItemXml, Items2) ->
-				  try xml_to_feed_item(URL, ItemXml) of
+				  try xml_to_feed_item(URL, NormalizeURL, ItemXml) of
 				      #feed_item{} = Item ->
 					  [Item | Items2];
 				      _ ->
@@ -120,13 +125,13 @@ update1(URL, Etag1, LastModified1) ->
 	    {error, Reason}
     end.
 
-xml_to_feed_item(Feed, Xml) ->
+xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Id = feeds_parse:item_id(Xml),
     Title = feeds_parse:item_title(Xml),
     Published = feeds_parse:item_published(Xml),
-    Homepage = feeds_parse:item_link(Xml),
-    Payment = feeds_parse:item_payment(Xml),
-    Image = feeds_parse:item_image(Xml),
+    Homepage = NormalizeURL(feeds_parse:item_link(Xml)),
+    Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
+    Image = NormalizeURL(feeds_parse:item_image(Xml)),
     XmlSerialized = iolist_to_binary(feeds_parse:serialize(Xml)),
     Enclosures = feeds_parse:item_enclosures(Xml),
     if
