@@ -9,14 +9,8 @@
 %% Application callbacks
 %% ===================================================================
 
+%% Cowboy web server
 start(_StartType, _StartArgs) ->
-
-    %% Mnesia schema
-
-    ui_model_token:init(),
-
-    %% Cowboy web server
-
     Dispatch =
 	[
 	 %% {Host, list({Path, Handler, Opts})}

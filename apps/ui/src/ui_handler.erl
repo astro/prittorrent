@@ -21,18 +21,20 @@ handle(Req, State) ->
     {RawPath, _} = cowboy_http_req:raw_path(Req),
     case (catch handle_request1(Req)) of
 	{ok, Status, Headers, Cookies, Body} ->
-	    Req2 = lists:foldl(
+	    Req3 = lists:foldl(
 		     fun({CookieName, CookieValue}, Req2) ->
-			     cowboy_http_req:set_resp_cookie(
-			       CookieName, CookieValue,
-			       ?COOKIE_OPTS, Req2)
+			     {ok, Req3} =
+				 cowboy_http_req:set_resp_cookie(
+				   CookieName, CookieValue,
+				   ?COOKIE_OPTS, Req2),
+			     Req3
 		     end, Req, Cookies),
-	    {ok, Req3} = cowboy_http_req:reply(Status, Headers, Body, Req2),
+	    {ok, Req4} = cowboy_http_req:reply(Status, Headers, Body, Req3),
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
 
 	    count_request(Method, Path),
-	    {ok, Req3, State};
+	    {ok, Req4, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
@@ -102,7 +104,7 @@ handle_request2(#req{method = 'POST',
     if
 	%% Just a token request
 	is_binary(UserName) ->
-	    case ui_model_token:generate(UserName) of
+	    case model_token:generate(UserName) of
 		{ok, Salt, Token} ->
 		    SaltHex = util:binary_to_hex(Salt),
 		    TokenHex = util:binary_to_hex(Token),
@@ -116,7 +118,7 @@ handle_request2(#req{method = 'POST',
 	is_binary(HexToken),
 	is_binary(HexResponse) ->
 	    Token = util:hex_to_binary(HexToken),
-	    case ui_model_token:validate(Token) of
+	    case model_token:validate(Token) of
 		{ok, UserName1, Salted, _Salt} ->
 		    %% check challenge response
 		    ExpectedResponse = hmac(Token, Salted),
@@ -124,7 +126,8 @@ handle_request2(#req{method = 'POST',
 		    if
 			ChallengeResponse == ExpectedResponse ->
 			    %% create & set Sid
-			    {ok, Sid} = ui_model_sessions:create(UserName1),
+			    %%{ok, Sid} = ui_model_sessions:create(UserName1),
+			    Sid = <<"foo">>,
 			    %% reply with new cookie sid
 			    HomeLink = iolist_to_binary(
 					 ui_link:link_user(UserName1)),

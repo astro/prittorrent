@@ -1,7 +1,8 @@
 -module(util).
 
 -export([get_now/0, get_now_us/0, measure/2,
-	 pmap/2, binary_to_hex/1, hex_to_binary/1]).
+	 pmap/2, binary_to_hex/1, hex_to_binary/1,
+	 seed_random/0]).
 
 get_now() ->
     {MS, S, SS} = erlang:now(),
@@ -59,3 +60,8 @@ hex_to_binary1(C)
   when C >= $A,
        C =< $F ->
     C + 10 - $A.
+
+seed_random() ->
+    {MS, S, SS} = erlang:now(),
+    PS = lists:sum(pid_to_list(self())),
+    random:seed(MS + PS, S, SS).

@@ -7,10 +7,7 @@ start_link() ->
 
 
 init() ->
-    {MS, S, SS} = erlang:now(),
-    PS = lists:sum(pid_to_list(self())),
-    random:seed(MS + PS, S, SS),
-
+    util:seed_random(),
     loop().
 
 loop() ->
