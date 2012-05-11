@@ -24,7 +24,7 @@ generate(UserName) ->
 generate_token() ->
     util:seed_random(),
 
-    << <<(random:uniform(8)):8>>
+    << <<(random:uniform(256) - 1):8>>
        || _ <- lists:seq(1, 16) >>.
 
 validate(Token) ->

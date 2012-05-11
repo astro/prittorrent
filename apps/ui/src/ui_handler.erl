@@ -5,7 +5,7 @@
 
 -include("../include/ui.hrl").
 
--define(COOKIE_OPTS, [{secure, true},
+-define(COOKIE_OPTS, [%{secure, true},
 		      {http_only, true},
 		      {max_age, 30 * 24 * 60 * 60}
 		     ]).
@@ -64,8 +64,14 @@ handle_request1(Req) ->
     {Path, _} = cowboy_http_req:path(Req),
     {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
     {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
-    {Sid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
-    io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,Sid]),
+    {HexSid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
+    Sid = case (catch util:hex_to_binary(HexSid)) of
+	      {'EXIT', _Reason} ->
+		  undefined;
+	      <<Sid1/binary>> ->
+		  Sid1
+	  end,
+    io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,HexSid]),
     Body = if
 	       Method =:= 'POST';
 	       Method =:= 'POST' ->
@@ -126,13 +132,13 @@ handle_request2(#req{method = 'POST',
 		    if
 			ChallengeResponse == ExpectedResponse ->
 			    %% create & set Sid
-			    %%{ok, Sid} = ui_model_sessions:create(UserName1),
-			    Sid = <<"foo">>,
+			    {ok, Sid} = model_session:generate(UserName1),
 			    %% reply with new cookie sid
 			    HomeLink = iolist_to_binary(
 					 ui_link:link_user(UserName1)),
+			    io:format("Sid: ~p~n", [Sid]),
 			    json_ok({obj, [{welcome, HomeLink}]},
-				    [{<<"sid">>, Sid}
+				    [{<<"sid">>, util:binary_to_hex(Sid)}
 				    ]);
 			true ->
 			    io:format("Wrong password for ~p~nChallengeResponse: ~p~nExpectedResponse: ~p~n", [UserName1, ChallengeResponse, ExpectedResponse]),

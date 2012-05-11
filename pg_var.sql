@@ -86,8 +86,15 @@ CREATE VIEW item_torrents AS
 
 
 -- Login UI
+-- TODO: write reset functions
 CREATE TABLE login_tokens (
        "user" TEXT,
        "token" BYTEA PRIMARY KEY,
        "created" TIMESTAMP
+);
+
+CREATE TABLE user_sessions (
+       "user" TEXT NOT NULL REFERENCES users ("name"),
+       "sid" BYTEA,
+       "updated" TIMESTAMP
 );
