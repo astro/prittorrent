@@ -83,3 +83,11 @@ CREATE VIEW item_torrents AS
        	      enclosure_torrents.info_hash
        FROM enclosure_torrents LEFT JOIN enclosures ON (enclosures.url=enclosure_torrents.url)
        WHERE LENGTH(info_hash)=20;
+
+
+-- Login UI
+CREATE TABLE login_tokens (
+       "user" TEXT,
+       "token" BYTEA PRIMARY KEY,
+       "created" TIMESTAMP
+);

@@ -70,10 +70,3 @@ CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
        	     	       "torrent" BYTEA);
 
 
-
--- Login UI
-CREATE TABLE login_tokens (
-       "user" TEXT,
-       "token" BYTEA PRIMARY KEY,
-       "created" TIMESTAMP
-);
