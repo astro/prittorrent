@@ -150,6 +150,18 @@ handle_request2(#req{method = 'POST',
 	    end
     end;
 
+handle_request2(#req{method = 'GET',
+		     path = [<<"logout">>],
+		     sid = Sid
+		    }) ->
+    if
+	is_binary(Sid) ->
+	    model_session:invalidate(Sid);
+	true ->
+	    ignore
+    end,
+    {ok, 303, [{<<"Location">>, <<"/login">>}], [{<<"sid">>, <<>>}], <<"Bye">>};
+
 %% Torrent download
 %% TODO: 'HEAD' too
 handle_request2(#req{method = 'GET',

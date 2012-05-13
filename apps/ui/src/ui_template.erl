@@ -22,6 +22,7 @@ html(#render_opts{title = HtmlTitle,
 		  true ->
 		      undefined
 	      end,
+
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
@@ -45,11 +46,15 @@ html(#render_opts{title = HtmlTitle,
 	   case Session of
 	       {ok, UserName} ->
 		   {nav, [{id, "navbar"}],
-		    [{p,
-		      [<<"Logged in as ">>,
-		       {a, [{href, ui_link:link_user(UserName)}], UserName}
-		      ]}
-		    ]};
+		    {ul,
+		     [{li,
+		       [<<"Logged in as ">>,
+			{a, [{href, ui_link:link_user(UserName)}], UserName}
+		       ]},
+		      {li,
+		       {a, [{href, "/logout"}], <<"Logout">>}}
+		     ]}
+		   };
 	       _ ->
 		   []
 	   end,

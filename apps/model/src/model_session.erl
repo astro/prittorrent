@@ -1,7 +1,8 @@
 -module(model_session).
 
 -export([generate/1,
-	 validate/1
+	 validate/1,
+	 invalidate/1
 	]).
 
 -define(POOL, pool_users).
@@ -30,3 +31,6 @@ validate(Sid) ->
 	_ ->
 	    {error, invalid_session}
     end.
+
+invalidate(Sid) ->
+    ?Q("DELETE FROM user_sessions WHERE \"sid\"=$1", [Sid]).
