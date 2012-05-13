@@ -23,6 +23,7 @@ handle(Req, State) ->
 	{ok, Status, Headers, Cookies, Body} ->
 	    Req3 = lists:foldl(
 		     fun({CookieName, CookieValue}, Req2) ->
+			     io:format("Set cookie ~s: ~p~n", [CookieName, CookieValue]),
 			     {ok, Req3} =
 				 cowboy_http_req:set_resp_cookie(
 				   CookieName, CookieValue,
@@ -97,8 +98,8 @@ handle_request2(#req{method = 'GET',
 
 %% Login page
 handle_request2(#req{method = 'GET',
-		     path = [<<"login">>]}) ->
-    html_ok(ui_template:render_login());
+		     path = [<<"login">>]} = Req) ->
+    html_ok(ui_template:render_login(Req));
 
 handle_request2(#req{method = 'POST',
 		     path = [<<"login">>],
@@ -170,28 +171,28 @@ handle_request2(#req{method = 'GET',
 %% Index page
 handle_request2(#req{method = 'GET',
 		     path = []
-		    }) ->
-    html_ok(ui_template:render_index());
+		    } = Req) ->
+    html_ok(ui_template:render_index(Req));
 
 %% User profile
 handle_request2(#req{method = 'GET',
 		     path =[<<UserName/binary>>]
-		    }) ->
-    html_ok(ui_template:render_user(UserName));
+		    } = Req) ->
+    html_ok(ui_template:render_user(Req, UserName));
 
 %% User feed
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<Slug/binary>>]
-		    }) ->
+		    } = Req) ->
     %% All hashed episodes
-    html_ok(ui_template:render_user_feed(UserName, Slug));
+    html_ok(ui_template:render_user_feed(Req, UserName, Slug));
 
 %% User feed export
 %% TODO: support not modified
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"feed">>]
-		    }) ->
-    {ok, Type, Body} = ui_template:export_feed(UserName, Slug),
+		    } = Req) ->
+    {ok, Type, Body} = ui_template:export_feed(Req, UserName, Slug),
     Headers =
 	[{<<"Content-Type">>, case Type of
 				  atom -> <<"application/atom+xml">>;

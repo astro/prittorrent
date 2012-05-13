@@ -1,14 +1,15 @@
 -module(ui_template).
 
--export([render_login/0,
-	 render_index/0, render_user/1,
-	 render_user_feed/2, export_feed/2]).
+-export([render_login/1,
+	 render_index/1, render_user/2,
+	 render_user_feed/3, export_feed/3]).
 
 -include_lib("model/include/model.hrl").
 
 -record(render_opts, {publisher = false,
 		      homepage = false,
-		      flattr = false}).
+		      flattr = false,
+		      ui_req}).
 
 html(HtmlTitle, HeadEls, Contents) ->
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
@@ -327,7 +328,7 @@ page_2column(Title, Prologue, Col1, Col2) ->
 	  {section, [{class, "col2"}], Col2}
 	 ]).
 
-render_login() ->
+render_login(_Req) ->
     page_1column(
       <<"Bitlove: Login">>,
       no_feed,
@@ -341,7 +342,7 @@ render_login() ->
 		 {type, <<"text/javascript">>}], <<" ">>}
        ]).
 
-render_index() ->
+render_index(Req) ->
     {ok, RecentDownloads} =
 	model_enclosures:recent_downloads_without_popular(),
     {ok, PopularDownloads} =
@@ -352,17 +353,21 @@ render_index() ->
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true, flattr = true},
+       render_downloads(#render_opts{publisher = true,
+				     flattr = true,
+				     ui_req = Req},
 			RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true, flattr = true},
+       render_downloads(#render_opts{publisher = true,
+				     flattr = true,
+				     ui_req = Req},
 			PopularDownloads)]
      ).
 
 %% Feeds, Recent Episodes
-render_user(UserName) ->
+render_user(Req, UserName) ->
     {UserTitle, UserImage, UserHomepage} =
 	case model_users:get_details(UserName) of
 	    {ok, Title1, Image1, Homepage1} ->
@@ -410,11 +415,12 @@ render_user(UserName) ->
 		 end, UserFeeds)
       ],
       [{h2, "Recent Torrents"} |
-       render_downloads(#render_opts{flattr = true}, UserDownloads)
+       render_downloads(#render_opts{flattr = true,
+				     ui_req = Req}, UserDownloads)
       ]
      ).
 
-render_user_feed(UserName, Slug) ->
+render_user_feed(Req, UserName, Slug) ->
     FeedURL =
 	case model_users:get_feed(UserName, Slug) of
 	    {ok, FeedURL1} ->
@@ -443,11 +449,13 @@ render_user_feed(UserName, Slug) ->
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
-       render_downloads(#render_opts{flattr = true, homepage = true},
+       render_downloads(#render_opts{flattr = true,
+				     homepage = true,
+				     ui_req = Req},
 			FeedDownloads)
       ]).
 
-export_feed(UserName, Slug) ->
+export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of
 	{ok, FeedURL} ->
 	    {ok, FeedXml, ItemXmls, EnclosuresMap} =
