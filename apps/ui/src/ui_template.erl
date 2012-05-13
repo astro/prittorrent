@@ -4,14 +4,24 @@
 	 render_index/1, render_user/2,
 	 render_user_feed/3, export_feed/3]).
 
+-include("../include/ui.hrl").
 -include_lib("model/include/model.hrl").
 
--record(render_opts, {publisher = false,
+-record(render_opts, {title,
+		      publisher = false,
 		      homepage = false,
 		      flattr = false,
 		      ui_req}).
 
-html(HtmlTitle, HeadEls, Contents) ->
+html(#render_opts{title = HtmlTitle,
+		  ui_req = #req{sid = Sid}
+		 }, HeadEls, Contents) ->
+    Session = if
+		  is_binary(Sid) ->
+		      model_session:validate(Sid);
+		  true ->
+		      undefined
+	      end,
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
@@ -30,42 +40,54 @@ html(HtmlTitle, HeadEls, Contents) ->
 	      {a, [{href, <<"/">>}], <<"Bitlove">>}
 	     },
 	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
-	    ]} | Contents] ++
-	      [{footer,
-		[{'div',
-		  [{p,
-		    [<<"Vision by ">>,
-		     {a, [{href, <<"http://tim.geekheim.de/">>}], <<"Tim Pritlove">>}
-		    ]},
-		   {p,
-		    [<<"Open Source & Service by ">>,
-		     {a, [{href, <<"http://spaceboyz.net/~astro/">>}], <<"Astro">>}
-		    ]},
-		   {p,
-		    [<<"Report Bugs ">>,
-		     {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"on Github!">>}
-		    ]}
-		  ]},
-		 {'div',
-		  [{p,
-		    [<<"Follow us on Twitter:">>,
-		     {br, []},
-		     {a, [{href, <<"http://twitter.com/bitlove_org">>}],
-		      <<"@bitlove_org">>}
-		    ]}
-		  ]},
-		 {'div',
-		  [{p, <<"Are you a podcast publisher?">>},
-		   {p, <<"Sign up + add your feeds soon!">>},
-		   {p, 
-		    [{a, [{href, <<"mailto:mail@bitlove.org">>}],
-		      <<"mail@bitlove.org">>}
-		    ]}
-		  ]}
+	    ]},
+	   Contents,
+	   case Session of
+	       {ok, UserName} ->
+		   {nav, [{id, "navbar"}],
+		    [{p,
+		      [<<"Logged in as ">>,
+		       {a, [{href, ui_link:link_user(UserName)}], UserName}
+		      ]}
+		    ]};
+	       _ ->
+		   []
+	   end,
+	   {footer,
+	    [{'div',
+	      [{p,
+		[<<"Vision by ">>,
+		 {a, [{href, <<"http://tim.geekheim.de/">>}], <<"Tim Pritlove">>}
 		]},
-	       {script, [{src, <<"/static/flattrdropdown.js">>},
-			 {type, <<"text/javascript">>}], <<" ">>}
+	       {p,
+		[<<"Open Source & Service by ">>,
+		 {a, [{href, <<"http://spaceboyz.net/~astro/">>}], <<"Astro">>}
+		]},
+	       {p,
+		[<<"Report Bugs ">>,
+		 {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"on Github!">>}
+		]}
+	      ]},
+	     {'div',
+	      [{p,
+		[<<"Follow us on Twitter:">>,
+		 {br, []},
+		 {a, [{href, <<"http://twitter.com/bitlove_org">>}],
+		  <<"@bitlove_org">>}
+		]}
+	      ]},
+	     {'div',
+	      [{p, <<"Are you a podcast publisher?">>},
+	       {p, <<"Sign up + add your feeds soon!">>},
+	       {p, 
+		[{a, [{href, <<"mailto:mail@bitlove.org">>}],
+		  <<"mail@bitlove.org">>}
+		]}
 	      ]}
+	    ]},
+	   {script, [{src, <<"/static/flattrdropdown.js">>},
+		     {type, <<"text/javascript">>}], <<" ">>}
+	  ]}
 	]}
       )].
 
@@ -297,7 +319,7 @@ render_downloads(Opts, Downloads) ->
 	       ]}
       end, Downloads).
 
-page_1column(Title,
+page_1column(Opts,
 	     FeedLink, Col) ->
     HeadEls =
 	if
@@ -313,7 +335,7 @@ page_1column(Title,
 	    true ->
 		[]
 	end,
-    html(Title,
+    html(Opts,
 	 HeadEls,
 	 [{section, [{class, "col"}], Col}]).
 
@@ -321,16 +343,17 @@ page_2column(Title,
 	     Col1, Col2) ->
     page_2column(Title, [], Col1, Col2).
 
-page_2column(Title, Prologue, Col1, Col2) ->
-    html(Title, [],
+page_2column(Opts, Prologue, Col1, Col2) ->
+    html(Opts, [],
 	 [Prologue,
 	  {section, [{class, "col1"}], Col1},
 	  {section, [{class, "col2"}], Col2}
 	 ]).
 
-render_login(_Req) ->
+render_login(Req) ->
     page_1column(
-      <<"Bitlove: Login">>,
+      #render_opts{title = <<"Bitlove: Login">>,
+		   ui_req = Req},
       no_feed,
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
@@ -348,22 +371,20 @@ render_index(Req) ->
     {ok, PopularDownloads} =
 	model_enclosures:popular_downloads(),
     
+    Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
+			publisher = true,
+			flattr = true,
+			ui_req = Req},
     page_2column(
-      <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
+      Opts,
       [{'div',
 	[{h2, "Recent Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true,
-				     flattr = true,
-				     ui_req = Req},
-			RecentDownloads)],
+       render_downloads(Opts, RecentDownloads)],
       [{'div',
 	[{h2, "Popular Torrents"}
 	]} |
-       render_downloads(#render_opts{publisher = true,
-				     flattr = true,
-				     ui_req = Req},
-			PopularDownloads)]
+       render_downloads(Opts, PopularDownloads)]
      ).
 
 %% Feeds, Recent Episodes
@@ -380,8 +401,12 @@ render_user(Req, UserName) ->
     {ok, UserDownloads} =
 	model_enclosures:user_downloads(UserName),
 
+    Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
+			flattr = true,
+			ui_req = Req},
+
     page_2column(
-      [UserName, <<" at Bitlove">>],
+      Opts,
       {header, [{class, "user"}],
        render_meta(h2, UserTitle, UserImage, UserHomepage)
       },
@@ -415,8 +440,7 @@ render_user(Req, UserName) ->
 		 end, UserFeeds)
       ],
       [{h2, "Recent Torrents"} |
-       render_downloads(#render_opts{flattr = true,
-				     ui_req = Req}, UserDownloads)
+       render_downloads(Opts, UserDownloads)
       ]
      ).
 
@@ -433,8 +457,13 @@ render_user_feed(Req, UserName, Slug) ->
     {ok, FeedDownloads} =
 	model_enclosures:feed_downloads(FeedURL),
     
+    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
+			flattr = true,
+			homepage = true,
+			ui_req = Req},
+    
     page_1column(
-      [FeedTitle, <<" on Bitlove">>],
+      Opts,
       ui_link:link_user_feed_xml(UserName, Slug),
       [{header, [{class, "feed"}],
 	render_meta(h2,
@@ -449,10 +478,7 @@ render_user_feed(Req, UserName, Slug) ->
 		      ]}
 		    ], FeedImage, FeedHomepage)
        } |
-       render_downloads(#render_opts{flattr = true,
-				     homepage = true,
-				     ui_req = Req},
-			FeedDownloads)
+       render_downloads(Opts, FeedDownloads)
       ]).
 
 export_feed(_Req, UserName, Slug) ->

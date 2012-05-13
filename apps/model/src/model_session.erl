@@ -23,7 +23,7 @@ generate_sid() ->
        || _ <- lists:seq(1, 16) >>.
 
 validate(Sid) ->
-    case ?Q("UPDATE login_tokens SET \"updated\"=NOW() WHERE \"sid\"=$1 RETURNING \"user\"", 
+    case ?Q("UPDATE user_sessions SET \"updated\"=NOW() WHERE \"sid\"=$1 RETURNING \"user\"", 
 	    [Sid]) of
 	{ok, 1, _, [{UserName}]} ->
 	    {ok, UserName};
