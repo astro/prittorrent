@@ -46,15 +46,13 @@ html(#render_opts{title = HtmlTitle,
 	   case Session of
 	       {ok, UserName} ->
 		   {nav, [{id, "navbar"}],
-		    {ul,
-		     [{li,
-		       [<<"Logged in as ">>,
-			{a, [{href, ui_link:link_user(UserName)}], UserName}
-		       ]},
-		      {li,
-		       {a, [{href, "/logout"}], <<"Logout">>}}
-		     ]}
-		   };
+		    [{p,
+		      [<<"Logged in as ">>,
+		       {a, [{href, ui_link:link_user(UserName)}], UserName}
+		      ]},
+		     {p,
+		      {a, [{href, "/logout"}], <<"Logout">>}}
+		    ]};
 	       _ ->
 		   []
 	   end,
