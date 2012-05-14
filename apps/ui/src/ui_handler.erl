@@ -234,29 +234,6 @@ count_request(Method, Path) ->
       list_to_binary(io_lib:format("~s ~s", [Method, Path])),
       1).
 
-hex_to_binary(Hex) when is_binary(Hex) ->
-    iolist_to_binary(
-      hex_to_binary1(Hex));
-hex_to_binary(Hex) ->
-    hex_to_binary(list_to_binary(Hex)).
-
-hex_to_binary1(<<>>) ->
-    [];
-hex_to_binary1(<<H1:8, H2:8, Hex/binary>>) ->
-    [<<(parse_hex(H1)):4, (parse_hex(H2)):4>>
-	 | hex_to_binary1(Hex)].
-
-parse_hex(H)
-  when H >= $0, H =< $9 ->
-    H - $0;
-parse_hex(H)
-  when H >= $A, H =< $F ->
-    H - $A + 16#a;
-parse_hex(H)
-  when H >= $a, H =< $f ->
-    H - $a + 16#a;
-parse_hex(_) ->
-    error(invalid_hex).
 
 escape_bin(<<>>, _) ->
     <<>>;
