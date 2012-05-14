@@ -101,11 +101,6 @@ handle_request2(#req{method = 'GET',
 		     path = [<<"login">>]} = Req) ->
     html_ok(ui_template:render_login(Req));
 
-%% Signup page
-handle_request2(#req{method = 'GET',
-		     path = [<<"signup">>]} = Req) ->
-    html_ok(ui_template:render_signup(Req));
-
 handle_request2(#req{method = 'POST',
 		     path = [<<"login">>],
 		     body = Body}) ->
@@ -153,6 +148,43 @@ handle_request2(#req{method = 'POST',
 		{error, wrong_password} ->
 		    json_ok({obj, [{error, <<"Invalid token, please retry">>}]})
 	    end
+    end;
+
+%% Signup page
+handle_request2(#req{method = 'GET',
+		     path = [<<"signup">>]} = Req) ->
+    html_ok(ui_template:render_signup(Req));
+
+handle_request2(#req{method = 'POST',
+		     path = [<<"signup">>],
+		     body = Body} = Req) ->
+    UserName = proplists:get_value(<<"username">>, Body),
+    Email = proplists:get_value(<<"email">>, Body),
+    TOS1 = proplists:get_value(<<"tos-1">>, Body),
+    TOS2 = proplists:get_value(<<"tos-2">>, Body),
+    %% Validate
+    case {validate_username(UserName),
+	  validate_email(Email),
+	  TOS1,
+	  TOS2
+	 } of
+	{false, _, _, _} ->
+	    html_ok(ui_template:render_message(Req, <<"Invalid username :-(">>));
+	{true, false, _, _} ->
+	    html_ok(ui_template:render_message(Req, <<"That is not an e-mail address!">>));
+	{true, true, _, _}
+	  when TOS1 =/= <<"tos-1">>;
+	       TOS2 =/= <<"tos-2">> ->
+	    html_ok(ui_template:render_message(Req, <<"You need to agree to our terms. We do not wish to get sued.">>));
+	{true, true, <<"tos-1">>, <<"tos-2">>} ->
+	    case create_account(UserName, Email) of
+		ok ->
+		    html_ok(ui_template:render_message(Req, <<"Check your mail!">>));
+		{error, Message} ->
+		    html_ok(ui_template:render_message(Req, Message))
+	    end;
+	_ ->
+	    html_ok(ui_template:render_message(Req, <<"Invalid account data">>))
     end;
 
 handle_request2(#req{method = 'GET',
@@ -222,6 +254,7 @@ handle_request2(_Req) ->
     throw({http, 404}).
 
 
+%% UI stats gathering
 count_request(Method, []) ->
     count_request(Method, <<"/">>);
 count_request(Method, Path) when is_list(Path) ->
@@ -234,6 +267,71 @@ count_request(Method, Path) ->
       list_to_binary(io_lib:format("~s ~s", [Method, Path])),
       1).
 
+%%
+%% Signup helpers
+%%
+validate_username(UserName) ->
+    if
+	size(UserName) >= 1 ->
+	    validate_username1(UserName);
+	true ->
+	    false
+    end.
+validate_username1(<<>>) ->
+    true;
+validate_username1(<<C:8, Rest/binary>>)
+  when (C >= $a andalso C =< $z);
+       (C >= $0 andalso C =< $9);
+       C == $-;
+       C == $_ ->
+    validate_username1(Rest);
+validate_username1(_) ->
+    false.
+
+validate_email(Email) ->
+    Ats = [C || <<C:8>> <= Email,
+		C == $@],
+    Spaces = [C || <<C:8>> <= Email,
+		   C == $ ],
+    if
+	length(Ats) == 1,
+	length(Spaces) == 0 ->
+	    true;
+	true ->
+	    false
+    end.
+
+
+create_account(UserName, Email) ->
+    %% Create Account
+    %% Prepare Activation
+    %% Send Email
+    {ok, SmtpOptions} = application:get_env(ui, smtp_options),
+    Mail =
+	mimemail:encode(
+	  {"text", "plain",
+	   [{<<"From">>, <<"mail@bitlove.org">>},
+	    {<<"To">>, <<UserName/binary, " <", Email/binary, ">">>},
+	    {<<"Subject">>, <<"Welcome to Bitlove">>},
+	    {<<"User-Agent">>, <<"PritTorrent">>}],
+	   [],
+	   <<"Welcome to Bitlove!\r\n",
+	     "\r\n",
+	     "To complete signup visit the following link:\r\n",
+	     "    http://bitlove.org/activate/...\r\n",
+	     "\r\n",
+	     "\r\n",
+	     "Thanks for sharing\r\n",
+	     "    The Bitlove Team\r\n">>
+	  }),
+    gen_smtp_client:send_blocking(Mail, SmtpOptions),
+    %% Respond
+    ok.
+
+
+%%
+%% Helpers
+%%
 
 escape_bin(<<>>, _) ->
     <<>>;

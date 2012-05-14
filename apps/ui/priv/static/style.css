@@ -383,6 +383,8 @@ footer a {
 }
 .signup label[for^=tos] {
   width: auto;
+  padding-left: 0.5em;
+  vertical-align: bottom;
 }
 .login #progress {
   color: #aaa;
