@@ -1,6 +1,6 @@
 -module(ui_template).
 
--export([render_login/1,
+-export([render_login/1, render_signup/1,
 	 render_index/1, render_user/2,
 	 render_user_feed/3, export_feed/3]).
 
@@ -380,6 +380,46 @@ render_login(Req) ->
        {script, [{src, <<"/static/jsSHA.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>},
        {script, [{src, <<"/static/login.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>}
+       ]).
+
+render_signup(Req) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Signup">>,
+		   ui_req = Req},
+      no_feed,
+      [{noscript,
+	<<"JavaScript is mandatory beyond this point">>},
+       {form, [{class, "signup"}],
+	[{p,
+	  [{label, [{for, "username"}], <<"Username:">>},
+	   {input, [{id, "username"}], []}
+	  ]},
+	 {p,
+	  [{label, [{for, "email"}], <<"E-Mail:">>},
+	   {input, [{id, "email"}], []}
+	  ]},
+	 {p, [{class, "tos"}],
+	  [{input, [{type, "checkbox"},
+		    {id, "tos-1"},
+		    {value, "tos-1"}], []},
+	   {label, [{for, "tos-1"}],
+	    <<"The media I am about to publish here is free to copy.">>}
+	  ]},
+	 {p, [{class, "tos"}],
+	  [{input, [{type, "checkbox"},
+		    {id, "tos-2"},
+		    {value, "tos-2"}], []},
+	   {label, [{for, "tos-2"}],
+	    <<"I will not use this service for content I am not allowed to (re-)distribute.">>}
+	  ]},
+	 {input, [{id, "signup"},
+		  {type, "submit"},
+		  {value, "Signup"}], []}
+	]},
+       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>},
+       {script, [{src, <<"/static/signup.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>}
        ]).
 

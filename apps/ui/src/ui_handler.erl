@@ -101,6 +101,11 @@ handle_request2(#req{method = 'GET',
 		     path = [<<"login">>]} = Req) ->
     html_ok(ui_template:render_login(Req));
 
+%% Signup page
+handle_request2(#req{method = 'GET',
+		     path = [<<"signup">>]} = Req) ->
+    html_ok(ui_template:render_signup(Req));
+
 handle_request2(#req{method = 'POST',
 		     path = [<<"login">>],
 		     body = Body}) ->

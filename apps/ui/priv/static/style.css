@@ -373,20 +373,25 @@ footer a {
 .login {
   text-align: right;
 }
-.login * {
+.login, .signup * {
   margin: 0.3em 0;
 }
-.login label {
+.login label, .signup label {
   display: inline-block;
   padding-right: 1em;
 }
-.login #username, .login #password {
+.login #username, .login #password, .signup #username, .signup #email {
   width: 8em;
 }
 .login #progress {
   color: #aaa;
   font-weight: bold;
   font-size: 70%;
+}
+
+.tos {
+  font-size: 60%;
+  color: #666;
 }
 
 noscript {
