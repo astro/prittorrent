@@ -360,6 +360,21 @@ render_login(Req) ->
       no_feed,
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
+       {form, [{class, "login"}],
+	[{p,
+	  [{label, [{for, "username"}], <<"Username:">>},
+	   {input, [{id, "username"}], []}
+	  ]},
+	 {p,
+	  [{label, [{for, "password"}], <<"Password:">>},
+	   {input, [{id, "password"},
+		    {type, "password"}], []}
+	  ]},
+	 {p, [{id, "progress"}], []},
+	 {input, [{id, "login"},
+		  {type, "submit"},
+		  {value, "Login"}], []}
+	]},
        {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>},
        {script, [{src, <<"/static/jsSHA.js">>},

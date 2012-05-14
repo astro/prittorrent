@@ -1,9 +1,3 @@
-$('noscript').after('<form class="login">'
-		    + '<p><label for="username">Username:</label><input id="username"/></p>'
-		    + '<p><label for="password">Password:</label><input id="password" type="password"/></p>'
-		    + '<p id="progress"></p>'
-		    + '<input id="login" type="submit" value="Login"/>'
-		    + '</form>');
 $('#login').click(function(ev) {
     $('#login').hide();
     $('.login input').prop('disabled', 'disabled');
