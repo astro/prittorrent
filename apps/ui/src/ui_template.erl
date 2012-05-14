@@ -360,7 +360,7 @@ render_login(Req) ->
       no_feed,
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
-       {form, [{class, "login"}],
+       {form, [{class, "login r"}],
 	[{p,
 	  [{label, [{for, "username"}], <<"Username:">>},
 	   {input, [{id, "username"}], []}
@@ -390,7 +390,9 @@ render_signup(Req) ->
       no_feed,
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
-       {form, [{class, "signup"}],
+       {form, [{class, "signup"},
+	       {method, "POST"},
+	       {action, "/signup"}],
 	[{p,
 	  [{label, [{for, "username"}], <<"Username:">>},
 	   {input, [{id, "username"}], []}
@@ -404,14 +406,14 @@ render_signup(Req) ->
 		    {id, "tos-1"},
 		    {value, "tos-1"}], []},
 	   {label, [{for, "tos-1"}],
-	    <<"The media I am about to publish here is free to copy.">>}
+	    <<" The media I am about to publish here is free to copy.">>}
 	  ]},
 	 {p, [{class, "tos"}],
 	  [{input, [{type, "checkbox"},
 		    {id, "tos-2"},
 		    {value, "tos-2"}], []},
 	   {label, [{for, "tos-2"}],
-	    <<"I will not use this service for content I am not allowed to (re-)distribute.">>}
+	    <<" I will not use this service for content I am not allowed to (re-)distribute freely.">>}
 	  ]},
 	 {input, [{id, "signup"},
 		  {type, "submit"},

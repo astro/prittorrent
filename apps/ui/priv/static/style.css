@@ -370,7 +370,7 @@ footer a {
   font-weight: bold;
 }
 
-.login {
+.r {
   text-align: right;
 }
 .login, .signup * {
@@ -379,14 +379,29 @@ footer a {
 .login label, .signup label {
   display: inline-block;
   padding-right: 1em;
+  width: 6em;
 }
-.login #username, .login #password, .signup #username, .signup #email {
-  width: 8em;
+.signup label[for^=tos] {
+  width: auto;
 }
 .login #progress {
   color: #aaa;
   font-weight: bold;
   font-size: 70%;
+}
+input {
+  color: #030;
+  background-color: #efe;
+  font-weight: bold;
+  border: 1px solid #3a0;
+  border-radius: 2px;
+  padding: 2px 6px;
+}
+input:hover, input:focus {
+  color: black;
+  background-color: #ffe;
+  border: 1px solid #3f0;
+  
 }
 
 .tos {
