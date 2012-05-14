@@ -307,10 +307,11 @@ create_account(UserName, Email) ->
     %% Prepare Activation
     %% Send Email
     {ok, SmtpOptions} = application:get_env(ui, smtp_options),
+    MailFrom = <<"mail@bitlove.org">>,
     Mail =
 	mimemail:encode(
 	  {"text", "plain",
-	   [{<<"From">>, <<"mail@bitlove.org">>},
+	   [{<<"From">>, MailFrom},
 	    {<<"To">>, <<UserName/binary, " <", Email/binary, ">">>},
 	    {<<"Subject">>, <<"Welcome to Bitlove">>},
 	    {<<"User-Agent">>, <<"PritTorrent">>}],
@@ -324,10 +325,16 @@ create_account(UserName, Email) ->
 	     "Thanks for sharing\r\n",
 	     "    The Bitlove Team\r\n">>
 	  }),
-    gen_smtp_client:send_blocking(Mail, SmtpOptions),
-    %% Respond
-    ok.
-
+    case gen_smtp_client:send_blocking({MailFrom, [Email], Mail},
+				       SmtpOptions) of
+	Response when is_binary(Response) ->
+	    %% Respond
+	    ok;
+	{error, Reason} ->
+	    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
+		      [Mail, SmtpOptions, Reason]),
+	    {error, <<"Cannot send mail">>}
+    end.
 
 %%
 %% Helpers
