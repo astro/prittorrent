@@ -28,7 +28,7 @@ get_peers(InfoHash, ReqPeerId, LeechersOnly) ->
 	   end,
     case ?Q("SELECT \"peer_id\", \"host\", \"port\" FROM " ++
 		View ++
-		" WHERE \"info_hash\"=$1 AND \"peer_id\"!=$2",
+		" WHERE \"info_hash\"=$1 AND \"peer_id\"!=$2 LIMIT 40",
 	    [InfoHash, ReqPeerId]) of
 	{ok, _, Rows} ->
 	    {ok, Rows}
