@@ -388,3 +388,10 @@ footer a {
   font-weight: bold;
   font-size: 70%;
 }
+
+noscript {
+  font-size: 200%;
+  text-align: center;
+  color: red;
+  text-decoration: blink;
+}
