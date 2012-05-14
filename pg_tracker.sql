@@ -16,19 +16,17 @@ CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash"
 --CREATE INDEX tracked_info_hash ON tracked ("info_hash");
 
 -- For leechers:
-CREATE VIEW tracker AS
+CREATE OR REPLACE VIEW tracker AS
        SELECT "info_hash", "peer_id", "host", "port"
          FROM tracked
-     ORDER BY "left" ASC, "last_request" DESC
-        LIMIT 60;
+     ORDER BY "left" ASC, "last_request" DESC;
 
 -- For seeders:
-CREATE VIEW tracker_leechers AS
+CREATE OR REPLACE VIEW tracker_leechers AS
        SELECT "info_hash", "peer_id", "host", "port"
          FROM tracked
         WHERE "left">0
-     ORDER BY "left" ASC, "last_request" DESC
-        LIMIT 60;
+     ORDER BY "left" ASC, "last_request" DESC;
 
 CREATE OR REPLACE FUNCTION set_peer(
        "p_info_hash" BYTEA, "p_host" BYTEA, "p_port" INT, "p_peer_id" BYTEA,
