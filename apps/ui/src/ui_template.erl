@@ -430,7 +430,7 @@ render_signup(Req) ->
 		    {name, "tos-2"},
 		    {value, "tos-2"}], []},
 	   {label, [{for, "tos-2"}],
-	    <<" I will not use this service for content I am not allowed to (re-)distribute freely.">>}
+	    <<" I will use this service only for content I am allowed to (re-)distribute.">>}
 	  ]},
 	 {input, [{id, "signup"},
 		  {type, "submit"},
