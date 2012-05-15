@@ -381,6 +381,12 @@ footer a {
   padding-right: 1em;
   width: 6em;
 }
+.signup .hint {
+  font-size: 80%;
+  font-style: italic;
+  color: #777;
+  padding-left: 1em;
+}
 .signup label[for^=tos] {
   width: auto;
   padding-left: 0.5em;

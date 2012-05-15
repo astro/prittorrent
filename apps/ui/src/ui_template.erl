@@ -408,7 +408,8 @@ render_signup(Req) ->
 	 {p,
 	  [{label, [{for, "username"}], <<"Username:">>},
 	   {input, [{id, "username"},
-		    {name, "username"}], []}
+		    {name, "username"}], []},
+	   {span, [{class, "hint"}], <<"">>}
 	  ]},
 	 {p,
 	  [{label, [{for, "email"}], <<"E-Mail:">>},
