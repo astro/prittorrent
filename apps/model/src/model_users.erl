@@ -1,7 +1,7 @@
 -module(model_users).
 
 -export([register/2, get_salted/1, set_salted/2,
-	 get_details/1,
+	 get_details/1, get_by_email/1,
 	 get_feeds/1, get_feed/2, add_feed/2]).
 
 
@@ -48,6 +48,11 @@ get_details(Name) ->
 	{ok, _, []} ->
 	    {error, not_found}
     end.
+
+get_by_email(Email) ->
+    {ok, _, Rows} =
+	?Q("SELECT \"name\" FROM users WHERE \"email\"=$1", [Email]),
+    [Name || {Name} <- Rows].
 
 
 get_feeds(Name) ->

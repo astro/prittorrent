@@ -1,7 +1,8 @@
 -module(ui_template).
 
 -export([render_message/2,
-	 render_login/1, render_signup/1, render_activate/3,
+	 render_login/1, render_signup/1,
+	 render_activate/3, render_reactivate/1,
 	 render_index/1, render_user/2,
 	 render_user_feed/3, export_feed/3]).
 
@@ -384,7 +385,9 @@ render_login(Req) ->
 	 {p, [{id, "progress"}], <<"">>},
 	 {input, [{id, "login"},
 		  {type, "submit"},
-		  {value, "Login"}], []}
+		  {value, "Login"}], []},
+	 {p,
+	  {a, [{href, "/reactivate"}], <<"Forgot password?">>}}
 	]},
        {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>},
@@ -476,6 +479,26 @@ render_activate(Req, HexToken, HexSalt) ->
 		 {type, <<"text/javascript">>}], <<" ">>},
        {script, [{src, <<"/static/activate.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>}
+       ]).
+
+render_reactivate(Req) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Activate your account">>,
+		   ui_req = Req},
+      no_feed,
+      [{form, [{class, "login r"},
+	       {method, "POST"},
+	       {enctype, "application/x-www-form-urlencoded"},
+	       {action, "/reactivate"}],
+	[{h2, <<"Reactivate your account">>},
+	 {p,
+	  [{label, [{for, "email"}], <<"E-Mail:">>},
+	   {input, [{id, "email"},
+		    {name, "email"}], []}
+	  ]},
+	 {input, [{type, "submit"},
+		  {value, "Ok"}], []}
+	]}
        ]).
 
 render_index(Req) ->

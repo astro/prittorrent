@@ -5,6 +5,7 @@
 
 -include("../include/ui.hrl").
 
+%% TODO: make configurable
 -define(COOKIE_OPTS, [%{secure, true},
 		      {http_only, true},
 		      {max_age, 30 * 24 * 60 * 60},
@@ -231,6 +232,24 @@ handle_request2(#req{method = 'POST',
     end;
 
 handle_request2(#req{method = 'GET',
+		     path = [<<"reactivate">>]} = Req) ->
+    html_ok(ui_template:render_reactivate(Req));
+
+handle_request2(#req{method = 'POST',
+		     path = [<<"reactivate">>],
+		     body = Body} = Req) ->
+    Email = proplists:get_value(<<"email">>, Body, undefined),
+    case model_users:get_by_email(Email) of
+	[] ->
+	    html_ok(ui_template:render_message(Req, <<"Not found">>));
+	Users ->
+	    lists:foreach(fun(User) ->
+				  reactivate_user(User, Email)
+			  end, Users),
+	    html_ok(ui_template:render_message(Req, <<"Check your mail!">>))
+    end;
+
+handle_request2(#req{method = 'GET',
 		     path = [<<"logout">>],
 		     sid = Sid
 		    }) ->
@@ -372,6 +391,44 @@ create_account(UserName, Email) ->
 	     "\r\n",
 	     "\r\n",
 	     "Thanks for sharing\r\n",
+	     "    The Bitlove Team\r\n">>
+	  }),
+    case gen_smtp_client:send_blocking({MailFrom, [Email], Mail},
+				       SmtpOptions) of
+	Response when is_binary(Response) ->
+	    %% Respond
+	    ok;
+	{error, Reason} ->
+	    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
+		      [Mail, SmtpOptions, Reason]),
+	    {error, <<"Cannot send mail">>}
+    end.
+
+reactivate_user(UserName, Email) ->
+    %% Prepare Activation
+    {ok, Token} =
+	model_token:generate(activate, UserName),
+    TokenHex = util:binary_to_hex(Token),
+    
+    %% Send Email
+    {ok, BaseURLSSL} = application:get_env(ui, base_url_ssl),
+    {ok, SmtpOptions} = application:get_env(ui, smtp_options),
+    MailFrom = <<"mail@bitlove.org">>,
+    Mail =
+	mimemail:encode(
+	  {"text", "plain",
+	   [{<<"From">>, MailFrom},
+	    {<<"To">>, <<UserName/binary, " <", Email/binary, ">">>},
+	    {<<"Subject">>, <<"Password reset for your Bitlove account">>},
+	    {<<"User-Agent">>, <<"PritTorrent">>}],
+	   [],
+	   <<"Dear user\r\n",
+	     "\r\n",
+	     "To set a new password for your account visit this link:\r\n",
+	     "    ", BaseURLSSL/binary, "/activate/", TokenHex/binary, "\r\n",
+	     "\r\n",
+	     "\r\n",
+	     "Enjoy the ride\r\n",
 	     "    The Bitlove Team\r\n">>
 	  }),
     case gen_smtp_client:send_blocking({MailFrom, [Email], Mail},
