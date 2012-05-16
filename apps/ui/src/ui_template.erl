@@ -16,15 +16,8 @@
 		      ui_req}).
 
 html(#render_opts{title = HtmlTitle,
-		  ui_req = #req{sid = Sid}
+		  ui_req = #req{session_user = SessionUser}
 		 }, HeadEls, Contents) ->
-    Session = if
-		  is_binary(Sid) ->
-		      model_session:validate(Sid);
-		  true ->
-		      undefined
-	      end,
-
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
        {html,
@@ -45,17 +38,17 @@ html(#render_opts{title = HtmlTitle,
 	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
 	    ]},
 	   Contents,
-	   case Session of
-	       {ok, UserName} ->
+	   if
+	       is_binary(SessionUser) ->
 		   {nav, [{id, "navbar"}],
 		    [{p,
 		      [<<"Logged in as ">>,
-		       {a, [{href, ui_link:link_user(UserName)}], UserName}
+		       {a, [{href, ui_link:link_user(SessionUser)}], SessionUser}
 		      ]},
 		     {p,
 		      {a, [{href, "/logout"}], <<"Logout">>}}
 		    ]};
-	       _ ->
+	       true ->
 		   []
 	   end,
 	   {footer,
@@ -510,7 +503,7 @@ render_index(Req) ->
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
 			flattr = true,
-			ui_req = Req},
+			ui_req = validate_session(Req)},
     page_2column(
       Opts,
       [{'div',
@@ -539,7 +532,7 @@ render_user(Req, UserName) ->
 
     Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
 			flattr = true,
-			ui_req = Req},
+			ui_req = validate_session(Req)},
 
     page_2column(
       Opts,
@@ -596,7 +589,7 @@ render_user_feed(Req, UserName, Slug) ->
     Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
 			flattr = true,
 			homepage = true,
-			ui_req = Req},
+			ui_req = validate_session(Req)},
     
     page_1column(
       Opts,
@@ -616,6 +609,17 @@ render_user_feed(Req, UserName, Slug) ->
        } |
        render_downloads(Opts, FeedDownloads)
       ]).
+
+
+validate_session(#req{sid = Sid} = Req) ->
+    SessionUser =
+	case model_session:validate(Sid) of
+	    {ok, User} ->
+		User;
+	    {error, invalid_session} ->
+		undefined
+	end,
+    Req#req{session_user = SessionUser}.
 
 export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of

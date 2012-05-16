@@ -68,12 +68,13 @@ handle_request1(Req) ->
     {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
     {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
     {HexSid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
-    Sid = case (catch util:hex_to_binary(HexSid)) of
-	      {'EXIT', _Reason} ->
-		  undefined;
-	      <<Sid1/binary>> ->
-		  Sid1
-	  end,
+    Sid =
+	case (catch util:hex_to_binary(HexSid)) of
+	    <<Sid1/binary>> when size(Sid1) > 0 ->
+		Sid1;
+	    _ ->
+		undefined
+	end,
     io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,HexSid]),
     Body = if
 	       Method =:= 'POST';
