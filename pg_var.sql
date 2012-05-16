@@ -87,7 +87,8 @@ CREATE VIEW item_torrents AS
 
 -- Login UI
 -- TODO: write reset functions
-CREATE TABLE login_tokens (
+CREATE TABLE user_tokens (
+       "kind" TEXT,
        "user" TEXT,
        "token" BYTEA PRIMARY KEY,
        "created" TIMESTAMP

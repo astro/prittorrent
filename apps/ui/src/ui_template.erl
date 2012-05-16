@@ -1,7 +1,7 @@
 -module(ui_template).
 
 -export([render_message/2,
-	 render_login/1, render_signup/1,
+	 render_login/1, render_signup/1, render_activate/3,
 	 render_index/1, render_user/2,
 	 render_user_feed/3, export_feed/3]).
 
@@ -371,7 +371,8 @@ render_login(Req) ->
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
        {form, [{class, "login r"}],
-	[{p,
+	[{h2, <<"Podcaster Login">>},
+	 {p,
 	  [{label, [{for, "username"}], <<"Username:">>},
 	   {input, [{id, "username"}], []}
 	  ]},
@@ -380,7 +381,7 @@ render_login(Req) ->
 	   {input, [{id, "password"},
 		    {type, "password"}], []}
 	  ]},
-	 {p, [{id, "progress"}], []},
+	 {p, [{id, "progress"}], <<"">>},
 	 {input, [{id, "login"},
 		  {type, "submit"},
 		  {value, "Login"}], []}
@@ -438,7 +439,42 @@ render_signup(Req) ->
 	]},
        {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/signup.js">>},  %% TODO
+       {script, [{src, <<"/static/signup.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>}
+       ]).
+
+render_activate(Req, HexToken, HexSalt) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Activate your account">>,
+		   ui_req = Req},
+      no_feed,
+      [{noscript,
+	<<"JavaScript is mandatory beyond this point">>},
+       {form, [{class, "login r"}],
+	[{h2, <<"Activate your account">>},
+	 {p,
+	  [{label, [{for, "password1"}], <<"Password:">>},
+	   {input, [{id, "password1"},
+		    {type, "password"}], []}
+	  ]},
+	 {p,
+	  [{label, [{for, "password2"}], <<"Repeat:">>},
+	   {input, [{id, "password2"},
+		    {type, "password"}], []}
+	  ]},
+	 {p, [{id, "progress"}], <<"">>},
+	 {input, [{id, "activate"},
+		  {type, "submit"},
+		  {value, "Activate"},
+		  {'data-token', HexToken},
+		  {'data-salt', HexSalt}
+		 ], []}
+	]},
+       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>},
+       {script, [{src, <<"/static/jsSHA.js">>},
+		 {type, <<"text/javascript">>}], <<" ">>},
+       {script, [{src, <<"/static/activate.js">>},
 		 {type, <<"text/javascript">>}], <<" ">>}
        ]).
 

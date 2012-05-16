@@ -7,7 +7,8 @@
 
 -define(COOKIE_OPTS, [%{secure, true},
 		      {http_only, true},
-		      {max_age, 30 * 24 * 60 * 60}
+		      {max_age, 30 * 24 * 60 * 60},
+		      {path, <<"/">>}
 		     ]).
 
 
@@ -111,8 +112,9 @@ handle_request2(#req{method = 'POST',
     if
 	%% Just a token request
 	is_binary(UserName) ->
-	    case model_token:generate(UserName) of
-		{ok, Salt, Token} ->
+	    case model_users:get_salted(UserName) of
+		{ok, _Salted, Salt} ->
+		    {ok, Token} = model_token:generate(login, UserName),
 		    SaltHex = util:binary_to_hex(Salt),
 		    TokenHex = util:binary_to_hex(Token),
 		    json_ok({obj, [{salt, SaltHex},
@@ -125,10 +127,13 @@ handle_request2(#req{method = 'POST',
 	is_binary(HexToken),
 	is_binary(HexResponse) ->
 	    Token = util:hex_to_binary(HexToken),
-	    case model_token:validate(Token) of
-		{ok, UserName1, Salted, _Salt} ->
+	    case model_token:validate(login, Token) of
+		{ok, UserName1} ->
+		    {ok, Salted, _Salt} = model_users:get_salted(UserName1),
 		    %% check challenge response
-		    ExpectedResponse = hmac(Token, Salted),
+		    io:format("Salt: ~s~nSalted: ~s~nToken: ~s~n",
+			      [util:binary_to_hex(_Salt), util:binary_to_hex(Salted), HexToken]),
+		    ExpectedResponse = hmac(Token, util:binary_to_hex(Salted)),
 		    ChallengeResponse = util:hex_to_binary(HexResponse),
 		    if
 			ChallengeResponse == ExpectedResponse ->
@@ -142,7 +147,7 @@ handle_request2(#req{method = 'POST',
 				    [{<<"sid">>, util:binary_to_hex(Sid)}
 				    ]);
 			true ->
-			    io:format("Wrong password for ~p~nChallengeResponse: ~p~nExpectedResponse: ~p~n", [UserName1, ChallengeResponse, ExpectedResponse]),
+			    io:format("Wrong password for ~p~nChallengeResponse: ~s~nExpectedResponse: ~s~n", [UserName1, util:binary_to_hex(ChallengeResponse), util:binary_to_hex(ExpectedResponse)]),
 			    json_ok({obj, [{error, <<"Wrong password">>}]})
 		    end;
 		{error, wrong_password} ->
@@ -185,6 +190,44 @@ handle_request2(#req{method = 'POST',
 	    end;
 	_ ->
 	    html_ok(ui_template:render_message(Req, <<"Invalid account data">>))
+    end;
+
+%% Signup activation & password reset
+handle_request2(#req{method = 'GET',
+		     path = [<<"activate">>, HexToken]} = Req) ->
+    Token = util:hex_to_binary(HexToken),
+    case model_token:peek(activate, Token) of
+	{ok, UserName} ->
+	    {ok, _Salted, Salt} = model_users:get_salted(UserName),
+	    HexSalt = util:binary_to_hex(Salt),
+	    html_ok(ui_template:render_activate(Req, HexToken, HexSalt));
+	{error, invalid_token} ->
+	    %% TODO: link to pw reset form
+	    html_ok(ui_template:render_message(Req, <<"Invalid activation token">>))
+    end;
+
+handle_request2(#req{method = 'POST',
+		     path = [<<"activate">>, HexToken],
+		     body = Body}) ->
+    Token = util:hex_to_binary(HexToken),
+    HexSalted = proplists:get_value(<<"salted">>, Body, undefined),
+    Salted = util:hex_to_binary(HexSalted),
+    case model_token:validate(activate, Token) of
+	{ok, UserName} ->
+	    %% Set for new password
+	    model_users:set_salted(UserName, Salted),
+	    %% Create session
+	    {ok, Sid} = model_session:generate(UserName),
+	    %% reply with new cookie sid
+	    HomeLink = iolist_to_binary(
+			 ui_link:link_user(UserName)),
+	    io:format("Sid: ~p~n", [Sid]),
+	    json_ok({obj, [{welcome, HomeLink}]},
+		    %% FIXME:
+		    [{<<"sid">>, util:binary_to_hex(Sid)}
+		    ]);
+	{error, invalid_token} ->
+	    json_ok({obj, [{error, <<"Invalid activation token">>}]})
     end;
 
 handle_request2(#req{method = 'GET',
@@ -304,8 +347,14 @@ validate_email(Email) ->
 
 create_account(UserName, Email) ->
     %% Create Account
+    model_users:register(UserName, Email),
     %% Prepare Activation
+    {ok, Token} =
+	model_token:generate(activate, UserName),
+    TokenHex = util:binary_to_hex(Token),
+    
     %% Send Email
+    {ok, BaseURLSSL} = application:get_env(ui, base_url_ssl),
     {ok, SmtpOptions} = application:get_env(ui, smtp_options),
     MailFrom = <<"mail@bitlove.org">>,
     Mail =
@@ -319,7 +368,7 @@ create_account(UserName, Email) ->
 	   <<"Welcome to Bitlove!\r\n",
 	     "\r\n",
 	     "To complete signup visit the following link:\r\n",
-	     "    http://bitlove.org/activate/...\r\n",
+	     "    ", BaseURLSSL/binary, "/activate/", TokenHex/binary, "\r\n",
 	     "\r\n",
 	     "\r\n",
 	     "Thanks for sharing\r\n",
@@ -350,7 +399,5 @@ escape_bin(<<C:1/binary, Bin/binary>>, E) ->
 hmac(Key, Text) ->
     io:format("hmac ~p ~p~n", [Key,Text]),
     Ctx1 = crypto:hmac_init(sha, Key),
-    io:format("ctx1 ~p~n", [Ctx1]),
     Ctx2 = crypto:hmac_update(Ctx1, Text),
-    io:format("ctx2 ~p~n", [Ctx2]),
     crypto:hmac_final(Ctx2).

@@ -1,7 +1,8 @@
 -module(model_token).
 
--export([generate/1,
-	 validate/1
+-export([generate/2,
+	 validate/2,
+	 peek/2
 	]).
 
 -define(POOL, pool_users).
@@ -9,17 +10,16 @@
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
 
-generate(UserName) ->
-    case model_users:get_salted(UserName) of
-	{ok, _Salted, Salt} ->
-	    Token = generate_token(),
-	    {ok, 1} =
-		?Q("INSERT INTO login_tokens (\"user\", \"token\", \"created\") VALUES ($1, $2, NOW())",
-		   [UserName, Token]),
-	    {ok, Salt, Token};
-	{error, not_found} ->
-	    {error, not_found}
-    end.
+generate(Kind, UserName) when is_atom(Kind) ->
+    generate(atom_to_list(Kind), UserName);
+generate(Kind, UserName) when is_list(Kind) ->
+    generate(list_to_binary(Kind), UserName);
+generate(Kind, UserName) ->
+    Token = generate_token(),
+    {ok, 1} =
+	?Q("INSERT INTO user_tokens (\"kind\", \"user\", \"token\", \"created\") VALUES ($1, $2, $3, NOW())",
+	   [Kind, UserName, Token]),
+    {ok, Token}.
 
 generate_token() ->
     util:seed_random(),
@@ -27,16 +27,30 @@ generate_token() ->
     << <<(random:uniform(256) - 1):8>>
        || _ <- lists:seq(1, 16) >>.
 
-validate(Token) ->
-    case ?Q("DELETE FROM login_tokens WHERE \"token\"=$1 RETURNING \"user\"", 
-	    [Token]) of
+validate(Kind, Token) when is_atom(Kind) ->
+    validate(atom_to_list(Kind), Token);
+validate(Kind, Token) when is_list(Kind) ->
+    validate(list_to_binary(Kind), Token);
+validate(Kind, Token) ->
+    case ?Q("DELETE FROM user_tokens WHERE \"kind\"=$1 AND \"token\"=$2 RETURNING \"user\"", 
+	    [Kind, Token]) of
 	{ok, 1, _, [{UserName}]} ->
-	    case model_users:get_salted(UserName) of
-		{ok, Salted, Salt} ->
-		    {ok, UserName, Salted, Salt};
-		{error, not_found} ->
-		    {error, not_found}
-	    end;
+	    {ok, UserName};
 	_ ->
 	    {error, invalid_token}
     end.
+
+%% validate w/o removing
+peek(Kind, Token) when is_atom(Kind) ->
+    peek(atom_to_list(Kind), Token);
+peek(Kind, Token) when is_list(Kind) ->
+    peek(list_to_binary(Kind), Token);
+peek(Kind, Token) ->
+    case ?Q("SELECT \"user\" FROM user_tokens WHERE \"kind\"=$1 AND \"token\"=$2",
+	    [Kind, Token]) of
+	{ok, _, [{UserName}]} ->
+	    {ok, UserName};
+	_ ->
+	    {error, invalid_token}
+    end.
+

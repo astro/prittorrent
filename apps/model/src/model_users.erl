@@ -1,6 +1,6 @@
 -module(model_users).
 
--export([register/3, get_salted/1, authenticate/2, activate/1,
+-export([register/2, get_salted/1, set_salted/2,
 	 get_details/1,
 	 get_feeds/1, get_feed/2, add_feed/2]).
 
@@ -8,9 +8,17 @@
 -define(POOL, pool_users).
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 
-register(Name, Email, Password) ->
-    ?Q("INSERT INTO users (\"name\", \"email\", \"password\") VALUES ($1, $2, $3)",
-       [Name, Email, Password]).
+%% TODO: report user exists
+register(Name, Email) ->
+    {ok, 1} =
+	?Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
+	   [Name, Email, generate_salt()]).
+
+generate_salt() ->
+    util:seed_random(),
+
+    << <<(random:uniform(256) - 1):8>>
+       || _ <- lists:seq(1, 8) >>.
 
 get_salted(Name) ->
     case ?Q("SELECT \"salted\", \"salt\" FROM users WHERE \"name\"=$1", [Name]) of
@@ -20,20 +28,9 @@ get_salted(Name) ->
 	    {error, not_found}
     end.
 
-authenticate(Name, Password) ->
-    case ?Q("SELECT \"name\" FROM users WHERE \"name\"=$1 AND \"password\"=$2 AND \"activated\"",
-	    [Name, Password]) of
-	{ok, _, [_ | _]} ->
-	    ok;
-	_ ->
-	    denied
-    end.
-
-activate(Name) ->
-    {ok, 1} = ?Q("UPDATE users SET \"activated\"=TRUE WHERE \"name\"=$1",
-		 [Name]).
-
-
+set_salted(Name, Salted) ->
+    {ok, 1} =
+	?Q("UPDATE users SET \"salted\"=$2 WHERE \"name\"=$1", [Name, Salted]).
 
 get_details(Name) ->
     case ?Q("SELECT \"title\", \"image\", \"homepage\" FROM users WHERE \"name\"=$1",

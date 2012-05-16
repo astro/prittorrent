@@ -17,6 +17,7 @@
 	   {{16#2a01,16#4f8,16#160,16#5421,0,0,0,3},6881}
 	  ]},
 	 {base_url, <<"http://bitlove.org">>},
+	 {base_url_ssl, <<"https://bitlove.org">>},
 	 {smtp_options, [{relay, "localhost"},
 			 {port, 2025},
 			 {hostname, "bitlove.org"}
