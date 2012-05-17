@@ -19,10 +19,6 @@ TODO
 
 * Login
 
-  - Signup
-  - Session management
-  - Logged in indicator
-  - Edit user
   - List feeds (status)
   - Add/Edit feeds
   - Private feeds
