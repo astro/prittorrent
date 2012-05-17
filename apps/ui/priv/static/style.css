@@ -397,7 +397,7 @@ footer a {
   font-weight: bold;
   font-size: 70%;
 }
-input {
+input[type!=submit] {
   color: #030;
   background-color: #efe;
   font-weight: bold;
@@ -405,11 +405,10 @@ input {
   border-radius: 2px;
   padding: 2px 6px;
 }
-input:hover, input:focus {
+input[type!=submit]:hover, input[type!=submit]:focus {
   color: black;
   background-color: #ffe;
   border: 1px solid #3f0;
-  
 }
 
 .tos {
@@ -424,11 +423,12 @@ noscript {
   text-decoration: blink;
 }
 
-.button {
+.button, input[type=submit] {
   display: inline-block;
   margin: 0.1em 0.2em;
   padding: 0.08em 0.4em 0.1em;
   vertical-align: middle;
+  font-size: 90%;
   text-align: center;
   line-height: 1.3em;
   min-width: 4em;
@@ -446,7 +446,7 @@ noscript {
   float: right;
   background-color: #3583AC;
 }
-.add.button, .save.button {
+.add.button, .save.button, input[type=submit] {
   background-color: #83AC35;
 }
 
