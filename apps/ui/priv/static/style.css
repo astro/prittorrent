@@ -446,7 +446,7 @@ noscript {
   float: right;
   background-color: #3583AC;
 }
-.save.button {
+.add.button, .save.button {
   background-color: #83AC35;
 }
 
@@ -467,7 +467,7 @@ noscript {
   width: 50%;
   height: 50%;
   padding: 16px;
-  border: 1em solid #073;
+  border: 0.4em solid #073;
   border-radius: 2em;
   background-color: white;
   z-index:1002;
@@ -477,8 +477,17 @@ noscript {
 
 .lightbox form {
   text-align: left;
+  margin: 1em auto;
+  max-width: 80%;
 }
 .useredit label {
   width: 8em;
   display: block;
+}
+.addfeed .hint {
+  font-size: 80%;
+  font-style: italic;
+  color: #777;
+  margin-top: 0;
+  line-height: 1em;
 }

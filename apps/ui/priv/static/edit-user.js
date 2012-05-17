@@ -18,6 +18,10 @@ LightBox.prototype = {
     }
 };
 
+/**
+ * Edit user details
+ */
+
 var editButton = $("<p class='edit button'>Edit</p>");
 $('.meta').after(editButton);
 var detailsPath = document.location.pathname + "/details.json";
@@ -66,4 +70,44 @@ editButton.bind('click', function() {
 		 box.find('.button').click(box.remove.bind(box));
 	     }
 	   });
+});
+
+/**
+ * Add feed button
+ */
+var addButton = $("<p class='add button'>Add</a>");
+$('.col1').append(addButton);
+addButton.bind('click', function() {
+    var box = new LightBox();
+    box.content("<form class='addfeed'>" +
+		"<h2>Add a new podcast feed</h2>" +
+		"<p><label for='slug'>Slug: <input id='slug'></p>" +
+		"<p id='slughint' class='hint'></p>" +
+		"<p><label for='feed'>URL: <input id='feed'></p>" +
+		"<p class='hint'>All feeds are subject to manual confirmation.</p>" +
+		"<p class='cancel button'>Cancel</p>" +
+		"<p class='save button'>Add</p>" +
+		"</form>");
+
+    var slugEl = box.find('#slug');
+    function fixSlug() {
+	var s = slugEl.val().
+	    toLowerCase().
+	    replace(/[^0-9a-z\-_]/g, "");
+
+	if (s !== slugEl.val())
+	    slugEl.val(s);
+
+	box.find('#slughint').
+	    text((s.length > 0) ?
+		 "http://bitlove.org" + document.location.pathname + "/" + s:
+		 "");
+    }
+    slugEl.bind('change', fixSlug);
+    slugEl.bind('input', fixSlug);
+    slugEl.bind('keyup', fixSlug);
+
+    box.find('.cancel').click(box.remove.bind(box));
+    box.find('.save').click(function() {
+    });
 });

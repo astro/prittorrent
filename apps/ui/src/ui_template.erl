@@ -536,15 +536,7 @@ render_user(Req, UserName) ->
     page_2column(
       Opts,
       {header, [{class, "user"}],
-       [render_meta(h2, UserTitle, UserImage, UserHomepage) |
-	if
-	    SessionUser == UserName ->
-		[?INCLUDE_JQUERY,
-		 ?SCRIPT_TAG(<<"/static/edit-user.js">>)];
-	    true ->
-		[]
-	end
-       ]},
+       render_meta(h2, UserTitle, UserImage, UserHomepage)},
       [{h2, "Feeds"} |
        lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
 			 {article, [{class, "feed"}],
@@ -574,8 +566,15 @@ render_user(Req, UserName) ->
 			  ]}
 		 end, UserFeeds)
       ],
-      [{h2, "Recent Torrents"} |
-       render_downloads(Opts, UserDownloads)
+      [{h2, "Recent Torrents"},
+       render_downloads(Opts, UserDownloads),
+       if
+	   SessionUser == UserName ->
+	       [?INCLUDE_JQUERY,
+		?SCRIPT_TAG(<<"/static/edit-user.js">>)];
+	   true ->
+	       []
+       end
       ]
      ).
 

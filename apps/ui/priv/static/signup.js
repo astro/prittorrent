@@ -14,5 +14,6 @@ function fixUsername() {
 	hint.text("");
 }
 username.bind('change', fixUsername);
+username.bind('input', fixUsername);
 username.bind('keyup', fixUsername);
 
