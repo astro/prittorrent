@@ -423,3 +423,62 @@ noscript {
   color: red;
   text-decoration: blink;
 }
+
+.button {
+  display: inline-block;
+  margin: 0.1em 0.2em;
+  padding: 0.08em 0.4em 0.1em;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 1.3em;
+  min-width: 4em;
+  color: white;
+  background-color: #666;
+  font-weight: bold;
+  text-shadow: 0 -1px rgba(0, 0, 0, 0.55);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.34);
+  border-bottom-color: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset,0 1.5px rgba(0,0,0,0.155),0 -0.65em rgba(0,0,0,0.15) inset;
+  cursor: default;
+}
+.edit.button {
+  float: right;
+  background-color: #3583AC;
+}
+.save.button {
+  background-color: #83AC35;
+}
+
+.lightboxbackground {
+  position: absolute;
+  top: 0%;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 7, 0, 0.85);
+  z-index:1001;
+}
+ 
+.lightbox {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  padding: 16px;
+  border: 1em solid #073;
+  border-radius: 2em;
+  background-color: white;
+  z-index:1002;
+  overflow: auto;
+  text-align: center;
+}
+
+.lightbox form {
+  text-align: left;
+}
+.useredit label {
+  width: 8em;
+  display: block;
+}

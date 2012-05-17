@@ -15,6 +15,14 @@
 		      flattr = false,
 		      ui_req}).
 
+-define(SCRIPT_TAG(Src),
+	{script, [{src, Src},
+		  {type, <<"text/javascript">>}], <<" ">>}).
+-define(INCLUDE_JQUERY,
+	?SCRIPT_TAG(<<"/static/jquery-1.7.1.min.js">>)).
+-define(INCLUDE_JSSHA,
+	?SCRIPT_TAG(<<"/static/jsSHA.js">>)).
+
 html(#render_opts{title = HtmlTitle,
 		  ui_req = #req{session_user = SessionUser}
 		 }, HeadEls, Contents) ->
@@ -83,8 +91,7 @@ html(#render_opts{title = HtmlTitle,
 		]}
 	      ]}
 	    ]},
-	   {script, [{src, <<"/static/flattrdropdown.js">>},
-		     {type, <<"text/javascript">>}], <<" ">>}
+	   ?SCRIPT_TAG(<<"/static/flattrdropdown.js">>)
 	  ]}
 	]}
       )].
@@ -382,12 +389,9 @@ render_login(Req) ->
 	 {p,
 	  {a, [{href, "/reactivate"}], <<"Forgot password?">>}}
 	]},
-       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/jsSHA.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/login.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>}
+       ?INCLUDE_JQUERY,
+       ?INCLUDE_JSSHA,
+       ?SCRIPT_TAG(<<"/static/login.js">>)
        ]).
 
 render_signup(Req) ->
@@ -433,10 +437,8 @@ render_signup(Req) ->
 		  {type, "submit"},
 		  {value, "Signup"}], []}
 	]},
-       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/signup.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>}
+       ?INCLUDE_JQUERY,
+       ?SCRIPT_TAG(<<"/static/signup.js">>)
        ]).
 
 render_activate(Req, HexToken, HexSalt) ->
@@ -466,12 +468,9 @@ render_activate(Req, HexToken, HexSalt) ->
 		  {'data-salt', HexSalt}
 		 ], []}
 	]},
-       {script, [{src, <<"/static/jquery-1.7.1.min.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/jsSHA.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>},
-       {script, [{src, <<"/static/activate.js">>},
-		 {type, <<"text/javascript">>}], <<" ">>}
+       ?INCLUDE_JQUERY,
+       ?SCRIPT_TAG(<<"/static/jsSHA.js">>),
+       ?SCRIPT_TAG(<<"/static/activate.js">>)
        ]).
 
 render_reactivate(Req) ->
@@ -503,7 +502,7 @@ render_index(Req) ->
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
 			flattr = true,
-			ui_req = validate_session(Req)},
+			ui_req = Req},
     page_2column(
       Opts,
       [{'div',
@@ -532,13 +531,20 @@ render_user(Req, UserName) ->
 
     Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
 			flattr = true,
-			ui_req = validate_session(Req)},
-
+			ui_req = #req{session_user = SessionUser} = Req},
+    io:format("SessionUser: ~p\tUserName: ~p~n", [SessionUser, UserName]),
     page_2column(
       Opts,
       {header, [{class, "user"}],
-       render_meta(h2, UserTitle, UserImage, UserHomepage)
-      },
+       [render_meta(h2, UserTitle, UserImage, UserHomepage) |
+	if
+	    SessionUser == UserName ->
+		[?INCLUDE_JQUERY,
+		 ?SCRIPT_TAG(<<"/static/edit-user.js">>)];
+	    true ->
+		[]
+	end
+       ]},
       [{h2, "Feeds"} |
        lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
 			 {article, [{class, "feed"}],
@@ -589,7 +595,7 @@ render_user_feed(Req, UserName, Slug) ->
     Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
 			flattr = true,
 			homepage = true,
-			ui_req = validate_session(Req)},
+			ui_req = Req},
     
     page_1column(
       Opts,
@@ -610,16 +616,6 @@ render_user_feed(Req, UserName, Slug) ->
        render_downloads(Opts, FeedDownloads)
       ]).
 
-
-validate_session(#req{sid = Sid} = Req) ->
-    SessionUser =
-	case model_session:validate(Sid) of
-	    {ok, User} ->
-		User;
-	    {error, invalid_session} ->
-		undefined
-	end,
-    Req#req{session_user = SessionUser}.
 
 export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of

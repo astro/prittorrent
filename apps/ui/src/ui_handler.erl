@@ -284,20 +284,57 @@ handle_request2(#req{method = 'GET',
 handle_request2(#req{method = 'GET',
 		     path = []
 		    } = Req) ->
-    html_ok(ui_template:render_index(Req));
+    html_ok(ui_template:render_index(validate_session(Req)));
 
 %% User profile
 handle_request2(#req{method = 'GET',
-		     path =[<<UserName/binary>>]
+		     path = [<<UserName/binary>>]
 		    } = Req) ->
-    html_ok(ui_template:render_user(Req, UserName));
+    html_ok(ui_template:render_user(validate_session(Req), UserName));
+
+%% User profile as json
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<"details.json">>]
+		    } = Req1) ->
+    #req{session_user = SessionUser} = validate_session(Req1),
+    if
+	SessionUser == UserName ->
+	    case model_users:get_details(UserName) of
+		{ok, Title, Image, Homepage} ->
+		    json_ok({obj, [{title, Title},
+				   {image, Image},
+				   {homepage, Homepage}
+				  ]});
+		{error, not_found} ->
+		    throw({http, 404})
+	    end;
+	true ->	    
+	    throw({http, 403})
+    end;
+
+handle_request2(#req{method = 'POST',
+		     path = [<<UserName/binary>>, <<"details.json">>],
+		     body = Body
+		    } = Req1) ->
+    #req{session_user = SessionUser} = validate_session(Req1),
+    if
+	SessionUser == UserName ->
+	    io:format("Body: ~p~n", [Body]),
+	    Title = proplists:get_value(<<"title">>, Body, null),
+	    Image = proplists:get_value(<<"image">>, Body, null),
+	    Homepage = proplists:get_value(<<"homepage">>, Body, null),
+	    model_users:set_details(UserName, Title, Image, Homepage),
+	    json_ok({obj, []});
+	true ->	    
+	    throw({http, 403})
+    end;
 
 %% User feed
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<Slug/binary>>]
 		    } = Req) ->
     %% All hashed episodes
-    html_ok(ui_template:render_user_feed(Req, UserName, Slug));
+    html_ok(ui_template:render_user_feed(validate_session(Req), UserName, Slug));
 
 %% User feed export
 %% TODO: support not modified
@@ -329,6 +366,17 @@ count_request(Method, Path) ->
       list_to_binary(io_lib:format("~p/http", [node()])),
       list_to_binary(io_lib:format("~s ~s", [Method, Path])),
       1).
+
+%% Complete session data where needed
+validate_session(#req{sid = Sid} = Req) ->
+    SessionUser =
+	case model_session:validate(Sid) of
+	    {ok, User} ->
+		User;
+	    {error, invalid_session} ->
+		undefined
+	end,
+    Req#req{session_user = SessionUser}.
 
 %%
 %% Signup helpers

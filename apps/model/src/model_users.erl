@@ -1,7 +1,8 @@
 -module(model_users).
 
 -export([register/2, get_salted/1, set_salted/2,
-	 get_details/1, get_by_email/1,
+	 get_details/1, set_details/4,
+	 get_by_email/1,
 	 get_feeds/1, get_feed/2, add_feed/2]).
 
 
@@ -48,6 +49,11 @@ get_details(Name) ->
 	{ok, _, []} ->
 	    {error, not_found}
     end.
+
+set_details(UserName, Title, Image, Homepage) ->
+    {ok, 1} =
+	?Q("UPDATE users SET \"title\"=$2, \"image\"=$3, \"homepage\"=$4 WHERE \"name\"=$1",
+	   [UserName, Title, Image, Homepage]).
 
 get_by_email(Email) ->
     {ok, _, Rows} =
