@@ -78,9 +78,9 @@ handle_request1(Req) ->
     io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,HexSid]),
     Body = if
 	       Method =:= 'POST';
-	       Method =:= 'POST' ->
-		   {Body1, _} = cowboy_http_req:body_qs(Req),
-		   io:format("BodyQS: ~p~n", [Body1]),
+	       Method =:= 'PUT' ->
+		   {Body1, _Req2} = cowboy_http_req:body_qs(Req),
+		   io:format("BodyQS: ~p~n~p~n", [Body1, _Req2]),
 		   Body1;
 	       true ->
 		   []

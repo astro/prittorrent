@@ -112,7 +112,7 @@ addButton.bind('click', function() {
 	var slug = slugEl.val();
 	var path = document.location.pathname + "/" + slug;
 	var url = box.find('#url').val();
-	box.content("<p>Fetching your feed...</p>");
+	box.content("<p>Adding your feed...</p>");
 
 	$.ajax({ type: 'PUT',
 		 url: path,
@@ -125,7 +125,10 @@ addButton.bind('click', function() {
 				     "<p class='button'>Close</p>");
 			 box.find('.link').attr('href', response.link);
 			 box.find('.link').text(response.link);
-			 box.find('.button').click(box.remove.bind(box));
+			 box.find('.button').click(function() {
+			     /* Force refresh: */
+			     document.location.search = "?" + Math.ceil(Math.random() * 999);
+			 });
 		     } else {
 			 box.content("<p class='message'></p>" +
 				     "<p class='button'>Close</p>");
