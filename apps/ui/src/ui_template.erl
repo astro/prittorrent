@@ -516,7 +516,7 @@ render_index(Req) ->
      ).
 
 %% Feeds, Recent Episodes
-render_user(Req, UserName) ->
+render_user(#req{session_user = SessionUser} = Req, UserName) ->
     {UserTitle, UserImage, UserHomepage} =
 	case model_users:get_details(UserName) of
 	    {ok, Title1, Image1, Homepage1} ->
@@ -531,7 +531,7 @@ render_user(Req, UserName) ->
 
     Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
 			flattr = true,
-			ui_req = #req{session_user = SessionUser} = Req},
+			ui_req = Req},
     io:format("SessionUser: ~p\tUserName: ~p~n", [SessionUser, UserName]),
     page_2column(
       Opts,
@@ -578,7 +578,7 @@ render_user(Req, UserName) ->
       ]
      ).
 
-render_user_feed(Req, UserName, Slug) ->
+render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
     FeedURL =
 	case model_users:get_feed(UserName, Slug) of
 	    {ok, FeedURL1} ->
@@ -611,8 +611,15 @@ render_user_feed(Req, UserName, Slug) ->
 			UserName}
 		      ]}
 		    ], FeedImage, FeedHomepage)
-       } |
-       render_downloads(Opts, FeedDownloads)
+       },
+       render_downloads(Opts, FeedDownloads) |
+       if
+	   SessionUser == UserName ->
+	       [?INCLUDE_JQUERY,
+		?SCRIPT_TAG(<<"/static/edit-feed.js">>)];
+	   true ->
+	       []
+       end
       ]).
 
 

@@ -295,8 +295,8 @@ handle_request2(#req{method = 'GET',
 %% User profile as json
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<"details.json">>]
-		    } = Req1) ->
-    #req{session_user = SessionUser} = validate_session(Req1),
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
     if
 	SessionUser == UserName ->
 	    case model_users:get_details(UserName) of
@@ -380,6 +380,49 @@ handle_request2(#req{method = 'GET',
 				  _ -> <<"application/rss+xml">>
 			      end}],
     {ok, 200, Headers, Body};
+
+%% User feed as json
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"details.json">>]
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
+    if
+	SessionUser == UserName ->
+	    {ok, _Feed, Public, Title} = model_users:get_user_feed(UserName, Slug),
+	    io:format("Public: ~p~n", [Public]),
+	    json_ok({obj, [{public, Public} |
+			   if
+			       is_binary(Title) ->
+				   [{title, Title}];
+			       true ->
+				   []
+			   end
+			  ]});
+	true ->	    
+	    throw({http, 403})
+    end;
+
+handle_request2(#req{method = 'POST',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"details.json">>],
+		     body = Body
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
+    if
+	SessionUser == UserName ->
+	    io:format("Body: ~p~n", [Body]),
+	    Public = case proplists:get_value(<<"public">>, Body, <<"false">>) of
+			 <<"true">> ->
+			     true;
+			 _ ->
+			     false
+		     end,
+	    Title = proplists:get_value(<<"title">>, Body, null),
+	    model_users:set_user_feed(UserName, Slug,
+				      Public, Title),
+	    json_ok({obj, []});
+	true ->	    
+	    throw({http, 403})
+    end;
 
 %% 404
 handle_request2(_Req) ->

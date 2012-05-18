@@ -3,7 +3,8 @@
 -export([register/2, get_salted/1, set_salted/2,
 	 get_details/1, set_details/4,
 	 get_by_email/1,
-	 get_feeds/1, get_feed/2, add_feed/3]).
+	 get_feeds/1, get_feed/2, add_feed/3,
+	 get_user_feed/2, set_user_feed/4]).
 
 
 -define(POOL, pool_users).
@@ -83,3 +84,17 @@ add_feed(Name, Slug, Url) ->
 	{error, Reason} ->
 	    {error, Reason}
     end.
+
+get_user_feed(UserName, Slug) ->
+    case ?Q("SELECT \"feed\", \"public\", \"title\" FROM user_feeds WHERE \"user\"=$1 AND \"slug\"=$2 LIMIT 1",
+	    [UserName, Slug]) of
+	{ok, _, [{Feed, Public, Title}]} ->
+	    {ok, Feed, Public, Title};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
+
+set_user_feed(UserName, Slug, Public, Title) ->
+    {ok, 1} =
+	?Q("UPDATE user_feeds SET \"public\"=$3, \"title\"=$4 WHERE \"user\"=$1 AND \"slug\"=$2",
+	   [UserName, Slug, Public, Title]).
