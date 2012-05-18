@@ -1,7 +1,7 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/8,
-	 user_feeds_details/1, user_feed_details/2,
+	 user_feeds_details/2, user_feed_details/2,
 	 feed_data/2]).
 
 -include("../include/model.hrl").
@@ -140,8 +140,14 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 
 
 
-user_feeds_details(UserName) ->
-    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"public\" ORDER BY LOWER(feeds.\"title\") ASC",
+user_feeds_details(UserName, Private) ->
+    PublicCond = case Private of
+		     true ->
+			 "";
+		     _ ->
+			 " AND user_feeds.\"public\""
+		 end,
+    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", user_feeds.\"public\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1" ++ PublicCond ++ " ORDER BY LOWER(feeds.\"title\") ASC",
 	    [UserName]) of
 	{ok, _, Rows} ->
 	    {ok, Rows};

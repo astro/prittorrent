@@ -517,6 +517,8 @@ render_index(Req) ->
 
 %% Feeds, Recent Episodes
 render_user(#req{session_user = SessionUser} = Req, UserName) ->
+    IsSelf = SessionUser == UserName,
+
     {UserTitle, UserImage, UserHomepage} =
 	case model_users:get_details(UserName) of
 	    {ok, Title1, Image1, Homepage1} ->
@@ -525,7 +527,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 		throw({http, 404})
 	end,
     {ok, UserFeeds} =
-	model_feeds:user_feeds_details(UserName),
+	model_feeds:user_feeds_details(UserName, IsSelf),
     {ok, UserDownloads} =
 	model_enclosures:user_downloads(UserName),
 
@@ -538,7 +540,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
       {header, [{class, "user"}],
        render_meta(h2, UserTitle, UserImage, UserHomepage)},
       [{h2, "Feeds"} |
-       lists:map(fun({Slug, _Feed, Title, Homepage, Image}) ->
+       lists:map(fun({Slug, _Feed, Title, Homepage, Image, Public}) ->
 			 {article, [{class, "feed"}],
 
 			  [{'div',
@@ -560,6 +562,12 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 					[render_link(Homepage)]};
 				   true ->
 				       []
+			       end,
+			       case Public of
+				   false ->
+				       {p, [{class, "hint"}], <<"Private">>};
+				   _ ->
+				       []
 			       end
 			      ]}
 			    ]}
@@ -569,7 +577,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
       [{h2, "Recent Torrents"},
        render_downloads(Opts, UserDownloads),
        if
-	   SessionUser == UserName ->
+	   IsSelf ->
 	       [?INCLUDE_JQUERY,
 		?SCRIPT_TAG(<<"/static/edit-user.js">>)];
 	   true ->
