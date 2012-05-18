@@ -121,11 +121,24 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_enclosure_torrents(
     END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_enclosure_torrents(
+) RETURNS trigger AS $$
+    BEGIN
+        DELETE FROM downloads_cache
+              WHERE "enclosure"=OLD."url";
+    END;
+$$ LANGUAGE plpgsql;
+
 -- downloads_cache depends on enclosure_torrents
 CREATE TRIGGER enclosure_torrents_update_downloads_cache AFTER INSERT OR UPDATE ON enclosure_torrents
        FOR EACH ROW
        WHEN (LENGTH(NEW.info_hash) = 20)
        EXECUTE PROCEDURE update_downloads_cache_on_enclosure_torrents();
+
+CREATE TRIGGER enclosure_torrents_delete_update_downloads_cache AFTER DELETE ON enclosure_torrents
+       FOR EACH ROW
+       WHEN (LENGTH(OLD.info_hash) = 20)
+       EXECUTE PROCEDURE update_downloads_cache_on_delete_enclosure_torrents();
 
 
 CREATE OR REPLACE FUNCTION update_downloads_cache_on_feed_items(
@@ -189,12 +202,24 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_user_feeds(
     END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_user_feeds(
+) RETURNS trigger AS $$
+    BEGIN
+        DELETE FROM downloads_cache
+              WHERE "user"=OLD."user" AND "slug"=OLD."slug";
+    END;
+$$ LANGUAGE plpgsql;
+
 -- downloads_cache depends on user_feeds
 CREATE TRIGGER user_feeds_update_downloads_cache AFTER INSERT OR UPDATE ON user_feeds
        FOR EACH ROW
        EXECUTE PROCEDURE update_downloads_cache_on_user_feeds();
 
--- Because enclosures get deleted and reinserted, not updated
+CREATE TRIGGER user_feeds_delete_update_downloads_cache AFTER DELETE ON user_feeds
+       FOR EACH ROW
+       EXECUTE PROCEDURE update_downloads_cache_on_delete_user_feeds();
+
 CREATE OR REPLACE FUNCTION update_downloads_cache_on_enclosures(
 ) RETURNS trigger AS $$
     DECLARE
@@ -212,10 +237,22 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_enclosures(
     END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_enclosures(
+) RETURNS trigger AS $$
+    BEGIN
+        DELETE FROM downloads_cache
+              WHERE "feed"=OLD."feed" AND "item"=OLD."item" AND "enclosure"=OLD."url";
+    END;
+$$ LANGUAGE plpgsql;
+
 -- downloads_cache depends on enclosures
 CREATE TRIGGER enclosures_update_downloads_cache AFTER INSERT OR UPDATE ON enclosures
        FOR EACH ROW
        EXECUTE PROCEDURE update_downloads_cache_on_enclosures();
+
+CREATE TRIGGER enclosures_delete_update_downloads_cache AFTER DELETE ON enclosures
+       FOR EACH ROW
+       EXECUTE PROCEDURE update_downloads_cache_on_delete_enclosures();
 
 
 CREATE OR REPLACE VIEW downloads_scraped AS
