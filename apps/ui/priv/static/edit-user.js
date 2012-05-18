@@ -114,7 +114,7 @@ addButton.bind('click', function() {
 	var url = box.find('#url').val();
 	box.content("<p>Fetching your feed...</p>");
 
-	$.ajax({ type: 'POST',
+	$.ajax({ type: 'PUT',
 		 url: path,
 		 data: {
 		     url: url
