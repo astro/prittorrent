@@ -35,8 +35,8 @@ editButton.bind('click', function() {
 			     "<p><label for='title'>Title: <input id='title'></p>" +
 			     "<p><label for='image'>Image link: <input id='image'></p>" +
 			     "<p><label for='homepage'>Homepage: <input id='homepage'></p>" +
-			     "<p class='cancel button'>Cancel</p>" +
-			     "<p class='save button'>Save</p>" +
+			     "<input type='reset' class='cancel button' value='Cancel'>" +
+			     "<input type='submit' class='save button' value='Save'>" +
 			     "</form>");
 		 box.find('#title').val(response.title);
 		 box.find('#image').val(response.image);
@@ -85,8 +85,8 @@ addButton.bind('click', function() {
 		"<p id='slughint' class='hint'></p>" +
 		"<p><label for='url'>URL: <input id='url'></p>" +
 		"<p class='hint'>All feeds are subject to manual confirmation.</p>" +
-		"<p class='cancel button'>Cancel</p>" +
-		"<p class='save button'>Add</p>" +
+		"<input type='reset' class='cancel button' value='Cancel'>" +
+		"<input type='submit' class='save button' value='Add'>" +
 		"</form>");
 
     var slugEl = box.find('#slug');

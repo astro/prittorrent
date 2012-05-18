@@ -36,8 +36,8 @@ editButton.bind('click', function() {
 			     "<span class='hint'>Show this feed on your user page and in public listings? You should enable this once everything works.</span></p>" +
 			     "<p><input type='checkbox' id='settitle'> <label for='settitle'>Overwrite title</label></p>" +
 			     "<p class='titleline'><label for='title'>Title:</label> <input id='title'></p>" +
-			     "<p class='cancel button'>Cancel</p>" +
-			     "<p class='save button'>Save</p>" +
+			     "<input type='reset' class='cancel button' value='Cancel'>" +
+			     "<input type='submit' class='save button' value='Save'>" +
 			     "</form>");
 		 box.find('#public').prop('checked', response.public);
 		 box.find('#settitle').prop('checked', response.title && response.title.length > 0);
@@ -93,8 +93,8 @@ rmButton.bind('click', function() {
 		"<h2>Delete feed</h2>" +
 		"<p class='hint'>You should not permanently remove feeds that your audience has subscribed. It is very inconvenient for them.</p>" +
 		"<p>Are you sure?</p>" +
-		"<p class='cancel button'>Cancel</p>" +
-		"<p class='save button'>Delete</p>" +
+		"<input type='reset' class='cancel button' value='Cancel'>" +
+		"<input type='submit' class='save button' value='Delete'>" +
 		"</form>");
     box.find('.cancel').click(box.remove.bind(box));
     box.find('.save').click(function() {
