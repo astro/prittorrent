@@ -6,10 +6,6 @@ CREATE TABLE users ("name" TEXT NOT NULL,
 		    "image" TEXT,
 		    "homepage" TEXT,
 		    PRIMARY KEY ("name"));
--- CREATE VIEW activated_users AS
---        SELECT "name", "email", "password"
---        FROM users
---        WHERE "activated";
 
 CREATE TABLE feeds ("url" TEXT NOT NULL,
        	     	    "last_update" TIMESTAMP,
@@ -26,6 +22,26 @@ CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
        	     		 "slug" TEXT NOT NULL,
        	     		 "feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
 			 PRIMARY KEY ("user", "slug", "feed"));
+
+CREATE OR REPLACE FUNCTION add_user_feed(
+        "f_user" TEXT,
+        "f_slug" TEXT,
+        "f_url" TEXT
+) RETURNS BOOL AS $$
+    DECLARE
+        is_new BOOL := TRUE;
+    BEGIN
+        SELECT COUNT(url) < 1 INTO is_new
+          FROM feeds WHERE url=f_url;
+        IF is_new THEN
+            INSERT INTO feeds (url) VALUES (f_url);
+        END IF;
+        INSERT INTO user_feeds
+            ("user", "slug", "feed")
+            VALUES (f_user, f_slug, f_url);
+        RETURN is_new;
+    END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION feed_to_update(
        update_interval INTERVAL,

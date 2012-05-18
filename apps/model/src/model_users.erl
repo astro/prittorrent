@@ -3,7 +3,7 @@
 -export([register/2, get_salted/1, set_salted/2,
 	 get_details/1, set_details/4,
 	 get_by_email/1,
-	 get_feeds/1, get_feed/2, add_feed/2]).
+	 get_feeds/1, get_feed/2, add_feed/3]).
 
 
 -define(POOL, pool_users).
@@ -74,10 +74,7 @@ get_feed(Name, Slug) ->
 	{ok, _, []} ->
 	    {error, not_found}
     end.
-    
 
-add_feed(Name, "http://" ++ _ = Url) ->
-    {ok, 1} = ?Q("INSERT INTO user_feeds (\"user\", \"feed\") VALUES ($1, $2)",
-		 [Name, Url]);
-add_feed(_, _) ->
-    exit(invalid_url).
+add_feed(Name, Slug, Url) ->
+    R = ?Q("SELECT * FROM add_user_feed($1, $2, $3)", [Name, Slug, Url]),
+    io:format("R result: ~p~n", [R]).

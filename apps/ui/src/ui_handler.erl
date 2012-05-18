@@ -315,8 +315,8 @@ handle_request2(#req{method = 'GET',
 handle_request2(#req{method = 'POST',
 		     path = [<<UserName/binary>>, <<"details.json">>],
 		     body = Body
-		    } = Req1) ->
-    #req{session_user = SessionUser} = validate_session(Req1),
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
     if
 	SessionUser == UserName ->
 	    io:format("Body: ~p~n", [Body]),
@@ -335,6 +335,23 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     %% All hashed episodes
     html_ok(ui_template:render_user_feed(validate_session(Req), UserName, Slug));
+
+%% Create user feed
+handle_request2(#req{method = 'POST',
+		     path = [<<UserName/binary>>, <<Slug/binary>>],
+		     body = Body
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
+    if
+	SessionUser == UserName ->
+	    URL = proplists:get_value(<<"url">>, Body, null),
+	    %% TODO: validate Slug, URL
+	    model_users:add_feed(UserName, Slug, URL),
+	    %% TODO: test-fetch
+	    json_ok({obj, [{path, <<"/", UserName/binary, "/", Slug/binary>>}]});
+	true ->	    
+	    throw({http, 403})
+    end;
 
 %% User feed export
 %% TODO: support not modified

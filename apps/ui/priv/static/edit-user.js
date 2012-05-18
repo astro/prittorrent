@@ -83,7 +83,7 @@ addButton.bind('click', function() {
 		"<h2>Add a new podcast feed</h2>" +
 		"<p><label for='slug'>Slug: <input id='slug'></p>" +
 		"<p id='slughint' class='hint'></p>" +
-		"<p><label for='feed'>URL: <input id='feed'></p>" +
+		"<p><label for='url'>URL: <input id='url'></p>" +
 		"<p class='hint'>All feeds are subject to manual confirmation.</p>" +
 		"<p class='cancel button'>Cancel</p>" +
 		"<p class='save button'>Add</p>" +
@@ -109,5 +109,30 @@ addButton.bind('click', function() {
 
     box.find('.cancel').click(box.remove.bind(box));
     box.find('.save').click(function() {
+	var slug = slugEl.val();
+	var path = document.location.pathname + "/" + slug;
+	var url = box.find('#url').val();
+	box.content("<p>Fetching your feed...</p>");
+
+	$.ajax({ type: 'POST',
+		 url: path,
+		 data: {
+		     url: url
+		 },
+		 success: function(response) {
+		     if (response && response.path)
+			 document.location = response.path;
+		     else {
+			 box.content("<p>An error occured</p>" +
+				     "<p class='button'>Close</p>");
+			 box.find('.button').click(box.remove.bind(box));
+		     }
+		 },
+		 error: function() {
+		     box.content("<p>Cannot communicate</p>" +
+				 "<p class='button'>Close</p>");
+		     box.find('.button').click(box.remove.bind(box));
+		 }
+	       });
     });
 });
