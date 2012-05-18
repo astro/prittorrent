@@ -147,7 +147,7 @@ user_feeds_details(UserName, Private) ->
 		     _ ->
 			 " AND user_feeds.\"public\""
 		 end,
-    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", user_feeds.\"public\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1" ++ PublicCond ++ " ORDER BY LOWER(feeds.\"title\") ASC",
+    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE) FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1" ++ PublicCond ++ " ORDER BY LOWER(feeds.\"title\") ASC",
 	    [UserName]) of
 	{ok, _, Rows} ->
 	    {ok, Rows};
@@ -156,7 +156,7 @@ user_feeds_details(UserName, Private) ->
     end.
 
 user_feed_details(UserName, Slug) ->
-    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", user_feeds.\"public\", feeds.\"torrentify\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
+    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE), feeds.\"torrentify\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
 	    [UserName, Slug]) of
 	{ok, _, [{URL, Title, Homepage, Image, Public, Torrentify}]} ->
 	    {ok, URL, Title, Homepage, Image, Public, Torrentify};
