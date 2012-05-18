@@ -12,6 +12,7 @@ rebar get-deps compile generate
 TODO
 ----
 
+* Multiple front pages
 * http://bitlove.org/channelcast + Flattr error?
 * UI: Detect browser language
 * Zlib for UI
@@ -20,9 +21,16 @@ TODO
 * Login
 
   - List feeds (status)
-  - Add/Edit feeds
+  - Edit feeds:
+    * Overwrite title
+    * Set Private
+    * Delete torrents
+    * Feed & enclosure status
   - Private feeds
+  - Torrentify flag
   - cowboy + ssl, enforce https for login
+  - more configurability
+
 
 * Check U-A & replace RSS links with Miro subscribe URLs
 
