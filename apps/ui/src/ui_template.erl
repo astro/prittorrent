@@ -128,6 +128,9 @@ ends_with_only_slash(<<_, Bin/binary>>) ->
 
 
 render_meta(Heading, Title, Image, Homepage) ->
+    render_meta(Heading, Title, Image, Homepage, []).
+
+render_meta(Heading, Title, Image, Homepage, Trailing) ->
     {'div', [{class, "meta"}],
      [if
 	  is_binary(Image),
@@ -146,7 +149,8 @@ render_meta(Heading, Title, Image, Homepage) ->
 		 render_link(Homepage)};
 	    true ->
 		[]
-	end
+	end,
+	Trailing
       ]}
     ]}.
 
@@ -590,7 +594,7 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
     case model_feeds:user_feed_details(UserName, Slug) of
 	{error, not_found} ->
 	    throw({http, 404});
-	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage} ->
+	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage, _FeedPublic, FeedTorrentify} ->
 	    {ok, FeedDownloads} =
 		model_enclosures:feed_downloads(FeedURL),
     
@@ -613,7 +617,17 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 			       {a, [{href, ui_link:link_user(UserName)}],
 				UserName}
 			      ]}
-			    ], FeedImage, FeedHomepage)
+			    ],
+			    FeedImage,
+			    FeedHomepage,
+			    case FeedTorrentify of
+				true ->
+				    [];
+				_ ->
+				    {p, [{class, "hint"}],
+				     <<"The feed is pending operator confirmation before automatic torrentification can happen.">>}
+			    end
+			   )
 	       },
 	       render_downloads(Opts, FeedDownloads) |
 	       if

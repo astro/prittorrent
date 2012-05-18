@@ -156,10 +156,10 @@ user_feeds_details(UserName, Private) ->
     end.
 
 user_feed_details(UserName, Slug) ->
-    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
+    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", user_feeds.\"public\", feeds.\"torrentify\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
 	    [UserName, Slug]) of
-	{ok, _, [{FeedURL, FeedTitle, FeedHomepage, FeedImage}]} ->
-	    {ok, FeedURL, FeedTitle, FeedHomepage, FeedImage};
+	{ok, _, [{URL, Title, Homepage, Image, Public, Torrentify}]} ->
+	    {ok, URL, Title, Homepage, Image, Public, Torrentify};
 	{error, Reason} ->
 	    {error, Reason}
     end.
