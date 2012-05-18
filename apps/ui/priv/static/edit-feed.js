@@ -122,3 +122,40 @@ rmButton.bind('click', function() {
 	       });
     });
 });
+
+/**
+ * Remove torrent buttons
+ */
+$('.download').each(function() {
+    var download = $(this);
+    var purgeButton = $("<p class='purge button'>Purge</p>");
+    download.before(purgeButton);
+    purgeButton.click(function() {
+	var box = new LightBox();
+	box.content("<form>" +
+		    "<h2>Purge enclosure</h2>" +
+		    "<p class='hint'>Use this to remove or regenerate a torrent, depending on whether the enclosure is still present in the feed.</p>" +
+		    "<p>Are you sure?</p>" +
+		    "<input type='reset' class='cancel button' value='Cancel'>" +
+		    "<input type='submit' class='save button' value='Purge'>" +
+		    "</form>");
+	box.find('.cancel').click(box.remove.bind(box));
+	box.find('.save').click(function(ev) {
+	    ev.preventDefault();
+
+	    var path = download.find('.torrent a').attr('href');
+	    $.ajax({ type: 'DELETE',
+		     url: path,
+		     success: function(response) {
+			 download.remove();
+			 box.remove();
+		     },
+		     error: function() {
+			 box.content("<p>Request failed</p>" +
+				     "<p class='button'>Close</p>");
+			 box.find('.button').click(box.remove.bind(box));
+		     }
+		   });
+	});
+    });
+});

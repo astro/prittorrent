@@ -288,7 +288,6 @@ h3 {
   padding-top: 3px;
   line-height: 16px;
   font-size: 95%;
-  display: block;
 }
 .torrent:hover a {
   background: url('download.png') no-repeat top left;
@@ -452,6 +451,14 @@ noscript {
 .rm.button {
   float: right;
   background-color: #E03030;
+}
+.purge.button {
+  clear: right;
+  float: right;
+  margin-top: 1.5em;
+  min-width: 3em;
+  background-color: #E03030;
+  font-size: 70%;
 }
 
 .lightboxbackground {
