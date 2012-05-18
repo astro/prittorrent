@@ -52,7 +52,9 @@ editButton.bind('click', function() {
 		 box.find('#settitle').bind('change', titleVisibility);
 		 titleVisibility();
 		 box.find('.cancel').click(box.remove.bind(box));
-		 box.find('.save').click(function() {
+		 box.find('.save').click(function(ev) {
+		     ev.preventDefault();
+
 		     var data = {
 			 'public': box.find('#public').prop('checked')
 		     };
@@ -97,7 +99,9 @@ rmButton.bind('click', function() {
 		"<input type='submit' class='save button' value='Delete'>" +
 		"</form>");
     box.find('.cancel').click(box.remove.bind(box));
-    box.find('.save').click(function() {
+    box.find('.save').click(function(ev) {
+	ev.preventDefault();
+
 	var path = document.location.pathname;
 	$.ajax({ type: 'DELETE',
 		 url: path,

@@ -42,7 +42,9 @@ editButton.bind('click', function() {
 		 box.find('#image').val(response.image);
 		 box.find('#homepage').val(response.homepage);
 		 box.find('.cancel').click(box.remove.bind(box));
-		 box.find('.save').click(function() {
+		 box.find('.save').click(function(ev) {
+		     ev.preventDefault();
+
 		     var data = {
 			 title: box.find('#title').val(),
 			 image: box.find('#image').val(),
@@ -108,7 +110,9 @@ addButton.bind('click', function() {
     slugEl.bind('keyup', fixSlug);
 
     box.find('.cancel').click(box.remove.bind(box));
-    box.find('.save').click(function() {
+    box.find('.save').click(function(ev) {
+	ev.preventDefault();
+
 	var slug = slugEl.val();
 	var path = document.location.pathname + "/" + slug;
 	var url = box.find('#url').val();
