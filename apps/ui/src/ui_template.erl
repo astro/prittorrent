@@ -579,49 +579,44 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
      ).
 
 render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
-    FeedURL =
-	case model_users:get_feed(UserName, Slug) of
-	    {ok, FeedURL1} ->
-		FeedURL1;
-	    {error, not_found} ->
-		throw({http, 404})
-	end,
-    {ok, FeedTitle, FeedHomepage, FeedImage} =
-	model_feeds:feed_details(FeedURL),
-    {ok, FeedDownloads} =
-	model_enclosures:feed_downloads(FeedURL),
+    case model_feeds:user_feed_details(UserName, Slug) of
+	{error, not_found} ->
+	    throw({http, 404});
+	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage} ->
+	    {ok, FeedDownloads} =
+		model_enclosures:feed_downloads(FeedURL),
     
-    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
-			flattr = true,
-			homepage = true,
-			ui_req = Req},
-    
-    page_1column(
-      Opts,
-      ui_link:link_user_feed_xml(UserName, Slug),
-      [{header, [{class, "feed"}],
-	render_meta(h2,
-		    [FeedTitle,
-		     {a, [{class, "feedicon"},
-			  {href, ui_link:link_user_feed_xml(UserName, Slug)}],
-		      <<" (Subscribe)">>},
-		     {span, [{class, "publisher"}],
-		      [<<" by ">>,
-		       {a, [{href, ui_link:link_user(UserName)}],
-			UserName}
-		      ]}
-		    ], FeedImage, FeedHomepage)
-       },
-       render_downloads(Opts, FeedDownloads) |
-       if
-	   SessionUser == UserName ->
-	       [?INCLUDE_JQUERY,
-		?SCRIPT_TAG(<<"/static/edit-feed.js">>)];
-	   true ->
-	       []
-       end
-      ]).
+	    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
+				flattr = true,
+				homepage = true,
+				ui_req = Req},
 
+	    page_1column(
+	      Opts,
+	      ui_link:link_user_feed_xml(UserName, Slug),
+	      [{header, [{class, "feed"}],
+		render_meta(h2,
+			    [FeedTitle,
+			     {a, [{class, "feedicon"},
+				  {href, ui_link:link_user_feed_xml(UserName, Slug)}],
+			      <<" (Subscribe)">>},
+			     {span, [{class, "publisher"}],
+			      [<<" by ">>,
+			       {a, [{href, ui_link:link_user(UserName)}],
+				UserName}
+			      ]}
+			    ], FeedImage, FeedHomepage)
+	       },
+	       render_downloads(Opts, FeedDownloads) |
+	       if
+		   SessionUser == UserName ->
+		       [?INCLUDE_JQUERY,
+			?SCRIPT_TAG(<<"/static/edit-feed.js">>)];
+		   true ->
+		       []
+	       end
+	      ])
+    end.
 
 export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of

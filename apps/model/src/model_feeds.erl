@@ -1,7 +1,7 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/8,
-	 feed_details/1, user_feeds_details/1,
+	 user_feeds_details/1, user_feed_details/2,
 	 feed_data/2]).
 
 -include("../include/model.hrl").
@@ -138,21 +138,22 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
        end).
 
 
-feed_details(FeedURL) ->
-    case ?Q("SELECT \"title\", \"homepage\", \"image\" FROM feeds WHERE \"url\"=$1",
-	    [FeedURL]) of
-	{ok, _, [{Title, Homepage, Image}]} ->
-	    {ok, Title, Homepage, Image};
-	{ok, _, []} ->
-	    {error, not_found}
-    end.
 
 
 user_feeds_details(UserName) ->
-    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", feeds.\"title\", feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 ORDER BY LOWER(feeds.\"title\") ASC",
+    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"public\" ORDER BY LOWER(feeds.\"title\") ASC",
 	    [UserName]) of
 	{ok, _, Rows} ->
 	    {ok, Rows};
+	{error, Reason} ->
+	    {error, Reason}
+    end.
+
+user_feed_details(UserName, Slug) ->
+    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
+	    [UserName, Slug]) of
+	{ok, _, [{FeedURL, FeedTitle, FeedHomepage, FeedImage}]} ->
+	    {ok, FeedURL, FeedTitle, FeedHomepage, FeedImage};
 	{error, Reason} ->
 	    {error, Reason}
     end.
