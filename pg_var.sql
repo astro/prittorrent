@@ -38,15 +38,20 @@ CREATE INDEX enclosures_url ON enclosures ("url");
 CREATE INDEX enclosure_torrents_info_hash
        ON enclosure_torrents (info_hash)
        WHERE LENGTH(info_hash) = 20;
-CREATE VIEW enclosures_to_hash AS
+CREATE OR REPLACE VIEW enclosures_to_hash AS
        SELECT enclosures.url,
               enclosure_torrents.last_update AS last_update,
               enclosure_torrents.error AS error,
               enclosure_torrents.info_hash
-               FROM enclosures LEFT JOIN enclosure_torrents
-               ON (enclosures.url=enclosure_torrents.url)
-                WHERE enclosure_torrents.info_hash IS NULL
-                OR LENGTH(enclosure_torrents.info_hash)=0 ORDER BY last_update NULLS FIRST;
+               FROM enclosures
+          LEFT JOIN enclosure_torrents
+                 ON (enclosures.url=enclosure_torrents.url)
+          LEFT JOIN feeds
+                 ON (feeds.url=enclosures.feed)
+              WHERE feeds.torrentify AND
+	            (enclosure_torrents.info_hash IS NULL OR
+                     LENGTH(enclosure_torrents.info_hash)=0)
+           ORDER BY last_update NULLS FIRST;
 
 CREATE OR REPLACE FUNCTION enclosure_to_hash(
        min_inactivity INTERVAL DEFAULT '2 hours',
