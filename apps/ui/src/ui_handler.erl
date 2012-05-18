@@ -342,15 +342,30 @@ handle_request2(#req{method = 'POST',
 		     body = Body
 		    } = Req) ->
     #req{session_user = SessionUser} = validate_session(Req),
-    if
-	SessionUser == UserName ->
-	    URL = proplists:get_value(<<"url">>, Body, null),
-	    %% TODO: validate Slug, URL
-	    model_users:add_feed(UserName, Slug, URL),
-	    %% TODO: test-fetch
-	    json_ok({obj, [{path, <<"/", UserName/binary, "/", Slug/binary>>}]});
-	true ->	    
-	    throw({http, 403})
+    URL = proplists:get_value(<<"url">>, Body, null),
+    case {SessionUser == UserName,
+	  validate_slug(Slug),
+	  URL} of
+	{true, true, <<"http://", _/binary>>} ->
+	    {ok, BaseURL} = application:get_env(ui, base_url),
+	    Link = <<BaseURL/binary, (ui_link:link_user_feed(UserName, Slug))/binary>>,
+	    case model_users:add_feed(UserName, Slug, URL) of
+		{ok, true = _IsNew} ->
+		    %% TODO: test-fetch
+		    json_ok({obj, [{link, Link}]});
+		{ok, _} ->
+		    json_ok({obj, [{link, Link}]});
+		{error, Reason} ->
+		    io:format("model_users:add_feed(~p, ~p, ~p) failed: ~p~n",
+			      [UserName, Slug, URL, Reason]),
+		    json_ok({obj, [{error, <<"Cannot add this feed">>}]})
+	    end;
+	{false, _, _} ->
+	    throw({http, 403});
+	{true, false, _} ->
+	    json_ok({obj, [{error, <<"Malformed slug">>}]});
+	{true, true, _} ->
+	    json_ok({obj, [{error, <<"URI scheme not supported">>}]})
     end;
 
 %% User feed export
@@ -428,6 +443,10 @@ validate_email(Email) ->
 	true ->
 	    false
     end.
+
+
+validate_slug(Slug) ->
+    validate_username(Slug).
 
 
 create_account(UserName, Email) ->

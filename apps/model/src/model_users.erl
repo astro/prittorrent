@@ -76,5 +76,10 @@ get_feed(Name, Slug) ->
     end.
 
 add_feed(Name, Slug, Url) ->
-    R = ?Q("SELECT * FROM add_user_feed($1, $2, $3)", [Name, Slug, Url]),
-    io:format("R result: ~p~n", [R]).
+    case ?Q("SELECT * FROM add_user_feed($1, $2, $3)",
+	    [Name, Slug, Url]) of
+	{ok, _, [{IsNew}]} ->
+	    {ok, IsNew};
+	{error, Reason} ->
+	    {error, Reason}
+    end.

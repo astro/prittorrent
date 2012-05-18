@@ -22,7 +22,7 @@ CREATE TABLE feeds ("url" TEXT NOT NULL,
 CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
        	     		 "slug" TEXT NOT NULL,
        	     		 "feed" TEXT NOT NULL REFERENCES "feeds" ("url"),
-			 PRIMARY KEY ("user", "slug", "feed"));
+			 PRIMARY KEY ("user", "slug"));
 
 CREATE OR REPLACE FUNCTION add_user_feed(
         "f_user" TEXT,

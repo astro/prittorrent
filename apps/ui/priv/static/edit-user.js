@@ -120,11 +120,16 @@ addButton.bind('click', function() {
 		     url: url
 		 },
 		 success: function(response) {
-		     if (response && response.path)
-			 document.location = response.path;
-		     else {
-			 box.content("<p>An error occured</p>" +
+		     if (response && response.link) {
+			 box.content("<p>Your feed has been created: <a class='link'></a></p>" +
 				     "<p class='button'>Close</p>");
+			 box.find('.link').attr('href', response.link);
+			 box.find('.link').text(response.link);
+			 box.find('.button').click(box.remove.bind(box));
+		     } else {
+			 box.content("<p class='message'></p>" +
+				     "<p class='button'>Close</p>");
+			 box.find('.message').text((response && response.error) || "An error occured");
 			 box.find('.button').click(box.remove.bind(box));
 		     }
 		 },
