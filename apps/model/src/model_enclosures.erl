@@ -32,19 +32,19 @@ set_torrent(URL, Error, InfoHash) ->
        end).
 
 recent_downloads() ->
-    query_downloads("TRUE", [],
+    query_downloads("\"feed_public\"", [],
 		    "\"published\" DESC", 32).
 
 popular_downloads() ->
-    query_downloads("(\"seeders\" + \"leechers\") > 0", [],
+    query_downloads("\"feed_public\" AND (\"seeders\" + \"leechers\") > 0", [],
 		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 24).
 
 recent_downloads_without_popular() ->
-    query_downloads("\"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_scraped WHERE (\"seeders\" + \"leechers\") > 0 ORDER BY (\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC LIMIT 24)", [],
+    query_downloads("\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_scraped WHERE (\"seeders\" + \"leechers\") > 0 AND \"feed_public\" ORDER BY (\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC LIMIT 24)", [],
 		    "\"published\" DESC", 24).
 
 user_downloads(UserName) ->
-    query_downloads("\"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
+    query_downloads("\"feed_public\" AND \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
 		    "\"published\" DESC", 23).
 
 feed_downloads(Feed) ->
