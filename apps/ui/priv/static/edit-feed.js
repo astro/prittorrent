@@ -23,7 +23,7 @@ LightBox.prototype = {
  */
 
 var editButton = $("<p class='edit button'>Edit</p>");
-$('.meta').after(editButton);
+$('.meta').before(editButton);
 var detailsPath = document.location.pathname + "/details.json";
 editButton.bind('click', function() {
     var box = new LightBox();
@@ -85,7 +85,36 @@ editButton.bind('click', function() {
 /**
  * Remove feed button
  */
-var rmButton = $("<p class='add button'>Add</a>");
-$('.meta').after(editButton);
+var rmButton = $("<p class='rm button'>Remove</p>");
+editButton.before(rmButton);
 rmButton.bind('click', function() {
+    var box = new LightBox();
+    box.content("<form>" +
+		"<h2>Delete feed</h2>" +
+		"<p class='hint'>You should not permanently remove feeds that your audience has subscribed. It is very inconvenient for them.</p>" +
+		"<p>Are you sure?</p>" +
+		"<p class='cancel button'>Cancel</p>" +
+		"<p class='save button'>Delete</p>" +
+		"</form>");
+    box.find('.cancel').click(box.remove.bind(box));
+    box.find('.save').click(function() {
+	var path = document.location.pathname;
+	$.ajax({ type: 'DELETE',
+		 url: path,
+		 success: function(response) {
+		     box.content("<p>Rest in peace, little feed.</p>" +
+				 "<p class='button'>Sorry</p>");
+		     box.find('.button').click(function() {
+			 box.remove();
+			 if (response && response.link)
+			     document.location = response.link;
+		     });
+		 },
+		 error: function() {
+		     box.content("<p>Cannot submit</p>" +
+				 "<p class='button'>Close</p>");
+		     box.find('.button').click(box.remove.bind(box));
+		 }
+	       });
+    });
 });

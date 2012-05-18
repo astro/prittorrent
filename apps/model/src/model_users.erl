@@ -3,7 +3,8 @@
 -export([register/2, get_salted/1, set_salted/2,
 	 get_details/1, set_details/4,
 	 get_by_email/1,
-	 get_feeds/1, get_feed/2, add_feed/3,
+	 get_feeds/1, get_feed/2,
+	 add_feed/3, rm_feed/2,
 	 get_user_feed/2, set_user_feed/4]).
 
 
@@ -84,6 +85,13 @@ add_feed(Name, Slug, Url) ->
 	{error, Reason} ->
 	    {error, Reason}
     end.
+
+rm_feed(Name, Slug) ->
+    {ok, _} =
+	?Q("DELETE FROM user_feeds WHERE \"user\"=$1 AND \"slug\"=$2",
+	   [Name, Slug]),
+    %% TODO: remove unused from feeds
+    ok.
 
 get_user_feed(UserName, Slug) ->
     case ?Q("SELECT \"feed\", \"public\", \"title\" FROM user_feeds WHERE \"user\"=$1 AND \"slug\"=$2 LIMIT 1",

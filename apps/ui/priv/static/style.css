@@ -449,6 +449,10 @@ noscript {
 .add.button, .save.button, input[type=submit] {
   background-color: #83AC35;
 }
+.rm.button {
+  float: right;
+  background-color: #E03030;
+}
 
 .lightboxbackground {
   position: absolute;

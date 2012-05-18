@@ -368,6 +368,22 @@ handle_request2(#req{method = 'PUT',
 	    json_ok({obj, [{error, <<"URI scheme not supported">>}]})
     end;
 
+%% Delete user feed
+handle_request2(#req{method = 'DELETE',
+		     path = [<<UserName/binary>>, <<Slug/binary>>]
+		    } = Req) ->
+    #req{session_user = SessionUser} = validate_session(Req),
+    if
+	SessionUser == UserName ->
+	    model_users:rm_feed(UserName, Slug),
+
+	    %% Respond with a new target the client JS should navigate to:
+	    Link = ui_link:link_user(UserName),
+	    json_ok({obj, [{link, Link}]});
+	true ->
+	    throw({http, 403})
+    end;
+
 %% User feed export
 %% TODO: support not modified
 handle_request2(#req{method = 'GET',
