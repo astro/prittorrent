@@ -13,21 +13,19 @@ TODO
 ----
 
 * Multiple front pages
-* http://bitlove.org/channelcast + Flattr error?
 * UI: Detect browser language
 * Zlib for UI
 * lhttpc + https! + zlib
 
 * Login
 
-  - List feeds (status)
+  - List feeds
+    * Torrentify flag
+    * Show private to owners
   - Edit feeds:
-    * Overwrite title
-    * Set Private
+    * Torrentify and HTTP status
     * Delete torrents
-    * Feed & enclosure status
-  - Private feeds
-  - Torrentify flag
+    * Enclosure HTTP status
   - cowboy + ssl, enforce https for login
   - more configurability
 
