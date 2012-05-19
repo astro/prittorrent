@@ -19,9 +19,6 @@ TODO
 
 * Login
 
-  - List feeds
-    * Torrentify flag
-    * Show private to owners
   - Edit feeds:
     * Torrentify and HTTP status
     * Delete torrents
@@ -35,7 +32,7 @@ TODO
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
 
-* Embedabble Widget
+* Embedable Widget
 
 * Storage app
   - Avoid dup connections to 1 HTTP server (IP)
