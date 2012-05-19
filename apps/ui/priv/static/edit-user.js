@@ -32,6 +32,7 @@ editButton.bind('click', function() {
     $.ajax({ url: detailsPath,
 	     success: function(response) {
 		 box.content("<form class='useredit'>" +
+			     "<h2>Edit user information</h2>" +
 			     "<p><label for='title'>Title: <input id='title'></p>" +
 			     "<p><label for='image'>Image link: <input id='image'></p>" +
 			     "<p><label for='homepage'>Homepage: <input id='homepage'></p>" +

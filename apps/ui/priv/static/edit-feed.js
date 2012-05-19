@@ -32,6 +32,7 @@ editButton.bind('click', function() {
     $.ajax({ url: detailsPath,
 	     success: function(response) {
 		 box.content("<form class='feededit'>" +
+			     "<h2>Edit feed</h2>" +
 			     "<p><input type='checkbox' id='public'> <label for='public'>Public</label> " +
 			     "<span class='hint'>Show this feed on your user page and in public listings? You should enable this once everything works.</span></p>" +
 			     "<p><input type='checkbox' id='settitle'> <label for='settitle'>Overwrite title</label></p>" +
@@ -87,7 +88,7 @@ editButton.bind('click', function() {
 /**
  * Remove feed button
  */
-var rmButton = $("<p class='rm button'>Remove</p>");
+var rmButton = $("<p class='rm button'>Delete</p>");
 editButton.before(rmButton);
 rmButton.bind('click', function() {
     var box = new LightBox();
