@@ -53,12 +53,12 @@ CREATE OR REPLACE FUNCTION feed_to_update(
     DECLARE
 	next_feed RECORD;
     BEGIN
-	LOCK "feeds" IN SHARE ROW EXCLUSIVE MODE;
         SELECT "url", "last_update"
 	  INTO next_feed
           FROM "feeds"
       ORDER BY "last_update" ASC NULLS FIRST
-         LIMIT 1;
+         LIMIT 1
+           FOR UPDATE;
 
 	next_url := next_feed.url;
 	IF next_feed.last_update IS NULL THEN

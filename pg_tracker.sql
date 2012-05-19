@@ -41,7 +41,10 @@ CREATE OR REPLACE FUNCTION set_peer(
         "p_upspeed" BIGINT;
         "p_downspeed" BIGINT;
     BEGIN
-        SELECT * INTO "old" FROM tracked WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
+        SELECT * INTO "old"
+          FROM tracked
+         WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id"
+           FOR UPDATE;
         IF "old" IS NULL THEN
             INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
                                  "uploaded", "downloaded", "left", "last_request")
