@@ -275,7 +275,7 @@ handle_request2(#req{method = 'GET',
 		[{<<"Content-Type">>, <<"application/x-bittorrent">>},
 		 {<<"Content-Disposition">>,
 		  <<"attachment; filename=\"", NameE/binary, ".torrent\"">>}],
-	    {ok, 200, Headers, Torrent};
+	    {ok, 200, Headers, [], Torrent};
 	{error, not_found} ->
 	    throw({http, 404})
     end;
@@ -395,7 +395,7 @@ handle_request2(#req{method = 'GET',
 				  atom -> <<"application/atom+xml">>;
 				  _ -> <<"application/rss+xml">>
 			      end}],
-    {ok, 200, Headers, Body};
+    {ok, 200, Headers, [], Body};
 
 %% User feed as json
 handle_request2(#req{method = 'GET',
