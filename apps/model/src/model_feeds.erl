@@ -172,15 +172,15 @@ feed_data(FeedURL, MaxEnclosures) ->
 	    [FeedURL]) of
 	{ok, _, [{FeedXml}]} ->
 	    {ok, _, Rows} =
-		?Q("SELECT downloads_cache.\"enclosure\", downloads_cache.\"info_hash\", feed_items.\"xml\" FROM downloads_cache LEFT JOIN feed_items ON (downloads_cache.\"feed\"=feed_items.\"feed\" and downloads_cache.\"item\"=feed_items.\"id\") WHERE downloads_cache.\"feed\"=$1 ORDER BY downloads_cache.\"published\" DESC LIMIT $2",
+		?Q("SELECT downloads_cache.\"enclosure\", downloads_cache.\"name\", feed_items.\"xml\" FROM downloads_cache LEFT JOIN feed_items ON (downloads_cache.\"feed\"=feed_items.\"feed\" and downloads_cache.\"item\"=feed_items.\"id\") WHERE downloads_cache.\"feed\"=$1 ORDER BY downloads_cache.\"published\" DESC LIMIT $2",
 		   [FeedURL, MaxEnclosures]),
 	    EnclosureMap =
-		[{URL, InfoHash}
-		 || {URL, InfoHash, _Xml} <- Rows],
+		[{URL, Name}
+		 || {URL, Name, _Xml} <- Rows],
 	    ItemXmls =
 		list_drop_subsequent_dups(
 		  [Xml
-		   || {_URL, _InfoHash, Xml} <- Rows]),
+		   || {_URL, _Name, Xml} <- Rows]),
 	    {ok, FeedXml, ItemXmls, EnclosureMap};
 	{ok, _, []} ->
 	    {error, not_found}

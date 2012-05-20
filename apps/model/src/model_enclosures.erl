@@ -1,6 +1,6 @@
 -module(model_enclosures).
 
--export([to_hash/0, set_torrent/3,
+-export([to_hash/0, set_torrent/3, get_torrent_by_name/3,
 	 recent_downloads/0, popular_downloads/0,
 	 recent_downloads_without_popular/0,
 	 user_downloads/1, feed_downloads/1]).
@@ -30,6 +30,15 @@ set_torrent(URL, Error, InfoHash) ->
 		       Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP, \"info_hash\"=$2, \"error\"=$3 WHERE \"url\"=$1", [URL, InfoHash, Error])
 	       end
        end).
+
+get_torrent_by_name(UserName, Slug, Name) ->
+    case ?Q("SELECT torrents.\"torrent\" FROM downloads_cache JOIN torrents USING (info_hash) WHERE downloads_cache.\"user\"=$1 AND downloads_cache.\"slug\"=$2 AND downloads_cache.\"name\"=$3",
+	    [UserName, Slug, Name]) of
+	{ok, _, [{Torrent} | _]} ->
+	    {ok, Torrent};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
 
 recent_downloads() ->
     query_downloads("\"feed_public\"", [],

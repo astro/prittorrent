@@ -4,7 +4,7 @@
 	 link_user/1,
 	 link_user_feed/2, link_user_feed_xml/2,
 	 link_item/3,
-	 torrent/1]).
+	 torrent/1, torrent/3]).
 
 
 base() ->
@@ -42,3 +42,8 @@ torrent(InfoHash) ->
       [<<"/t/">>,
        util:binary_to_hex(InfoHash),
        <<".torrent">>]).
+
+torrent(UserName, Slug, Name) ->
+    <<"/", UserName/binary,
+      "/", Slug/binary,
+      "/", Name/binary, ".torrent">>.

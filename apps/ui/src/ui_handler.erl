@@ -262,7 +262,7 @@ handle_request2(#req{method = 'GET',
     end,
     {ok, 303, [{<<"Location">>, <<"/login">>}], [{<<"sid">>, <<>>}], <<"Bye">>};
 
-%% Torrent download
+%% Torrent download by info_hash
 %% TODO: 'HEAD' too
 handle_request2(#req{method = 'GET',
 		     path = [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]
@@ -438,6 +438,27 @@ handle_request2(#req{method = 'POST',
 	    json_ok({obj, []});
 	true ->	    
 	    throw({http, 403})
+    end;
+
+%% Torrent download by user/slug/name
+%% TODO: 'HEAD' too
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>]
+		    }) ->
+    %% Parse torrent name
+    case (catch split_binary(FilePath, size(FilePath) - 8)) of
+	{Name, <<".torrent">>} ->
+	    case model_enclosures:get_torrent_by_name(UserName, Slug, Name) of
+		{ok, Torrent} ->
+		    {ok, 200,
+		     [{<<"Content-Type">>, <<"application/x-bittorrent">>}], [],
+		     Torrent};
+		{error, not_found} ->
+		    throw({http, 404})
+	    end;
+	_ ->
+	    %% FilePath does not end in ".torrent"
+	    throw({http, 404})
     end;
 
 %% 404

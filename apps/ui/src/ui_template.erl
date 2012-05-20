@@ -272,20 +272,17 @@ render_item(Opts, #feed_item{user = User,
        ]}
      ]}.
 
-render_enclosure(#download{name = Name,
-			   info_hash = InfoHash,
+render_enclosure(#download{user = UserName,
+			   slug = Slug,
+			   name = Name,
 			   size = Size,
 			   seeders = Seeders,
 			   leechers = Leechers,
 			   downspeed = Downspeed,
 			   downloaded = Downloaded}) ->
-    render_torrent(Name, InfoHash, Size, Seeders + 1, Leechers, Downspeed, Downloaded).
-
-
-render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth, Downloaded) ->
     {ul, [{class, "download"}],
      [{li, [{class, "torrent"}],
-       {a, [{href, ui_link:torrent(InfoHash)}], Title}
+       {a, [{href, ui_link:torrent(UserName, Slug, Name)}], Name}
       },
       {li, [{class, "stats"}],
        [{span, [{class, "size"},
@@ -293,13 +290,13 @@ render_torrent(Title, InfoHash, Size, Seeders, Leechers, Bandwidth, Downloaded) 
 	{span, [{class, "d"},
 		{title, "Complete downloads"}], integer_to_list(Downloaded)},
 	{span, [{class, "s"},
-		{title, "Seeders"}], integer_to_list(Seeders)},
+		{title, "Seeders"}], integer_to_list(Seeders + 1)},
 	{span, [{class, "l"},
 		{title, "Leechers"}], integer_to_list(Leechers)},
 	if
-	    Bandwidth > 0 ->
+	    Downspeed > 0 ->
 		{span, [{class, "bw"},
-			{title, "Current Total Bandwidth"}], [size_to_human(Bandwidth), "/s"]};
+			{title, "Current Total Bandwidth"}], [size_to_human(Downspeed), "/s"]};
 	    true ->
 		[]
 	end
@@ -662,9 +659,9 @@ export_feed(_Req, UserName, Slug) ->
 			    ItemEl,
 			    fun(URL) ->
 				    case proplists:get_value(URL, EnclosuresMap) of
-					<<InfoHash:20/binary>> ->
+					<<Name/binary>> ->
 					    <<(ui_link:base())/binary,
-					      (ui_link:torrent(InfoHash))/binary>>;
+					      (ui_link:torrent(UserName, Slug, Name))/binary>>;
 					_ ->
 					    io:format("Cannot map enclosure ~s~n", [URL]),
 					    URL
