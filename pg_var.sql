@@ -60,11 +60,11 @@ CREATE OR REPLACE FUNCTION enclosure_to_hash(
     DECLARE
         next_url RECORD;
     BEGIN
+        LOCK "enclosure_torrents" IN SHARE ROW EXCLUSIVE MODE;
         SELECT enclosures_to_hash.url, enclosures_to_hash.last_update
           INTO next_url
           FROM enclosures_to_hash
-         LIMIT 1
-           FOR UPDATE;
+         LIMIT 1;
         IF next_url IS NULL OR next_url.url IS NULL THEN
             RETURN;
         END IF;
