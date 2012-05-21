@@ -101,6 +101,6 @@ CREATE TABLE user_tokens (
 
 CREATE TABLE user_sessions (
        "user" TEXT NOT NULL REFERENCES users ("name"),
-       "sid" BYTEA,
+       "sid" BYTEA PRIMARY KEY,
        "updated" TIMESTAMP
 );
