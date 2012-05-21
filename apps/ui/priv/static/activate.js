@@ -3,8 +3,8 @@ $('#activate').click(function(ev) {
     activate.hide();
     ev.preventDefault();
 
-    var token = activate.data('token');
-    var salt = activate.data('salt');
+    var token = activate.attr('data-token');
+    var salt = activate.attr('data-salt');
     var password1 = $('#password1').val();
     var password2 = $('#password2').val();
 
