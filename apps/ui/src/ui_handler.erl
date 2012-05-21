@@ -446,8 +446,8 @@ handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>]
 		    }) ->
     %% Parse torrent name
-    case (catch split_binary(FilePath, size(FilePath) - 8)) of
-	{Name, <<".torrent">>} ->
+    case parse_torrent_name(FilePath) of
+	{ok, Name} ->
 	    case model_enclosures:get_torrent_by_name(UserName, Slug, Name) of
 		{ok, Torrent} ->
 		    {ok, 200,
@@ -461,10 +461,32 @@ handle_request2(#req{method = 'GET',
 	    throw({http, 404})
     end;
 
+%% Purge torrent
+handle_request2(#req{method = 'DELETE',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>]
+		    }) ->
+    %% Parse torrent name
+    case parse_torrent_name(FilePath) of
+	{ok, Name} ->
+	    model_enclosures:purge(UserName, Slug, Name),
+	    {ok, 200, [], [], <<>>};
+	_ ->
+	    %% FilePath does not end in ".torrent"
+	    throw({http, 404})
+    end;
+
 %% 404
 handle_request2(_Req) ->
     throw({http, 404}).
 
+
+parse_torrent_name(Path) ->
+    case (catch split_binary(Path, size(Path) - 8)) of
+	{Name, <<".torrent">>} ->
+	    {ok, Name};
+	_ ->
+	    false
+    end.
 
 %% UI stats gathering
 count_request(Method, []) ->

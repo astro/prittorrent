@@ -265,3 +265,21 @@ CREATE OR REPLACE VIEW downloads_scraped AS
               COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
               COALESCE(scraped.downloaded, 0) AS "downloaded"
          FROM downloads_cache LEFT JOIN scraped ON (downloads_cache.info_hash=scraped.info_hash);
+
+
+-- model_enclosures:purge/3
+CREATE OR REPLACE FUNCTION purge_download(
+    "d_user" TEXT,
+    "d_slug" TEXT,
+    "d_name" TEXT
+) RETURNS void AS $$
+    DECLARE
+        "d_enclosure" TEXT;
+    BEGIN
+        DELETE FROM downloads_cache
+              WHERE "user"=d_user AND "slug"=d_slug AND "name"=d_name
+          RETURNING "enclosure" INTO d_enclosure;
+        DELETE FROM enclosure_torrents WHERE "url"=d_enclosure;
+        DELETE FROM enclosures WHERE "url"=d_enclosure;
+    END;
+$$ LANGUAGE plpgsql;

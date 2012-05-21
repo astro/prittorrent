@@ -1,6 +1,7 @@
 -module(model_enclosures).
 
--export([to_hash/0, set_torrent/3, get_torrent_by_name/3,
+-export([to_hash/0, set_torrent/3,
+	 get_torrent_by_name/3, purge/3,
 	 recent_downloads/0, popular_downloads/0,
 	 recent_downloads_without_popular/0,
 	 user_downloads/1, feed_downloads/1]).
@@ -39,6 +40,9 @@ get_torrent_by_name(UserName, Slug, Name) ->
 	{ok, _, []} ->
 	    {error, not_found}
     end.
+
+purge(UserName, Slug, Name) ->
+    ?Q("SELECT * FROM purge_download($1, $2, $3)", [UserName, Slug, Name]).
 
 recent_downloads() ->
     query_downloads("\"feed_public\"", [],
