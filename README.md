@@ -21,9 +21,8 @@ TODO
 
   - Edit feeds:
     * Torrentify and HTTP status
-    * Delete torrents
     * Enclosure HTTP status
-  - cowboy + ssl, enforce https for login
+  - enforce https for log in
   - more configurability
 
 
