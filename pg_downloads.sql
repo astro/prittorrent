@@ -126,6 +126,7 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_enclosure_torrents(
     BEGIN
         DELETE FROM downloads_cache
               WHERE "enclosure"=OLD."url";
+        RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -208,6 +209,7 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_user_feeds(
     BEGIN
         DELETE FROM downloads_cache
               WHERE "user"=OLD."user" AND "slug"=OLD."slug";
+        RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -242,6 +244,7 @@ CREATE OR REPLACE FUNCTION update_downloads_cache_on_delete_enclosures(
     BEGIN
         DELETE FROM downloads_cache
               WHERE "feed"=OLD."feed" AND "item"=OLD."item" AND "enclosure"=OLD."url";
+        RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
 
