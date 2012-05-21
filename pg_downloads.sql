@@ -19,7 +19,7 @@ CREATE TABLE downloads_cache(
            ON DELETE CASCADE,
        -- Feed data
        "feed_title" TEXT,
-       "feed_public" TEXT,
+       "feed_public" BOOL,
        -- Torrent data:
        "info_hash" BYTEA,
        "name" TEXT,
