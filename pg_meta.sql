@@ -1,23 +1,23 @@
 CREATE TABLE users ("name" TEXT NOT NULL,
-       	     	    "email" TEXT NOT NULL,
-		    "salt" BYTEA,
-		    "salted" BYTEA,
-		    "title" TEXT,
-		    "image" TEXT,
-		    "homepage" TEXT,
-		    PRIMARY KEY ("name"));
+                    "email" TEXT NOT NULL,
+                    "salt" BYTEA,
+                    "salted" BYTEA,
+                    "title" TEXT,
+                    "image" TEXT,
+                    "homepage" TEXT,
+                    PRIMARY KEY ("name"));
 
 CREATE TABLE feeds ("url" TEXT NOT NULL,
-       	     	    "last_update" TIMESTAMP,
-       	     	    "etag" TEXT,
-		    "last_modified" TEXT,
-		    "error" TEXT,
-		    "title" TEXT,
-		    "homepage" TEXT,
-		    "image" TEXT,
-		    "xml" TEXT,
+                    "last_update" TIMESTAMP,
+                    "etag" TEXT,
+                    "last_modified" TEXT,
+                    "error" TEXT,
+                    "title" TEXT,
+                    "homepage" TEXT,
+                    "image" TEXT,
+                    "xml" TEXT,
                     "torrentify" BOOL,
-       	     	    PRIMARY KEY ("url"));
+                    PRIMARY KEY ("url"));
 
 CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),
                          "slug" TEXT NOT NULL,
@@ -51,26 +51,26 @@ CREATE OR REPLACE FUNCTION feed_to_update(
        OUT next_url TEXT, OUT wait INTERVAL
    ) RETURNS RECORD AS $$
     DECLARE
-	next_feed RECORD;
+        next_feed RECORD;
     BEGIN
         SELECT "url", "last_update"
-	  INTO next_feed
+          INTO next_feed
           FROM "feeds"
       ORDER BY "last_update" ASC NULLS FIRST
          LIMIT 1
            FOR UPDATE;
 
-	next_url := next_feed.url;
-	IF next_feed.last_update IS NULL THEN
-	   next_feed.last_update = '1970-01-01 00:00:00';
-	END IF;
-	wait := next_feed.last_update + update_interval - CURRENT_TIMESTAMP;
+        next_url := next_feed.url;
+        IF next_feed.last_update IS NULL THEN
+           next_feed.last_update = '1970-01-01 00:00:00';
+        END IF;
+        wait := next_feed.last_update + update_interval - CURRENT_TIMESTAMP;
 
-	IF wait <= '0'::INTERVAL THEN
-	   UPDATE "feeds"
-	      SET "last_update"=CURRENT_TIMESTAMP
-	    WHERE "url"=next_url;
-	END IF;
+        IF wait <= '0'::INTERVAL THEN
+           UPDATE "feeds"
+              SET "last_update"=CURRENT_TIMESTAMP
+            WHERE "url"=next_url;
+        END IF;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -78,13 +78,13 @@ $$ LANGUAGE plpgsql;
 -- Check this with: select * from enclosure_torrents where info_hash not in (select info_hash from torrents);
 -- Or add a constraint on info_hash with either NULL or FOREIGN KEY torrents (info_hash)
 CREATE TABLE enclosure_torrents ("url" TEXT NOT NULL PRIMARY KEY,
-       	     			 last_update TIMESTAMP,
-				 error TEXT,
-				 info_hash BYTEA);
+                                 last_update TIMESTAMP,
+                                 error TEXT,
+                                 info_hash BYTEA);
 
 CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
-       	     	       "name" TEXT,
-		       "size" BIGINT,
-       	     	       "torrent" BYTEA);
+                       "name" TEXT,
+                       "size" BIGINT,
+                       "torrent" BYTEA);
 
 

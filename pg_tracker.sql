@@ -1,16 +1,16 @@
 -- fkey ensures we only track for known torrents:
 CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash") ON DELETE CASCADE,
-       	     	      "peer_id" BYTEA NOT NULL,
-		      "host" BYTEA NOT NULL,
-		      "port" INT NOT NULL,
-		      "uploaded" BIGINT,
-		      "downloaded" BIGINT,
-		      "downspeed" BIGINT,
-		      "upspeed" BIGINT,
-		      "left" BIGINT,
-		      "last_request" TIMESTAMP NOT NULL,
-		      PRIMARY KEY ("info_hash", "peer_id")
-		     );
+                      "peer_id" BYTEA NOT NULL,
+                      "host" BYTEA NOT NULL,
+                      "port" INT NOT NULL,
+                      "uploaded" BIGINT,
+                      "downloaded" BIGINT,
+                      "downspeed" BIGINT,
+                      "upspeed" BIGINT,
+                      "left" BIGINT,
+                      "last_request" TIMESTAMP NOT NULL,
+                      PRIMARY KEY ("info_hash", "peer_id")
+                     );
 
 -- Not neccessary due to tracked PKEY?
 --CREATE INDEX tracked_info_hash ON tracked ("info_hash");

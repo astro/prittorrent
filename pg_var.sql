@@ -1,14 +1,14 @@
 
 CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELETE CASCADE,
-       	     		 "id" TEXT NOT NULL,
-			 "title" TEXT,
-			 "homepage" TEXT,
-			 "published" TIMESTAMP NOT NULL,
-			 "payment" TEXT,
-			 "image" TEXT,
-			 "updated" TIMESTAMP,
-			 "xml" TEXT,
-			 PRIMARY KEY ("feed", "id"));
+                         "id" TEXT NOT NULL,
+                         "title" TEXT,
+                         "homepage" TEXT,
+                         "published" TIMESTAMP NOT NULL,
+                         "payment" TEXT,
+                         "image" TEXT,
+                         "updated" TIMESTAMP,
+                         "xml" TEXT,
+                         PRIMARY KEY ("feed", "id"));
 
 CREATE INDEX feed_items_published ON feed_items ("published");
 
@@ -25,10 +25,10 @@ CREATE TRIGGER feed_items_ensure_image BEFORE INSERT OR UPDATE ON feed_items
     FOR EACH ROW EXECUTE PROCEDURE feed_items_ensure_image();
 
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
-       	     		 "item" TEXT NOT NULL,
-			 "url" TEXT NOT NULL,
-			 PRIMARY KEY ("feed", "item", "url"),
-			 FOREIGN KEY ("feed", "item")
+                         "item" TEXT NOT NULL,
+                         "url" TEXT NOT NULL,
+                         PRIMARY KEY ("feed", "item", "url"),
+                         FOREIGN KEY ("feed", "item")
                              REFERENCES "feed_items" ("feed", "id")
                              ON DELETE CASCADE);
 CREATE INDEX enclosures_url ON enclosures ("url");
@@ -49,7 +49,7 @@ CREATE OR REPLACE VIEW enclosures_to_hash AS
           LEFT JOIN feeds
                  ON (feeds.url=enclosures.feed)
               WHERE feeds.torrentify AND
-	            (enclosure_torrents.info_hash IS NULL OR
+                    (enclosure_torrents.info_hash IS NULL OR
                      LENGTH(enclosure_torrents.info_hash)=0)
            ORDER BY last_update NULLS FIRST;
 
@@ -85,7 +85,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE VIEW item_torrents AS
        SELECT enclosures.feed, enclosures.item, enclosures.url,
-       	      enclosure_torrents.info_hash
+              enclosure_torrents.info_hash
        FROM enclosure_torrents LEFT JOIN enclosures ON (enclosures.url=enclosure_torrents.url)
        WHERE LENGTH(info_hash)=20;
 
