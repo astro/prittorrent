@@ -32,22 +32,51 @@ start(_StartType, _StartArgs) ->
 	 }
 	],
 
-    {IP, Port} =
-	case os:getenv("BIND_IP") of
+    IP = case os:getenv("BIND_IP") of
+	     false ->
+		 %% Development
+		 {0, 0, 0, 0, 0, 0, 0, 0};
+	     IP1 ->
+		 %% Production
+		 {ok, IP2} = inet_parse:address(IP1),
+		 IP2
+	 end,
+    Port = case os:getenv("BIND_PORT") of
+	       false ->
+		   %% Development
+		   8080;
+	       Port1 ->
+		   list_to_integer(Port1)
+	   end,
+    SSLOpts =
+	case os:getenv("SSL_CERT") of
+	    false -> [];
+	    SSLCert -> [{certfile, SSLCert}]
+	end ++
+	case os:getenv("SSL_KEY") of
+	    false -> [];
+	    SSLKey -> [{keyfile, SSLKey}]
+	end ++
+	case os:getenv("SSL_CACERT") of
+	    false -> [];
+	    SSLCACert -> [{cacertfile, SSLCACert}]
+	end,
+
+    {Transport, TransportOpts} =
+	case lists:keymember(certfile, 1, SSLOpts) of
+	    true ->
+		{cowboy_ssl_transport, SSLOpts};
 	    false ->
-		%% Development
-		{{0, 0, 0, 0, 0, 0, 0, 0}, 8080};
-	    IP1 ->
-		%% Production
-		{ok, IP2} = inet_parse:address(IP1),
-		{IP2, 80}
+		{cowboy_tcp_transport, []}
 	end,
 
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
     cowboy:start_listener(
       ui_http_listener, 32,
-      cowboy_tcp_transport, [{ip, IP},
-			     {port, Port}],
+      Transport, [{ip, IP},
+		  {port, Port} |
+		  TransportOpts
+		 ],
       cowboy_http_protocol, [{dispatch, Dispatch}]
      ).
 
