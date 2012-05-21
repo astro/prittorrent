@@ -13,7 +13,7 @@
 		     ]).
 
 
-init({tcp, http}, Req, _Opts) ->
+init({_, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req, State) ->
