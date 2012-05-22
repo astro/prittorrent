@@ -8,6 +8,7 @@ start_link() ->
 
 init() ->
     util:seed_random(),
+    process_flag(trap_exit, true),
     loop().
 
 loop() ->
@@ -19,6 +20,8 @@ loop() ->
 	    SleepTime = 30 + random:uniform(30),
 	    io:format("Nothing to hash, sleeping ~Bs~n", [SleepTime]),
 	    receive
+		{'EXIT', Pid, Reason} ->
+		    io:format("Hasher ~p exited:~n~p~n", [Pid, Reason])
 	    after SleepTime * 1000 ->
 		    ok
 	    end
