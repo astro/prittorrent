@@ -13,20 +13,18 @@ TODO
 ----
 
 * Multiple front pages
+* API
+* Edit feeds:
+  * Torrentify and HTTP status
+  * Enclosure HTTP status
+
+* enforce https for log in
+* more configurability
+
+* Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
 * Zlib for UI
 * lhttpc + https! + zlib
-
-* Login
-
-  - Edit feeds:
-    * Torrentify and HTTP status
-    * Enclosure HTTP status
-  - enforce https for log in
-  - more configurability
-
-
-* Check U-A & replace RSS links with Miro subscribe URLs
 
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
@@ -40,11 +38,12 @@ TODO
 * URL longener?
 * OEmbed
 * Widgets
-* API
 
 * Stats:
   - Render pretty graphs
   - DLs by country/client?
+
+* Multiple sources per feed
 
 Future features:
 
