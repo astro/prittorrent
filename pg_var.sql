@@ -10,7 +10,7 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELE
                          "xml" TEXT,
                          PRIMARY KEY ("feed", "id"));
 
-CREATE INDEX feed_items_published ON feed_items ("published");
+CREATE INDEX feed_items_published ON feed_items ("published" DESC);
 
 CREATE OR REPLACE FUNCTION feed_items_ensure_image() RETURNS trigger AS $$
     BEGIN
@@ -52,6 +52,8 @@ CREATE OR REPLACE VIEW enclosures_to_hash AS
                     (enclosure_torrents.info_hash IS NULL OR
                      LENGTH(enclosure_torrents.info_hash)=0)
            ORDER BY last_update NULLS FIRST;
+
+CREATE INDEX enclosure_torrents_info_hash ON enclosure_torrents (info_hash);
 
 CREATE OR REPLACE FUNCTION enclosure_to_hash(
        min_inactivity INTERVAL DEFAULT '2 hours',

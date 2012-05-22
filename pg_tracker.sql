@@ -12,9 +12,6 @@ CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash"
                       PRIMARY KEY ("info_hash", "peer_id")
                      );
 
--- Not neccessary due to tracked PKEY?
---CREATE INDEX tracked_info_hash ON tracked ("info_hash");
-
 -- For leechers:
 CREATE OR REPLACE VIEW tracker AS
        SELECT "info_hash", "peer_id", "host", "port"
@@ -91,7 +88,7 @@ CREATE TABLE scraped (
        "downspeed" BIGINT,
        "downloaded" BIGINT
 );
-CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers"));
+CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers") DESC, "downloaded" DESC);
 
 CREATE OR REPLACE FUNCTION update_scraped(
     "t_info_hash" BYTEA

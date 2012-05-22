@@ -172,7 +172,7 @@ feed_data(FeedURL, MaxEnclosures) ->
 	    [FeedURL]) of
 	{ok, _, [{FeedXml}]} ->
 	    {ok, _, Rows} =
-		?Q("SELECT downloads_cache.\"enclosure\", downloads_cache.\"name\", feed_items.\"xml\" FROM downloads_cache LEFT JOIN feed_items ON (downloads_cache.\"feed\"=feed_items.\"feed\" and downloads_cache.\"item\"=feed_items.\"id\") WHERE downloads_cache.\"feed\"=$1 ORDER BY downloads_cache.\"published\" DESC LIMIT $2",
+		?Q("SELECT downloads_by_user.\"enclosure\", downloads_by_user.\"name\", feed_items.\"xml\" FROM downloads_by_user LEFT JOIN feed_items ON (downloads_by_user.\"feed\"=feed_items.\"feed\" and downloads_by_user.\"item\"=feed_items.\"id\") WHERE downloads_by_user.\"feed\"=$1 ORDER BY downloads_by_user.\"downloaded\" LIMIT $2",
 		   [FeedURL, MaxEnclosures]),
 	    EnclosureMap =
 		[{URL, Name}

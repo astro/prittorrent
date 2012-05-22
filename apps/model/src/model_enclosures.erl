@@ -33,7 +33,7 @@ set_torrent(URL, Error, InfoHash) ->
        end).
 
 get_torrent_by_name(UserName, Slug, Name) ->
-    case ?Q("SELECT torrents.\"torrent\" FROM downloads_cache JOIN torrents USING (info_hash) WHERE downloads_cache.\"user\"=$1 AND downloads_cache.\"slug\"=$2 AND downloads_cache.\"name\"=$3",
+    case ?Q("SELECT torrents.\"torrent\" FROM downloads_by_user JOIN torrents USING (info_hash) WHERE downloads_by_user.\"user\"=$1 AND downloads_by_user.\"slug\"=$2 AND downloads_by_user.\"name\"=$3",
 	    [UserName, Slug, Name]) of
 	{ok, _, [{Torrent} | _]} ->
 	    {ok, Torrent};
@@ -46,26 +46,30 @@ purge(UserName, Slug, Name) ->
 
 recent_downloads() ->
     query_downloads("\"feed_public\"", [],
-		    "\"published\" DESC", 32).
+		    published, 32).
 
 popular_downloads() ->
     query_downloads("\"feed_public\" AND (\"seeders\" + \"leechers\") > 0", [],
-		    "(\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC", 24).
+		    popularity, 24).
 
 recent_downloads_without_popular() ->
-    query_downloads("\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_scraped WHERE (\"seeders\" + \"leechers\") > 0 AND \"feed_public\" ORDER BY (\"seeders\" + \"leechers\") DESC, \"upspeed\" DESC, \"downspeed\" DESC, \"published\" DESC LIMIT 24)", [],
-		    "\"published\" DESC", 24).
+    query_downloads("\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_by_popularity LIMIT 24)", [],
+		    published, 24).
 
 user_downloads(UserName) ->
-    query_downloads("\"feed_public\" AND \"feed\" IN (SELECT \"feed\" FROM user_feeds WHERE \"user\"=$1)", [UserName],
-		    "\"published\" DESC", 23).
+    query_downloads("\"feed_public\" AND \"user\"=$1", [UserName],
+		    published, 23).
 
 feed_downloads(Feed) ->
     query_downloads("\"feed\"=$1", [Feed],
-		    "\"published\" DESC", 50).
+		    published, 50).
 
 query_downloads(Cond, Params, Order, Limit) ->
-    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM downloads_scraped WHERE " ++ Cond ++ " ORDER BY " ++ Order ++ " LIMIT " ++ integer_to_list(Limit), Params) of
+    TabName = case Order of
+		  published -> "downloads_by_published";
+		  popularity -> "downloads_by_popularity"
+	      end,
+    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ TabName ++ " WHERE " ++ Cond ++ " LIMIT " ++ integer_to_list(Limit), Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		rows_to_downloads(Rows),
