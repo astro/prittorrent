@@ -283,6 +283,5 @@ CREATE OR REPLACE FUNCTION purge_download(
               WHERE "user"=d_user AND "slug"=d_slug AND "name"=d_name
           RETURNING "enclosure" INTO d_enclosure;
         DELETE FROM enclosure_torrents WHERE "url"=d_enclosure;
-        DELETE FROM enclosures WHERE "url"=d_enclosure;
     END;
 $$ LANGUAGE plpgsql;
