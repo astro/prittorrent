@@ -12,18 +12,6 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELE
 
 CREATE INDEX feed_items_published ON feed_items ("published" DESC);
 
-CREATE OR REPLACE FUNCTION feed_items_ensure_image() RETURNS trigger AS $$
-    BEGIN
-        IF NEW.image IS NULL OR NEW.image='' THEN
-            SELECT image INTO NEW.image FROM feeds WHERE url=NEW.feed;
-        END IF;
-        RETURN NEW;
-    END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER feed_items_ensure_image BEFORE INSERT OR UPDATE ON feed_items
-    FOR EACH ROW EXECUTE PROCEDURE feed_items_ensure_image();
-
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
                          "item" TEXT NOT NULL,
                          "url" TEXT NOT NULL,

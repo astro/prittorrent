@@ -68,8 +68,11 @@ update1(URL, Etag1, LastModified1) ->
 			lists:foldl(
 			  fun(ItemXml, Items2) ->
 				  try xml_to_feed_item(URL, NormalizeURL, ItemXml) of
-				      #feed_item{} = Item ->
+				      #feed_item{image = <<_:8, _/binary>>
+						} = Item ->
 					  [Item | Items2];
+				      #feed_item{} = Item ->
+					  [Item#feed_item{image = Image1} | Items2];
 				      _ ->
 					  %%io:format("Malformed item: ~s~n", [exmpp_xml:document_to_binary(ItemXml)]),
 					  Items2
