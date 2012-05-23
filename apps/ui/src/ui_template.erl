@@ -175,7 +175,7 @@ render_item(Opts, #feed_item{user = User,
 	      []
       end,
       {'div', [{class, <<"right">>}],
-       [case Published of
+       [case (catch erlang:universaltime_to_localtime(Published)) of
 	    {{Y, Mo, D}, {H, M, _S}} ->
 		{p, [{class, "published"}],
 		 [io_lib:format("~B-~2..0B-~2..0B",
