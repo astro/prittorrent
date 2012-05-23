@@ -496,7 +496,7 @@ render_reactivate(Req) ->
 
 render_index(Req) ->
     {ok, RecentDownloads} =
-	model_enclosures:recent_downloads_without_popular(),
+	model_enclosures:recent_downloads(),
     {ok, PopularDownloads} =
 	model_enclosures:popular_downloads(),
     

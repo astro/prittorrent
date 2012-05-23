@@ -3,7 +3,6 @@
 -export([to_hash/0, set_torrent/3,
 	 get_torrent_by_name/3, purge/3,
 	 recent_downloads/0, popular_downloads/0,
-	 recent_downloads_without_popular/0,
 	 user_downloads/1, feed_downloads/1]).
 
 -include("../include/model.hrl").
@@ -45,27 +44,19 @@ purge(UserName, Slug, Name) ->
     ?Q("SELECT * FROM purge_download($1, $2, $3)", [UserName, Slug, Name]).
 
 recent_downloads() ->
-    query_downloads("get_recent_downloads(24)",
-		    "\"feed_public\"", []).
+    query_downloads("get_recent_downloads(24)", []).
 
 popular_downloads() ->
-    query_downloads("downloads_by_popularity",
-		    "\"feed_public\" AND (\"seeders\" + \"leechers\") > 0 LIMIT 24", []).
-
-recent_downloads_without_popular() ->
-    query_downloads("get_recent_downloads(24)",
-		    "\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_by_popularity LIMIT 24)", []).
+    query_downloads("get_popular_downloads(24)", []).
 
 user_downloads(UserName) ->
-    query_downloads("downloads_by_published",
-		    "\"feed_public\" AND \"user\"=$1 ORDER BY published DESC LIMIT 23", [UserName]).
+    query_downloads("get_user_recent_downloads(20, $1)", [UserName]).
 
 feed_downloads(Feed) ->
-    query_downloads("get_recent_downloads(50, $1)",
-		    "\"feed\"=$1", [Feed]).
+    query_downloads("get_recent_downloads(50, $1)", [Feed]).
 
-query_downloads(View, Cond, Params) ->
-    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ View ++ " WHERE " ++ Cond, Params) of
+query_downloads(View, Params) ->
+    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ View, Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		rows_to_downloads(Rows),
