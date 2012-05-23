@@ -45,36 +45,37 @@ purge(UserName, Slug, Name) ->
     ?Q("SELECT * FROM purge_download($1, $2, $3)", [UserName, Slug, Name]).
 
 recent_downloads() ->
-    query_downloads("\"feed_public\"", [],
-		    published, 32).
+    query_downloads("get_recent_downloads(24)",
+		    "\"feed_public\"", []).
 
 popular_downloads() ->
-    query_downloads("\"feed_public\" AND (\"seeders\" + \"leechers\") > 0", [],
-		    popularity, 24).
+    query_downloads("downloads_by_popularity",
+		    "\"feed_public\" AND (\"seeders\" + \"leechers\") > 0 LIMIT 24", []).
 
 recent_downloads_without_popular() ->
-    query_downloads("\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_by_popularity LIMIT 24)", [],
-		    published, 24).
+    query_downloads("get_recent_downloads(24)",
+		    "\"feed_public\" AND \"info_hash\" NOT IN (SELECT \"info_hash\" FROM downloads_by_popularity LIMIT 24)", []).
 
 user_downloads(UserName) ->
-    query_downloads("\"feed_public\" AND \"user\"=$1", [UserName],
-		    published, 23).
+    query_downloads("downloads_by_published",
+		    "\"feed_public\" AND \"user\"=$1 ORDER BY published DESC LIMIT 23", [UserName]).
 
 feed_downloads(Feed) ->
-    query_downloads("\"feed\"=$1", [Feed],
-		    published, 50).
+    query_downloads("get_recent_downloads(50, $1)",
+		    "\"feed\"=$1", [Feed]).
 
-query_downloads(Cond, Params, Order, Limit) ->
-    TabName = case Order of
-		  published -> "downloads_by_published";
-		  popularity -> "downloads_by_popularity"
-	      end,
-    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ TabName ++ " WHERE " ++ Cond ++ " LIMIT " ++ integer_to_list(Limit), Params) of
+query_downloads(View, Cond, Params) ->
+    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ View ++ " WHERE " ++ Cond, Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		rows_to_downloads(Rows),
 	    FeedItems = group_downloads(Downloads),
-	    {ok, FeedItems};
+	    SortedFeedItems =
+		lists:sort(fun(#feed_item{published = Published1},
+			       #feed_item{published = Published2}) ->
+				   Published1 > Published2
+			   end, FeedItems),
+	    {ok, SortedFeedItems};
 	{error, Reason} ->
 	    {error, Reason}
     end.
