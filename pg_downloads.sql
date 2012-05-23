@@ -34,9 +34,9 @@ CREATE OR REPLACE VIEW downloads_by_published AS
      JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
      JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
      JOIN torrents ON (enclosure_torrents.info_hash=torrents.info_hash)
-     JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
      JOIN feeds ON (feed_items.feed=feeds.url)
-     JOIN user_feeds ON (feed_items.feed=user_feeds.feed);
+     JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
+LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash);
 
 
 CREATE OR REPLACE VIEW downloads_by_popularity AS
@@ -79,4 +79,4 @@ CREATE OR REPLACE VIEW downloads_by_user AS
       JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
       JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
       JOIN torrents ON (enclosure_torrents.info_hash=torrents.info_hash)
-      JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash);
+ LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash);
