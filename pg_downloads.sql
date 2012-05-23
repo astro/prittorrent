@@ -94,6 +94,7 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
              JOIN feeds ON (feed_items.feed=feeds.url)
              JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
         LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
+            WHERE user_feeds."public"
       ) AS s
     ORDER BY published DESC
     LIMIT $1;
