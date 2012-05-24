@@ -12,6 +12,8 @@ rebar get-deps compile generate
 TODO
 ----
 
+* update cowboy
+
 * Multiple front pages
 * API
 * Edit feeds:
