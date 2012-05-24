@@ -1,7 +1,7 @@
 body {
   text-align: center;
   color: black;
-  background: #dae0d0;
+  background: #eaf0de;
   font-family: sans-serif;
   margin: 0 auto;
   max-width: 60em;
@@ -260,7 +260,6 @@ dl.flattr dd {
 
 article {
   background-color: white;
-  box-shadow: 2px 2px 8px #aaa;
   border-top: 1px solid #eee;
   margin: 1em 0;
   padding: 0.5em 0 0.3em;
