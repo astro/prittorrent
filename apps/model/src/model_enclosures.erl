@@ -56,7 +56,7 @@ feed_downloads(Feed) ->
     query_downloads("get_recent_downloads(50, $1)", [Feed]).
 
 query_downloads(View, Params) ->
-    case ?Q("SELECT \"user\", \"slug\", \"feed\", \"item\", \"enclosure\", \"info_hash\", \"name\", \"size\", \"feed_title\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"seeders\", \"leechers\", \"upspeed\", \"downspeed\", \"downloaded\" FROM " ++ View, Params) of
+    case ?Q("SELECT * FROM " ++ View, Params) of
 	{ok, _, Rows} ->
 	    Downloads =
 		rows_to_downloads(Rows),
@@ -92,11 +92,11 @@ rows_to_downloads(Rows) ->
 	       downspeed = Downspeed,
 	       downloaded = Downloaded}
      || {User, Slug, Feed, Item, Enclosure,
+	 FeedTitle, _FeedPublic,
 	 InfoHash, Name, Size,
-	 FeedTitle,
 	 Title, Published, Homepage, Payment, Image,
 	 Seeders, Leechers, Upspeed, Downspeed,
-	 Downloaded
+	 Downloaded  %% ordered like in Postgres TYPE 'download'
 	} <- Rows].
 
 %% By homepage
