@@ -545,21 +545,25 @@ render_new(Req) ->
     page_1column(
       Opts,
       no_feed,
-      {'div', render_downloads(Opts, RecentDownloads)}
+      {'div',
+       [{h2, <<"New Torrents">>} |
+	render_downloads(Opts, RecentDownloads)]}
      ).
 
 render_top(Req) ->
     {ok, PopularDownloads} =
 	model_enclosures:popular_downloads(30),
     
-    Opts = #render_opts{title = <<"Bitlove: New torrents">>,
+    Opts = #render_opts{title = <<"Bitlove: Top torrents">>,
 			publisher = true,
 			flattr = true,
 			ui_req = Req},
     page_1column(
       Opts,
       no_feed,
-      {'div', render_downloads(Opts, PopularDownloads)}
+      {'div', 
+       [{h2, <<"Top Torrents">>} |
+	render_downloads(Opts, PopularDownloads)]}
      ).
 
 render_directory(Req) ->
@@ -590,7 +594,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
     {ok, UserFeeds} =
 	model_feeds:user_feeds_details(UserName, IsSelf),
     {ok, UserDownloads} =
-	model_enclosures:user_downloads(UserName),
+	model_enclosures:user_downloads(UserName, 20),
 
     Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
 			flattr = true,
