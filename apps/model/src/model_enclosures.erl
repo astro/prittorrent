@@ -61,12 +61,7 @@ query_downloads(View, Params) ->
 	    Downloads =
 		rows_to_downloads(Rows),
 	    FeedItems = group_downloads(Downloads),
-	    SortedFeedItems =
-		lists:sort(fun(#feed_item{published = Published1},
-			       #feed_item{published = Published2}) ->
-				   Published1 > Published2
-			   end, FeedItems),
-	    {ok, SortedFeedItems};
+	    {ok, FeedItems};
 	{error, Reason} ->
 	    {error, Reason}
     end.
