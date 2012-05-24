@@ -280,11 +280,26 @@ handle_request2(#req{method = 'GET',
 	    throw({http, 404})
     end;
 
-%% Index page
+%% Front page
 handle_request2(#req{method = 'GET',
 		     path = []
 		    } = Req) ->
-    html_ok(ui_template:render_index(validate_session(Req)));
+    html_ok(ui_template:render_front(validate_session(Req)));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"new">>]
+		    } = Req) ->
+    html_ok(ui_template:render_new(validate_session(Req)));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top">>]
+		    } = Req) ->
+    html_ok(ui_template:render_top(validate_session(Req)));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"directory">>]
+		    } = Req) ->
+    html_ok(ui_template:render_directory(validate_session(Req)));
 
 %% User profile
 handle_request2(#req{method = 'GET',

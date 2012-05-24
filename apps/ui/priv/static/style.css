@@ -4,7 +4,7 @@ body {
   background: white;
   font-family: sans-serif;
   margin: 0 auto;
-  max-width: 65em;
+  max-width: 60em;
   padding: 0;
   text-align: center;
 }
@@ -23,7 +23,6 @@ a:hover {
 header.site {
   margin: 0 auto 1em;
   text-align: center;
-  border-bottom: 1px dotted #ccc;
   font-family: 'Georgia', serif;
   font-style: italic;
   font-weight: bold;
@@ -64,9 +63,42 @@ header.site .slogan {
   color: #777;
 }
 
+.navtabs {
+  width: 100%;
+}
+.navtabs ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+.navtabs ul li {
+  display: inline-block;
+  margin: 0 2em -1px;
+  padding: 0.1em 0.3em 0.05em;
+  border: 1px solid #888;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: white;
+  box-shadow: 0 -3px 3px #eee;
+}
+.navtabs ul li:target {
+  border-bottom: 1px solid white;
+}
+.content {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  box-shadow: 0 0px 24px #ccc;
+  text-align: center;
+}
+
 .col, .col1, .col2 {
-  margin: 0 0 2em;
+  margin: 0 auto 2em;
   padding: 0 1em;
+  text-align: left;
 }
 .col {
   max-width: 40em;
@@ -81,6 +113,15 @@ header.site .slogan {
 }
 .col2 {
   margin-left: 51%;
+}
+
+.about {
+  font-size: 130%;
+  color: #444;
+}
+.about b {
+  font-size: 150%;
+  color: #777;
 }
 
 h2 { 
@@ -326,31 +367,10 @@ h3 {
   min-width: 5em;
 }
 
-#navbar {
-  display: block;
-  margin: 0;
-  padding: 0;
-  font-size: 80%;
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-radius: 0 0 0 2em;
-  background-color: white;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
-}
-#navbar p {
-  display: inline-block;
-  margin: 0 0.5em;
-  padding: 0.1em 0 0.2em 0.5em;
-}
-
-
 footer {
   clear: both;
   margin: 2em auto 0.5em;
   padding: 0;
-  padding-top: 0.1em;
-  border-top: 1px dotted #ccc;
   text-align: center;
 }
 footer div {

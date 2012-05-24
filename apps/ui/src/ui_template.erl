@@ -3,7 +3,9 @@
 -export([render_message/2,
 	 render_login/1, render_signup/1,
 	 render_activate/3, render_reactivate/1,
-	 render_index/1, render_user/2,
+	 render_front/1,
+	 render_new/1, render_top/1, render_directory/1,
+	 render_user/2,
 	 render_user_feed/3, export_feed/3]).
 
 -include("../include/ui.hrl").
@@ -45,7 +47,18 @@ html(#render_opts{title = HtmlTitle,
 	     },
 	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
 	    ]},
-	   Contents,
+	   {nav, [{class, "navtabs"}],
+	    {ul,
+	     [{li,
+	       {a, [{href, "/new"}], <<"New">>}},
+	      {li,
+	       {a, [{href, "/top"}], <<"Top">>}},
+	      {li,
+	       {a, [{href, "/directory"}], <<"Directory">>}},
+	      {li,
+	       {a, [{href, "/login"}], <<"Login">>}}
+	     ]}},
+	   {'div', [{class, "content"}], Contents},
 	   if
 	       is_binary(SessionUser) ->
 		   {nav, [{id, "navbar"}],
@@ -494,11 +507,9 @@ render_reactivate(Req) ->
 	]}
        ]).
 
-render_index(Req) ->
+render_front(Req) ->
     {ok, RecentDownloads} =
-	model_enclosures:recent_downloads(),
-    {ok, PopularDownloads} =
-	model_enclosures:popular_downloads(),
+	model_enclosures:recent_downloads(3),
     
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
@@ -506,14 +517,63 @@ render_index(Req) ->
 			ui_req = Req},
     page_2column(
       Opts,
-      [{'div',
-	[{h2, "Recent Torrents"}
-	]} |
-       render_downloads(Opts, RecentDownloads)],
-      [{'div',
-	[{h2, "Popular Torrents"}
-	]} |
-       render_downloads(Opts, PopularDownloads)]
+      {'p', [{class, "about"}],
+       [{b, <<"Bitlove">>},
+	<<" is the fully ">>,
+	{b, <<"automatic">>},
+	<<" Podcast download service on ">>,
+	{b, <<"P2P speed">>},
+	<<". We generate a ">>,
+	{b, <<"Torrent">>},
+	<<" for all media files of an RSS ">>,
+	{b, <<"feed">>},
+	<<" and will ">>,
+	{b, <<"seed">>},
+	<<" them all the time.">>
+       ]},
+      {'div', render_downloads(Opts, RecentDownloads)}
+     ).
+
+render_new(Req) ->
+    {ok, RecentDownloads} =
+	model_enclosures:recent_downloads(30),
+    
+    Opts = #render_opts{title = <<"Bitlove: New torrents">>,
+			publisher = true,
+			flattr = true,
+			ui_req = Req},
+    page_1column(
+      Opts,
+      no_feed,
+      {'div', render_downloads(Opts, RecentDownloads)}
+     ).
+
+render_top(Req) ->
+    {ok, PopularDownloads} =
+	model_enclosures:popular_downloads(30),
+    
+    Opts = #render_opts{title = <<"Bitlove: New torrents">>,
+			publisher = true,
+			flattr = true,
+			ui_req = Req},
+    page_1column(
+      Opts,
+      no_feed,
+      {'div', render_downloads(Opts, PopularDownloads)}
+     ).
+
+render_directory(Req) ->
+    {ok, RecentDownloads} =
+	model_enclosures:recent_downloads(30),
+    
+    Opts = #render_opts{title = <<"Bitlove: New torrents">>,
+			publisher = true,
+			flattr = true,
+			ui_req = Req},
+    page_1column(
+      Opts,
+      no_feed,
+      {'div', render_downloads(Opts, RecentDownloads)}
      ).
 
 %% Feeds, Recent Episodes
@@ -593,7 +653,7 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 	    throw({http, 404});
 	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage, _FeedPublic, FeedTorrentify} ->
 	    {ok, FeedDownloads} =
-		model_enclosures:feed_downloads(FeedURL),
+		model_enclosures:feed_downloads(FeedURL, 100),
     
 	    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
 				flattr = true,

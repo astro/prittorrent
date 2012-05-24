@@ -2,8 +2,8 @@
 
 -export([to_hash/0, set_torrent/3,
 	 get_torrent_by_name/3, purge/3,
-	 recent_downloads/0, popular_downloads/0,
-	 user_downloads/1, feed_downloads/1]).
+	 recent_downloads/1, popular_downloads/1,
+	 user_downloads/2, feed_downloads/2]).
 
 -include("../include/model.hrl").
 
@@ -43,17 +43,17 @@ get_torrent_by_name(UserName, Slug, Name) ->
 purge(UserName, Slug, Name) ->
     ?Q("SELECT * FROM purge_download($1, $2, $3)", [UserName, Slug, Name]).
 
-recent_downloads() ->
-    query_downloads("get_recent_downloads(24)", []).
+recent_downloads(Limit) ->
+    query_downloads("get_recent_downloads($1)", [Limit]).
 
-popular_downloads() ->
-    query_downloads("get_popular_downloads(24)", []).
+popular_downloads(Limit) ->
+    query_downloads("get_popular_downloads($1)", [Limit]).
 
-user_downloads(UserName) ->
-    query_downloads("get_user_recent_downloads(20, $1)", [UserName]).
+user_downloads(UserName, Limit) ->
+    query_downloads("get_user_recent_downloads($2, $1)", [UserName, Limit]).
 
-feed_downloads(Feed) ->
-    query_downloads("get_recent_downloads(50, $1)", [Feed]).
+feed_downloads(Feed, Limit) ->
+    query_downloads("get_recent_downloads($2, $1)", [Feed, Limit]).
 
 query_downloads(View, Params) ->
     case ?Q("SELECT * FROM " ++ View, Params) of
