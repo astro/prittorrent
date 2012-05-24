@@ -127,6 +127,7 @@ addButton.bind('click', function() {
 		 success: function(response) {
 		     if (response && response.link) {
 			 box.content("<p>Your feed has been created: <a class='link'></a></p>" +
+				     "<p class='hint'>Your feeds are private by default. Don't forget to edit them if you are satisfied with what you're seeing. Contact us otherwise: <a href='mailto:mail@bitlove.org'>mail@bitlove.org</a>.</p>" +
 				     "<p class='button'>Close</p>");
 			 box.find('.link').attr('href', response.link);
 			 box.find('.link').text(response.link);
