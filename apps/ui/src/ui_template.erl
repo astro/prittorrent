@@ -191,7 +191,7 @@ render_item(Opts, #feed_item{user = User,
 			     slug = Slug,
 			     id = ItemId,
 			     feed_title = FeedTitle,
-			     published = Published,
+			     published = {PublishedDate, {PublishedHour, PublishedMin, _}},
 			     title = Title,
 			     image = Image,
 			     homepage = Homepage,
@@ -207,19 +207,7 @@ render_item(Opts, #feed_item{user = User,
 	      []
       end,
       {'div', [{class, <<"right">>}],
-       [case (catch erlang:universaltime_to_localtime(Published)) of
-	    {{Y, Mo, D}, {H, M, _S}} ->
-		{p, [{class, "published"}],
-		 [io_lib:format("~B-~2..0B-~2..0B",
-				[Y, Mo, D]),
-		  {br, []},
-		  io_lib:format("~2..0B:~2..0B",
-				[H, M])
-		 ]};
-	    _ ->
-		[]
-	end,
-	if
+       [if
 	    Opts#render_opts.flattr,
 	    is_binary(Payment),
 	    size(Payment) > 0 ->
@@ -245,6 +233,20 @@ render_item(Opts, #feed_item{user = User,
 		  end
 		 }];
 	    true ->
+		[]
+	end,
+	%% Avoid conversion with floating seconds
+	case (catch erlang:universaltime_to_localtime({PublishedDate, {PublishedHour, PublishedMin, 0}})) of
+	    %% No interest in seconds at all
+	    {{Y, Mo, D}, {H, M, _S}} ->
+		{p, [{class, "published"}],
+		 [io_lib:format("~B-~2..0B-~2..0B",
+				[Y, Mo, D]),
+		  {br, []},
+		  io_lib:format("~2..0B:~2..0B",
+				[H, M])
+		 ]};
+	    _ ->
 		[]
 	end
        ]},
