@@ -281,6 +281,7 @@ h3 {
 }
 
 .download {
+  clear: both;
   list-style-type: none;
   padding: 0;
   margin: 0.6em 0 0.1em 44px;
@@ -384,7 +385,6 @@ h3 {
 }
 
 .stats {
-  clear: right;
   padding-left: 15px;
   padding-top: 3px;
   font-size: 75%;
