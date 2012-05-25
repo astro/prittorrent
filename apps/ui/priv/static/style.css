@@ -138,6 +138,11 @@ header {
   text-align: center;
   margin: 0 auto;
 }
+header .siteflattr {
+  position: absolute;
+  top: 0.5em;
+  right: 1em;
+}
 header .meta {
   display: inline-block;
 }

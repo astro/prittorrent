@@ -63,7 +63,17 @@ html(#render_opts{title = HtmlTitle,
 	    [{h1, 
 	      {a, [{href, <<"/">>}], <<"Bitlove">>}
 	     },
-	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"}
+	     {p, [{class, "slogan"}], "Peer-to-Peer Love for Your Podcast Downloads"},
+	     {p, [{class, "siteflattr"}],
+	      {a, [{class, "FlattrButton"},
+		   {style, "display:none;"},
+		   {href, "http://bitlove.org/"},
+		   {rev, "flattr;button:large;"}],
+	       {img, [{src, "http://api.flattr.com/button/flattr-badge-large.png"},
+		      {alt, "Flattr this"},
+		      {title, "Flattr this"},
+		      {border, "0"}], []}
+	      }}
 	    ]},
 	   {nav, [{class, "navtabs"}],
 	    {ul,
