@@ -14,9 +14,6 @@ TODO
 
 * update cowboy
 
-* Fix directory min heights
-* Fix col widths
-* Fix non-autosubmit Flattr buttons
 * Flattr donate
 
 
@@ -52,6 +49,7 @@ TODO
   - Render pretty graphs
   - DLs by country/client?
 
+* Rehash on detected enclosure data change
 * Multiple sources per feed
 
 Future features:
