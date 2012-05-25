@@ -264,9 +264,11 @@ handle_request2(#req{method = 'GET',
 
 %% Torrent download by info_hash
 %% TODO: 'HEAD' too
-handle_request2(#req{method = 'GET',
+handle_request2(#req{method = Method,
 		     path = [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]
-		    }) ->
+		    })
+  when Method =:= 'GET';
+       Method =:= 'HEAD' ->
     InfoHash = util:hex_to_binary(InfoHashHex),
     case model_torrents:get_torrent(InfoHash) of
 	{ok, Name, Torrent} ->
@@ -456,10 +458,11 @@ handle_request2(#req{method = 'POST',
     end;
 
 %% Torrent download by user/slug/name
-%% TODO: 'HEAD' too
-handle_request2(#req{method = 'GET',
+handle_request2(#req{method = Method,
 		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>]
-		    }) ->
+		    })
+  when Method =:= 'GET';
+       Method =:= 'HEAD' ->
     %% Parse torrent name
     case parse_torrent_name(FilePath) of
 	{ok, Name} ->
