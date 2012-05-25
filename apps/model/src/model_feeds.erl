@@ -2,7 +2,7 @@
 
 -export([to_update/1, prepare_update/1, write_update/8,
 	 user_feeds_details/2, user_feed_details/2,
-	 feed_data/2]).
+	 feed_data/2, get_directory/0]).
 
 -include("../include/model.hrl").
 
@@ -185,6 +185,25 @@ feed_data(FeedURL, MaxEnclosures) ->
 	{ok, _, []} ->
 	    {error, not_found}
     end.
+
+get_directory() ->
+    {ok, _, Rows} =
+	?Q("SELECT \"user\", \"title\", \"image\", \"slug\", \"feed_title\" FROM directory", []),
+    group_directory_feeds(Rows).
+
+group_directory_feeds([]) ->
+    [];
+group_directory_feeds([{User1, Title1, Image1, _, _} | _] = Directory) ->
+    {Directory1, Directory2} =
+	lists:splitwith(
+	  fun({User2, _, _, _, _}) ->
+		     User1 == User2
+	  end, Directory),
+    [{User1, Title1, Image1,
+      [{Slug, FeedTitle}
+       || {_, _, _, Slug, FeedTitle} <- Directory1]
+     } | group_directory_feeds(Directory2)].
+
 
 %%
 %% Helpers

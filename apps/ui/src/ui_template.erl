@@ -579,18 +579,45 @@ render_top(Req) ->
 	render_downloads(Opts, PopularDownloads)]}
      ).
 
+render_directory_item({User, Title, Image, Feeds}) ->
+    {article, [{class, "user"}],
+     [{'div', [{class, "meta"}],
+       [if
+	    is_binary(Image),
+	    size(Image) > 0 ->
+		{img, [{src, Image},
+		       {class, "logo"}], []};
+	    true ->
+		[]
+	end,
+	{'div', [{class, "title"}],
+	 {h2, 
+	  {a, [{href, ui_link:link_user(User)}], Title}}
+	},
+	{ul, [{class, "feeds"}],
+	 [{li,
+	   {a, [{href, ui_link:link_user_feed(User, Slug)}],
+	    FeedTitle}
+	  } || {Slug, FeedTitle} <- Feeds]
+	}
+       ]}
+     ]}.
+
 render_directory(Req) ->
-    {ok, RecentDownloads} =
-	model_enclosures:recent_downloads(30),
-    
-    Opts = #render_opts{title = <<"Bitlove: New torrents">>,
+    Directory = model_feeds:get_directory(),
+    {Directory1, Directory2} =
+	lists:split(trunc(length(Directory) / 2), Directory),
+
+    Opts = #render_opts{title = <<"Bitlove: Directory">>,
 			publisher = true,
 			flattr = true,
 			ui_req = Req},
-    page_1column(
+
+    page_2column(
       Opts,
-      no_feed,
-      {'div', render_downloads(Opts, RecentDownloads)}
+      [],
+      lists:map(fun render_directory_item/1, Directory1),
+      lists:map(fun render_directory_item/1, Directory2)
      ).
 
 %% Feeds, Recent Episodes

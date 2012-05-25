@@ -88,3 +88,15 @@ CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
                        "torrent" BYTEA);
 
 
+
+CREATE OR REPLACE VIEW directory AS
+    SELECT users.name AS "user",
+           COALESCE(users.title, users.name) As title,
+           users.image,
+           user_feeds.slug,
+           feeds.title AS feed_title
+      FROM users
+      JOIN user_feeds ON (users.name=user_feeds."user")
+      JOIN feeds ON (user_feeds.feed=feeds.url)
+     WHERE user_feeds."public"=true
+  ORDER BY users.name ASC, user_feeds.slug ASC;

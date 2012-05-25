@@ -157,6 +157,7 @@ header .meta, header .meta div {
 }
 .meta .title {
   margin-left: 70px;
+  line-height: 1.8em;
 }
 .title h2 {
   display: inline-block;
@@ -411,6 +412,16 @@ h3 {
 .stats .bw {
   background: url('swarm.png') no-repeat left center;
   padding-left: 19px;
+}
+
+ul.feeds {
+  list-style-type: none;
+  margin: 0 0 0 68px;
+  padding: 0;
+}
+ul.feeds li {
+  margin: 0;
+  padding: 0 0.5em 0.3em 0;
 }
 
 
