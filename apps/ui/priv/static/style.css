@@ -377,7 +377,7 @@ h3 {
   padding-left: 0.3em;
   font-size: 75%;
   font-weight: 500;
-  white-space: pre-nowrap;
+  white-space: nowrap;
 }
 
 .stats {

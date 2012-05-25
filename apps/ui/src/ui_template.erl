@@ -516,20 +516,31 @@ render_front(Req) ->
 			ui_req = Req},
     page_2column(
       Opts,
-      {'p', [{class, "about"}],
-       [{b, <<"Bitlove">>},
-	<<" is the fully ">>,
-	{b, <<"automatic">>},
-	<<" Podcast download service on ">>,
-	{b, <<"P2P speed">>},
-	<<". We generate a ">>,
-	{b, <<"Torrent">>},
-	<<" for all media files of an RSS ">>,
-	{b, <<"feed">>},
-	<<" and will ">>,
-	{b, <<"seed">>},
-	<<" them all the time.">>
-       ]},
+      [{'p', [{class, "about"}],
+	[{b, <<"Bitlove">>},
+	 <<" is the fully ">>,
+	 {b, <<"automatic">>},
+	 <<" Podcast download service on ">>,
+	 {b, <<"P2P speed">>},
+	 <<". We generate a ">>,
+	 {b, <<"Torrent">>},
+	 <<" for all media files of an RSS ">>,
+	 {b, <<"feed">>},
+	 <<" and will ">>,
+	 {b, <<"seed">>},
+	 <<" them all the time.">>
+	]},
+       %% {h2, <<"Are You a Podcast Publisher?">>},
+       %% {p, [{class, "about"}],
+       %% 	<<"Sign up soon!">>},
+       {'div', [{class, "navtabs"}],
+	{ul,
+	 {li,
+	  {a, [{href, "/login"}],
+	   <<"Podcaster Login">>}
+	 }}
+       }
+      ],
       {'div', render_downloads(Opts, RecentDownloads)}
      ).
 
