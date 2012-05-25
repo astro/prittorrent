@@ -222,14 +222,27 @@ render_item(Opts, #feed_item{user = User,
 				    <<"user_id">> ->
 					{"data-flattr-uid", V};
 				    _ ->
+					K2 = [C
+					      || C <- K,
+						 C =/= $&,
+						 C =/= $;],
 					{"data-flattr-" ++ K, V}
 				end
 				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
 					       Payment1, fun cowboy_http:urldecode/1)
-			       ]], <<"Flattr">>};
+			       ]], <<"[Flattr]">>};
+		      <<"http://flattr.com/", _/binary>> ->
+			  {a, [{class, <<"FlattrButton">>},
+			       {href, if
+					  is_binary(Homepage) ->
+					      Homepage;
+					  true ->
+					      Payment
+				      end},
+			       {rel, <<"payment">>}], <<"[Flattr]">>};
 		      _ ->
 			  {a, [{href, Payment},
-			       {rel, <<"payment">>}], <<"Support">>}
+			       {rel, <<"payment">>}], <<"[Support]">>}
 		  end
 		 }];
 	    true ->
