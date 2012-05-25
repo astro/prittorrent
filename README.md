@@ -14,14 +14,21 @@ TODO
 
 * update cowboy
 
-* Multiple front pages
+* Fix directory min heights
+* Fix col widths
+* Fix non-autosubmit Flattr buttons
+* Flattr donate
+
+
 * API
 * Edit feeds:
-  * Torrentify and HTTP status
+  * HTTP status
   * Enclosure HTTP status
 
 * enforce https for log in
 * more configurability
+
+* Composite feeds
 
 * Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
