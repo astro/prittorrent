@@ -384,6 +384,7 @@ h3 {
 }
 
 .stats {
+  clear: right;
   padding-left: 15px;
   padding-top: 3px;
   font-size: 75%;
