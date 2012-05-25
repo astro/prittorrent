@@ -1,3 +1,9 @@
+* {
+ -moz-box-sizing:    border-box;
+ -webkit-box-sizing: border-box;
+ box-sizing:        border-box;
+}
+
 body {
   text-align: center;
   color: black;
@@ -17,7 +23,8 @@ a {
   font-weight: bold;
 }
 a:hover {
-  text-decoration: underline;
+  color: #050;
+  text-decoration: none;
 }
 
 header.site {
@@ -72,7 +79,7 @@ header.site .slogan {
   margin: 0.5em auto 1.5em;
   padding: 0 0.1em;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 0.5em;
 }
 .navtabs ul li {
   display: inline-block;
@@ -91,12 +98,12 @@ header.site .slogan {
 }
 
 .col, .col1, .col2 {
-  margin: 0 auto 2em;
-  padding: 0 1em;
+  margin: 0 0 2em;
+  padding: 0 0.5em;
   text-align: left;
 }
 .col {
-  max-width: 40em;
+  max-width: 35em;
   display: inline-block;
 }
 .col1 {
@@ -193,7 +200,7 @@ img.logo {
   max-width: 40px;
   max-height: 40px;
 }
-.item .meta {
+.item .title {
   margin-left: 42px;
 }
 .moreby {
@@ -206,73 +213,14 @@ img.logo {
 .right {
   float: right;
   text-align: right;
-}
-.flattrdropdown.shown {
-  display: block;
-}
-.flattrdropdown {
-  display: none;
-  text-align: right;
-  font-size: 80%;
-  margin-left: 0.2em;
-  padding: 0.08em 0.4em 0.1em;
-  vertical-align: middle;
-  line-height: 1.3em;
-  color: white;
-  font-weight: bold;
-  text-shadow: 0 -1px rgba(0, 0, 0, 0.55);
-  border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.34);
-  border-bottom-color: rgba(0, 0, 0, 0.55);
-  background-color: #83AC35;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset,0 1.5px rgba(0,0,0,0.155),0 -0.65em rgba(0,0,0,0.15) inset;
-  cursor: default;
-}
-.flattrdropdown:hover {
-  border: 1px solid #333;
-  margin-bottom: 1px;
-  text-shadow: 0 -1px black;
-  background-color: #639C15;
-}
-.flattrdropdown, .flattrdropdown:hover {
-  transition: background-color 0.3s ease-in;
-  -webkit-transition: background-color 0.3s ease-in;
-  -moz-transition: background-color 0.3s ease-in;
-  -ms-transition: background-color 0.3s ease-in;
-  -o-transition: background-color 0.3s ease-in;
-}
-.flattr {
-  color: #666;
-  font-size: 80%;
-  font-weight: bold;
-  margin-left: 66px;
-  padding: 0 0.2em;
-  display: block;
-  text-align: right;
-  line-height: 1.2em;
-}
-.flattr a {
-  font-size: 70%;
-}
-dl.flattr dt, dl.flattr dd {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-  text-align: right;
-}
-dl.flattr dt {
-  padding-bottom: 0.5em;
-}
-dl.flattr dd {
-  width: 120px;
-  vertical-align: bottom;
+  margin-left: 0.5em;
 }
 
 article {
   background-color: white;
   border-top: 1px solid #eee;
   margin: 1em 0;
-  padding: 0.5em;
+  padding: 0.5em 1em;
   border-radius: 0.5em;
 }
 .col2 article {
@@ -281,8 +229,8 @@ article {
 article:first-child {
   border-top: none;
 }
-article.feed {
-  min-height: 64px;
+article.feed div div {
+  min-height: 68px;
 }
 article.item {
   min-height: 40px;
@@ -325,6 +273,7 @@ h3 {
   text-align: right;
   /* meta & flattr floats above */
   display: block;
+  min-height: 2em;
 }
 .torrent {
   float: left;
@@ -368,7 +317,7 @@ h3 {
   width: 1em;
   border-right: 0.075em solid rgba(0,0,0,0.1);
   float: left;
-  font: 120%/1.5 sans-serif;
+  font: 125%/1.4 sans-serif;
   font-style: normal;
   font-weight: normal;
   margin: 0 0.5em 0 0;
@@ -414,8 +363,10 @@ h3 {
 }
 
 .torrent .size {
+  padding-left: 0.3em;
   font-size: 75%;
   font-weight: 500;
+  white-space: pre-nowrap;
 }
 
 .stats {
@@ -425,7 +376,8 @@ h3 {
   color: #444;
   text-align: left;
   display: inline-block;
-  line-height: 1.9em;
+  line-height: 2em;
+  margin-right: 0.5em;
 }
 .stats > * {
   margin: 0 0 0 1.5em;

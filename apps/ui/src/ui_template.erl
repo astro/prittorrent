@@ -91,14 +91,6 @@ html(#render_opts{title = HtmlTitle,
 	   {footer,
 	    [{'div',
 	      [{p,
-		[<<"100% ">>,
-		 {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"Open Source">>}
-		]},
-	       {p,
-		<<"Bitlove.org is IPv6-ready!">>}
-	      ]},
-	     {'div',
-	      [{p,
 		[<<"Twitter:">>,
 		 {br, []},
 		 {a, [{href, <<"http://twitter.com/bitlove_org">>}],
@@ -111,6 +103,14 @@ html(#render_opts{title = HtmlTitle,
 		[{a, [{href, <<"mailto:mail@bitlove.org">>}],
 		  <<"mail@bitlove.org">>}
 		]}
+	      ]},
+	     {'div',
+	      [{p,
+		[<<"100% ">>,
+		 {a, [{href, <<"https://github.com/astro/prittorrent">>}], <<"Open Source">>}
+		]},
+	       {p,
+		<<"Bitlove.org is IPv6-ready!">>}
 	      ]}
 	    ]},
 	   ?SCRIPT_FLATTR
