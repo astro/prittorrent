@@ -228,6 +228,7 @@ render_item(Opts, #feed_item{user = User,
 		      %% Transform an autosubmit link to Flattr button
 		      <<"https://flattr.com/submit/auto?", Payment1/binary>> ->
 			  {a, [{class, <<"FlattrButton">>},
+			       {rel, <<"payment">>},
 			       {href, Payment} |
 			       [case K of
 				    <<"user_id">> ->
@@ -239,7 +240,8 @@ render_item(Opts, #feed_item{user = User,
 					       Payment1, fun cowboy_http:urldecode/1)
 			       ]], <<"Flattr">>};
 		      _ ->
-			  {a, [{href, Payment}], <<"Support">>}
+			  {a, [{href, Payment},
+			       {rel, <<"payment">>}], <<"Support">>}
 		  end
 		 }];
 	    true ->
@@ -285,7 +287,8 @@ render_enclosure(#download{user = UserName,
 			   downloaded = Downloaded}, ShowName) ->
     {ul, [{class, "download"}],
      [{li, [{class, "torrent"}],
-       {a, [{href, ui_link:torrent(UserName, Slug, Name)}],
+       {a, [{href, ui_link:torrent(UserName, Slug, Name)},
+	    {rel, "enclosure"}],
 	[if
 	     ShowName ->
 		 [Name, $ ];
