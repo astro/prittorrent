@@ -75,29 +75,22 @@ html(#render_opts{title = HtmlTitle,
 	   {footer,
 	    [{'div',
 	      [{p,
-		[<<"Vision by ">>,
-		 {a, [{href, <<"http://tim.geekheim.de/">>}], <<"Tim Pritlove">>}
+		[<<"100% ">>,
+		 {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"Open Source">>}
 		]},
 	       {p,
-		[<<"Open Source & Service by ">>,
-		 {a, [{href, <<"http://spaceboyz.net/~astro/">>}], <<"Astro">>}
-		]},
-	       {p,
-		[<<"Report Bugs ">>,
-		 {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}], <<"on Github!">>}
-		]}
+		<<"Bitlove.org is IPv6-ready!">>}
 	      ]},
 	     {'div',
 	      [{p,
-		[<<"Follow us on Twitter:">>,
+		[<<"Twitter:">>,
 		 {br, []},
 		 {a, [{href, <<"http://twitter.com/bitlove_org">>}],
 		  <<"@bitlove_org">>}
 		]}
 	      ]},
 	     {'div',
-	      [{p, <<"Are you a podcast publisher?">>},
-	       {p, <<"Sign up + add your feeds soon!">>},
+	      [{p, <<"Contact:">>},
 	       {p, 
 		[{a, [{href, <<"mailto:mail@bitlove.org">>}],
 		  <<"mail@bitlove.org">>}
@@ -258,21 +251,23 @@ render_item(Opts, #feed_item{user = User,
 		[]
 	end
        ]},
-      {'div',
-       [if
+      {'div', [{class, "meta"}],
+       [{h3,
+	 [{a, [{href, ItemLink}], Title}
+	 ]},
+	if
 	    Opts#render_opts.publisher ->
-		{h3, [{class, "feed"}],
-		 [{a, [{href, ui_link:link_user_feed(User, Slug)}],
-		   [FeedTitle
-		   ]}
+		{p, [{class, "feed"}],
+		 [<<"in ">>,
+		  {a, [{href, ui_link:link_user_feed(User, Slug)}],
+		   FeedTitle},
+		  <<" by ">>,
+		  {a, [{href, ui_link:link_user(User)}],
+		   User}
 		 ]};
 	    true ->
 		[]
 	end,
-
-	{h3,
-	 [{a, [{href, ItemLink}], Title}
-	 ]},
 	if
 	    Opts#render_opts.homepage,
 	    is_binary(Homepage),
@@ -292,15 +287,22 @@ render_enclosure(#download{user = UserName,
 			   seeders = Seeders,
 			   leechers = Leechers,
 			   downspeed = Downspeed,
-			   downloaded = Downloaded}) ->
+			   downloaded = Downloaded}, ShowName) ->
     {ul, [{class, "download"}],
      [{li, [{class, "torrent"}],
-       {a, [{href, ui_link:torrent(UserName, Slug, Name)}], Name}
+       {a, [{href, ui_link:torrent(UserName, Slug, Name)}],
+	[if
+	     ShowName ->
+		 [Name, $ ];
+	     true ->
+		 <<"Download ">>
+	 end,
+	 {span, [{class, "size"},
+		 {title, "Download size"}], size_to_human(Size)}
+	]}
       },
       {li, [{class, "stats"}],
-       [{span, [{class, "size"},
-		{title, "Download size"}], size_to_human(Size)},
-	{span, [{class, "d"},
+       [{span, [{class, "d"},
 		{title, "Complete downloads"}], integer_to_list(Downloaded)},
 	{span, [{class, "s"},
 		{title, "Seeders"}], integer_to_list(Seeders + 1)},
@@ -318,23 +320,25 @@ render_enclosure(#download{user = UserName,
 
 render_downloads(Opts, Downloads) ->
     lists:map(
-      fun(#feed_item{user = User,
-		     id = ItemId,
+      fun(#feed_item{id = ItemId,
 		     downloads = ItemDownloads} = Item) ->
+	      %% Prepare whether to display just "Download" or filenames
+	      RenderEnclosure =
+		  case length(ItemDownloads) of
+		      1 ->
+			  fun(Download) ->
+				  render_enclosure(Download, false)
+			  end;
+		      _ ->
+			  fun(Download) ->
+				  render_enclosure(Download, true)
+			  end
+		  end,
+
 	      {article, [{class, "item"},
 			 {id, ItemId}],
 	       [render_item(Opts, Item),
-		lists:map(fun render_enclosure/1, ItemDownloads),
-		if
-		    Opts#render_opts.publisher ->
-			{p, [{class, "moreby"}],
-			 [<<"More by ">>,
-			  {a, [{href, ui_link:link_user(User)}],
-			   User}
-			 ]};
-		    true ->
-			[]
-		end
+		lists:map(RenderEnclosure, ItemDownloads)
 	       ]}
       end, Downloads).
 
