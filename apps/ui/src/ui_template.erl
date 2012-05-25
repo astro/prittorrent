@@ -233,12 +233,12 @@ render_item(Opts, #feed_item{user = User,
 			       ]], <<"[Flattr]">>};
 		      <<"http://flattr.com/", _/binary>> ->
 			  {a, [{class, <<"FlattrButton">>},
-			       {href, if
-					  is_binary(Homepage) ->
-					      Homepage;
-					  true ->
-					      Payment
-				      end},
+			       {href, Payment},
+			       {'data-flattr-url',
+				if
+				    is_binary(Homepage) -> Homepage;
+				    true -> ""
+				end},
 			       {rel, <<"payment">>}], <<"[Flattr]">>};
 		      _ ->
 			  {a, [{href, Payment},
