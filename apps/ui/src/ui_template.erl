@@ -315,7 +315,17 @@ render_enclosure(#download{user = UserName,
 	]}
       },
       {li, [{class, "stats"}],
-       [{dl,
+       [if
+	    Downspeed > 0 ->
+		[DownspeedN, DownspeedUnit] = size_to_human(Downspeed),
+		{dl,
+		 [{dt, [DownspeedN, {span, [{class, "unit"}], [DownspeedUnit, "/s"]}]},
+		  {dd, <<"Download speed">>}
+		 ]};
+	    true ->
+		[]
+	end,
+	{dl,
 	 [{dt, integer_to_list(Downloaded)},
 	  {dd, <<"Downloads">>}
 	 ]},
@@ -326,16 +336,8 @@ render_enclosure(#download{user = UserName,
 	{dl,
 	 [{dt, integer_to_list(Leechers)},
 	  {dd, <<"Leechers">>}
-	 ]},
-	if
-	    Downspeed > 0 ->
-		{dl,
-		 [{dt, [size_to_human(Downspeed), "/s"]},
-		  {dd, <<"Speed">>}
-		 ]};
-	    true ->
-		[]
-	end]}
+	 ]}
+       ]}
      ]}.
 
 render_downloads(Opts, Downloads) ->
@@ -811,14 +813,19 @@ size_to_human(Size) when not is_integer(Size) ->
     "∞";
 size_to_human(Size)
   when Size < 1024 ->
-    io_lib:format("~B B", [Size]);
+    [integer_to_list(Size), " B"];
 size_to_human(Size) ->
     size_to_human(Size / 1024, "KMGT").
 
+size_to_human(Size, [Unit | _])
+  when Size < 10 ->
+    [io_lib:format("~.1f", [Size]),
+     io_lib:format(" ~cB", [Unit])];
 size_to_human(Size, [Unit | Units])
   when Size < 1024;
        length(Units) < 1 ->
-    io_lib:format("~.1f ~cB", [Size, Unit]);
+    [integer_to_list(round(Size)),
+     io_lib:format(" ~cB", [Unit])];
 size_to_human(Size, [_ | Units]) ->
     size_to_human(Size / 1024, Units).
 

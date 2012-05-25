@@ -409,6 +409,10 @@ h3 {
   font-weight: 900;
   line-height: 0.9em;
 }
+.stats dl dt .unit {
+  font-size: 70%;
+  line-height: 0.9em;
+}
 .stats dl dd { 
   display: block;
   margin: 0;
