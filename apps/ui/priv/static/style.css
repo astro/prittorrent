@@ -181,6 +181,9 @@ h2 .feedicon {
 h2 .publisher {
   font-size: 40%;
 }
+.directory h2 {
+  font-size: 200%;
+}
 p.feed {
   font-size: 80%;
   color: #666;

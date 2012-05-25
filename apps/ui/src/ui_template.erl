@@ -580,7 +580,7 @@ render_top(Req) ->
      ).
 
 render_directory_item({User, Title, Image, Feeds}) ->
-    {article, [{class, "user"}],
+    {article, [{class, "directory"}],
      [{'div', [{class, "meta"}],
        [if
 	    is_binary(Image),
@@ -615,7 +615,7 @@ render_directory(Req) ->
 
     page_2column(
       Opts,
-      [],
+      [{h2, <<"Directory of Torrentified Podcasters">>}],
       lists:map(fun render_directory_item/1, Directory1),
       lists:map(fun render_directory_item/1, Directory2)
      ).
