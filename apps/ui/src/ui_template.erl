@@ -25,6 +25,24 @@
 -define(INCLUDE_JSSHA,
 	?SCRIPT_TAG(<<"/static/jsSHA.js">>)).
 
+-define(SCRIPT_FLATTR,
+	{script, [{type, <<"text/javascript">>}],
+	 [<<"/* ">>,
+	  {'!CDATA', <<" */
+(function() {
+    var s = document.createElement('script');
+    var t = document.getElementsByTagName('script')[0];
+
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=1&button=compact';
+
+    t.parentNode.insertBefore(s, t);
+ })();
+/* ">>},
+	  <<" */">>]
+	}).
+
 html(#render_opts{title = HtmlTitle,
 		  ui_req = #req{session_user = SessionUser}
 		 }, HeadEls, Contents) ->
@@ -95,7 +113,7 @@ html(#render_opts{title = HtmlTitle,
 		]}
 	      ]}
 	    ]},
-	   ?SCRIPT_TAG(<<"/static/flattrdropdown.js">>)
+	   ?SCRIPT_FLATTR
 	  ]}
 	]}
       )].
@@ -192,59 +210,28 @@ render_item(Opts, #feed_item{user = User,
 		[]
 	end,
 	if
-	    Opts#render_opts.flattr ->
-		PaymentData1 =
-		    if
-			is_binary(Payment),
-			size(Payment) > 0 ->
-			    [{dl, [{class, <<"flattr">>}],
-			      [{dt, [<<"Support ">>, User]},
-			       {dd,
-				case Payment of
-				    %% Transform an autosubmit link to Flattr button
-				    <<"https://flattr.com/submit/auto?",
-				      Payment1/binary>> ->
-					{a, [{class, <<"FlattrButton">>},
-					     {href, Payment}
-					     | [case K of
-						    <<"user_id">> ->
-							{"data-flattr-uid", V};
-						    _ ->
-							{"data-flattr-" ++ binary_to_list(K), V}
-						end
-						|| {K, V} <- cowboy_http:x_www_form_urlencoded(
-							       Payment1, fun cowboy_http:urldecode/1)
-					       ]],
-					 <<"Support the publisher">>};
-				    _  ->
-					{a, [{href, Payment}],
-					 Payment}
-				end}
-			      ]}];
-			true ->
-			    []
-		    end,
-		PaymentData2 =
-		    [{dl, [{class, <<"flattr">>}],
-		      [{dt, <<"Support bitlove.org">>},
-		       {dd,
-			{a, [{class, <<"FlattrButton">>},
-			     {href, <<"https://flattr.com/profile/Astro">>},
-			     {'data-flattr-url', <<(ui_link:base())/binary,
-						   ItemLink/binary>>},
-			     {'data-flattr-uid', <<"Astro">>},
-			     {'data-flattr-title', <<"Torrent for ", Title/binary, " on Bitlove">>},
-			     {'data-flattr-description', <<"Torrentification & Seeding">>},
-			     {'data-flattr-category', <<"rest">>},
-			     {'data-flattr-tags', <<"torrent,bittorrent,p2p,filesharing">>}
-			    ], <<"on Flattr">>}
-		       }
-		      ]}],
-
-		{'div', [{class, <<"flattrdropdown">>},
-			 {title, <<"Support the podcaster and Bitlove">>},
-			 {'data-payment', [html:to_iolist(PaymentData1), html:to_iolist(PaymentData2)]}
-			], <<"Flattr ▾">>};
+	    Opts#render_opts.flattr,
+	    is_binary(Payment),
+	    size(Payment) > 0 ->
+		[{'div', [{class, <<"flattr">>}],
+		  case Payment of
+		      %% Transform an autosubmit link to Flattr button
+		      <<"https://flattr.com/submit/auto?", Payment1/binary>> ->
+			  {a, [{class, <<"FlattrButton">>},
+			       {href, Payment} |
+			       [case K of
+				    <<"user_id">> ->
+					{"data-flattr-uid", V};
+				    _ ->
+					{"data-flattr-" ++ K, V}
+				end
+				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
+					       Payment1, fun cowboy_http:urldecode/1)
+			       ]], <<"Flattr">>};
+		      _ ->
+			  {a, [{href, Payment}], <<"Support">>}
+		  end
+		 }];
 	    true ->
 		[]
 	end
