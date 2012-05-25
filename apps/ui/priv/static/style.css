@@ -268,9 +268,6 @@ h3 {
   line-height: 1em;
   font-family: 'Georgia', serif;
 }
-.col1 h3, .col2 h3 {
-  min-width: 42em;
-}
 .homepage {
   margin: 0;
   margin-top: 0.5em;
