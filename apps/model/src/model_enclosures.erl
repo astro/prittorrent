@@ -32,7 +32,7 @@ set_torrent(URL, Error, InfoHash) ->
        end).
 
 get_torrent_by_name(UserName, Slug, Name) ->
-    case ?Q("SELECT torrents.\"torrent\" FROM downloads_by_user JOIN torrents USING (info_hash) WHERE downloads_by_user.\"user\"=$1 AND downloads_by_user.\"slug\"=$2 AND downloads_by_user.\"name\"=$3",
+    case ?Q("SELECT torrents.\"torrent\" FROM user_feeds JOIN enclosures USING (feed) JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2 AND torrents.\"name\"=$3",
 	    [UserName, Slug, Name]) of
 	{ok, _, [{Torrent} | _]} ->
 	    {ok, Torrent};
