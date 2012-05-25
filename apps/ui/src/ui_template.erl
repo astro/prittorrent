@@ -223,10 +223,10 @@ render_item(Opts, #feed_item{user = User,
 					{"data-flattr-uid", V};
 				    _ ->
 					K2 = [C
-					      || C <- K,
+					      || C <- binary_to_list(K),
 						 C =/= $&,
 						 C =/= $;],
-					{"data-flattr-" ++ K, V}
+					{"data-flattr-" ++ K2, V}
 				end
 				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
 					       Payment1, fun cowboy_http:urldecode/1)
