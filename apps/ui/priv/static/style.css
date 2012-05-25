@@ -12,7 +12,7 @@ body > * {
   text-align: left;
 }
 a {
-  color: #051;
+  color: #072;
   text-decoration: none;
   font-weight: bold;
 }
@@ -21,7 +21,7 @@ a:hover {
 }
 
 header.site {
-  margin: 0 auto 1em;
+  margin: 0 auto;
   text-align: center;
   font-family: 'Georgia', serif;
   font-style: italic;
@@ -69,7 +69,7 @@ header.site .slogan {
 .navtabs ul {
   display: inline-block;
   list-style-type: none;
-  margin: 0 auto;
+  margin: 0.5em auto 1.5em;
   padding: 0 0.1em;
   background-color: white;
   border-radius: 4px;
@@ -136,14 +136,18 @@ header .meta {
 }
 header .meta, header .meta div {
   text-align: left;
-  /* Let logo float: */
+}
+.meta .title {
   margin-left: 70px;
 }
-.meta h2 {
+.title h2 {
+  display: inline-block;
   margin: 0;
+  padding: 0;
   font-family: 'Georgia', serif;
   line-height: 0.8em;
   font-size: 300%;
+  text-align: left;
 }
 h2 .feedicon {
   font-size: 0;
@@ -154,6 +158,9 @@ h2 .feedicon {
   padding-top: 16px;
   padding-left: 16px;
   background: url('rss.png') no-repeat center top;
+}
+h2 .publisher {
+  font-size: 40%;
 }
 p.feed {
   font-size: 80%;
@@ -170,7 +177,7 @@ p.feed {
   border-radius: 2px;*/
   color: #888;
 }
-.meta, section {
+section {
   width: 100%;
 }
 img.logo {
@@ -265,11 +272,8 @@ article {
   background-color: white;
   border-top: 1px solid #eee;
   margin: 1em 0;
-  padding: 0.5em 0.5em 0.3em;
-  border-radius: 8px;
-}
-article.feed {
-  max-width: 20em;
+  padding: 0.5em;
+  border-radius: 0.5em;
 }
 .col2 article {
   margin-right: 0;
@@ -299,7 +303,6 @@ h3 {
   color: #999;
   font-weight: bold;
   line-height: 1em;
-  font-style: italic;
   font-family: 'Georgia', serif;
 }
 .col1 h3, .col2 h3 {
@@ -319,11 +322,12 @@ h3 {
   list-style-type: none;
   padding: 0;
   margin: 0.6em 0 0.1em 44px;
+  text-align: right;
   /* meta & flattr floats above */
   display: block;
 }
 .torrent {
-  display: inline-block;
+  float: left;
 }
 /***
    * This button has been copied from
@@ -410,8 +414,8 @@ h3 {
 }
 
 .torrent .size {
-  font-size: 80%;
-  font-weight: 100;
+  font-size: 75%;
+  font-weight: 500;
 }
 
 .stats {
@@ -419,13 +423,14 @@ h3 {
   padding-top: 3px;
   font-size: 75%;
   color: #444;
+  text-align: left;
   display: inline-block;
+  line-height: 1.9em;
 }
 .stats > * {
-  margin: 0 0.5em 0.2em 0;
+  margin: 0 0 0 1.5em;
   white-space: nowrap;
   display: inline-block;
-  min-width: 2.5em;
   min-height: 14px;
 }
 .stats .d {
@@ -443,7 +448,6 @@ h3 {
 .stats .bw {
   background: url('swarm.png') no-repeat left center;
   padding-left: 19px;
-  min-width: 5em;
 }
 
 

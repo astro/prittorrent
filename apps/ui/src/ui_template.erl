@@ -54,9 +54,7 @@ html(#render_opts{title = HtmlTitle,
 	      {li,
 	       {a, [{href, "/top"}], <<"Top">>}},
 	      {li,
-	       {a, [{href, "/directory"}], <<"Directory">>}},
-	      {li,
-	       {a, [{href, "/login"}], <<"Login">>}}
+	       {a, [{href, "/directory"}], <<"Directory">>}}
 	     ]}},
 	   {'div', [{class, "content"}], Contents},
 	   if
@@ -146,7 +144,7 @@ render_meta(Heading, Title, Image, Homepage, Trailing) ->
 	  true ->
 	      []
       end,
-      {'div',
+      {'div', [{class, "title"}],
        [{Heading, Title},
 	if
 	    is_binary(Homepage),
@@ -251,7 +249,7 @@ render_item(Opts, #feed_item{user = User,
 		[]
 	end
        ]},
-      {'div', [{class, "meta"}],
+      {'div', [{class, "title"}],
        [{h3,
 	 [{a, [{href, ItemLink}], Title}
 	 ]},
