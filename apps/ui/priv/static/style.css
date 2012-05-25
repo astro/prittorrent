@@ -385,36 +385,38 @@ h3 {
 }
 
 .stats {
-  padding-left: 15px;
-  padding-top: 3px;
-  font-size: 75%;
-  color: #444;
+  color: #666;
   text-align: left;
   display: inline-block;
-  line-height: 2em;
-  margin-right: 0.5em;
 }
-.stats > * {
-  margin: 0 0 0 1.5em;
-  white-space: nowrap;
+.stats dl {
   display: inline-block;
-  min-height: 14px;
+  text-align: center;
+  margin: 0;
+  margin-right: 2px;
+  padding: 0.2em 0.3em;
+  border-left: 1px dotted #ddd;
 }
-.stats .d {
-  background: url('d.png') no-repeat left center;
-  padding-left: 13px;
+.stats dl:first-child {
+  border-left: none;
 }
-.stats .s {
-  background: url('s.png') no-repeat left center;
-  padding-left: 11px;
+.stats dl dt {
+  display: block;
+  margin: 0;
+  padding: 0;
+  font-size: 120%;
+  color: #bbb;
+  font-weight: 900;
+  line-height: 0.9em;
 }
-.stats .l {
-  background: url('l.png') no-repeat left center;
-  padding-left: 11px;
-}
-.stats .bw {
-  background: url('swarm.png') no-repeat left center;
-  padding-left: 19px;
+.stats dl dd { 
+  display: block;
+  margin: 0;
+  padding: 0;
+  font-variant: small-caps;
+  font-size: 30%;
+  line-height: 0.8em;
+  letter-spacing: -0.5px;
 }
 
 ul.feeds {

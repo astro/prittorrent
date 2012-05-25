@@ -315,20 +315,27 @@ render_enclosure(#download{user = UserName,
 	]}
       },
       {li, [{class, "stats"}],
-       [{span, [{class, "d"},
-		{title, "Complete downloads"}], integer_to_list(Downloaded)},
-	{span, [{class, "s"},
-		{title, "Seeders"}], integer_to_list(Seeders + 1)},
-	{span, [{class, "l"},
-		{title, "Leechers"}], integer_to_list(Leechers)},
+       [{dl,
+	 [{dt, integer_to_list(Downloaded)},
+	  {dd, <<"Downloads">>}
+	 ]},
+	{dl,
+	 [{dt, integer_to_list(Seeders + 1)},
+	  {dd, <<"Seeders">>}
+	 ]},
+	{dl,
+	 [{dt, integer_to_list(Leechers)},
+	  {dd, <<"Leechers">>}
+	 ]},
 	if
 	    Downspeed > 0 ->
-		{span, [{class, "bw"},
-			{title, "Current Total Bandwidth"}], [size_to_human(Downspeed), "/s"]};
+		{dl,
+		 [{dt, [size_to_human(Downspeed), "/s"]},
+		  {dd, <<"Speed">>}
+		 ]};
 	    true ->
 		[]
-	end
-       ]}
+	end]}
      ]}.
 
 render_downloads(Opts, Downloads) ->
