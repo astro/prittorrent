@@ -14,10 +14,9 @@ body {
   background: -o-linear-gradient(top, #edf0e7 0%,#d7e0dd 100%); /* Opera 11.10+ */
   background: -ms-linear-gradient(top, #edf0e7 0%,#d7e0dd 100%); /* IE10+ */
   background: linear-gradient(top, #edf0e7 0%, #d7e0dd 100%); /* W3C */
-  background-repeat: repeat-x;
   font-family: sans-serif;
   margin: 0 auto;
-  max-width: 60em;
+  max-width: 70em;
   padding: 0;
   text-align: center;
 }
@@ -43,7 +42,6 @@ header.site {
 }
 header.site h1 {
   min-height: 35px;
-  line-height: 1em;
   font-size: 300%;
   margin: 0;
   padding: 0 0;
@@ -68,7 +66,7 @@ header.site h1:after {
   font-weight: bold;
   font-style: normal;
   border-radius: 2px;
-  vertical-align: 40%;
+  vertical-align: 130%;
 }
 header.site .slogan {
   margin: 0;
@@ -110,7 +108,7 @@ header.site .slogan {
   text-align: left;
 }
 .col {
-  max-width: 40em;
+  max-width: 50em;
   display: inline-block;
 }
 .col1 {
@@ -127,11 +125,10 @@ header.site .slogan {
 .about {
   font-size: 150%;
   line-height: 2em;
-  color: #444;
+  color: #666;
 }
 .about b {
   font-weight: 900;
-  color: #777;
 }
 
 h2 { 
@@ -141,6 +138,7 @@ h2 {
   color: #777;
   padding: 0.4em 0 0.1em;
   margin: 0;
+  font-family: 'Georgia', serif;
 }
 header {
   text-align: center;
@@ -159,14 +157,11 @@ header .meta, header .meta div {
 }
 .meta .title {
   margin-left: 70px;
-  line-height: 1.8em;
 }
 .title h2 {
   display: inline-block;
   margin: 0;
   padding: 0;
-  font-family: 'Georgia', serif;
-  line-height: 0.8em;
   font-size: 300%;
   text-align: left;
 }
@@ -253,14 +248,7 @@ article.item {
   min-height: 40px;
 }
 article:target {
-  background: #cfb; /* Old browsers */
-  background: -moz-linear-gradient(top, #cfb 0%, #efe 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfb), color-stop(100%,#efe)); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, #cfb 0%,#efe 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, #cfb 0%,#efe 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, #cfb 0%,#efe 100%); /* IE10+ */
-  background: linear-gradient(top, #cfb 0%,#efe 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cfb', endColorstr='#efe',GradientType=0 ); /* IE6-9 */
+  border: 3px solid #fff79f;
 }
 h3 {
   font-size: 120%;
@@ -385,9 +373,8 @@ h3 {
 }
 
 .stats {
-  color: #666;
-  text-align: left;
   display: inline-block;
+  color: #999;
 }
 .stats dl {
   display: inline-block;
@@ -418,7 +405,7 @@ h3 {
   margin: 0;
   padding: 0;
   font-variant: small-caps;
-  font-size: 30%;
+  font-size: 60%;
   line-height: 0.8em;
   letter-spacing: -0.5px;
 }

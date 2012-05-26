@@ -562,10 +562,11 @@ render_front(Req) ->
        %% 	<<"Sign up soon!">>},
        {'div', [{class, "navtabs"}],
 	{ul,
-	 {li,
-	  {a, [{href, "/login"}],
-	   <<"Podcaster Login">>}
-	 }}
+	 [{li, <<"Sign up soon!">>},
+	  {li,
+	   {a, [{href, "/login"}],
+	    <<"Podcaster Login">>}}
+	 ]}
        }
       ],
       {'div', render_downloads(Opts, RecentDownloads)}
