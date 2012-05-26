@@ -14,23 +14,25 @@ TODO
 
 * update cowboy
 
+* 404 & 500
+* payload's feedback
 * Flattr donate
 
 
 * API
+* Composite feeds (map item ids)
+
+* Check U-A & replace RSS links with Miro subscribe URLs
+* UI: Detect browser language
+* Zlib for UI
+* lhttpc + https! + zlib
+
 * Edit feeds:
   * HTTP status
   * Enclosure HTTP status
 
 * enforce https for log in
 * more configurability
-
-* Composite feeds
-
-* Check U-A & replace RSS links with Miro subscribe URLs
-* UI: Detect browser language
-* Zlib for UI
-* lhttpc + https! + zlib
 
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
