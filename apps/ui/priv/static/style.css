@@ -241,7 +241,7 @@ article {
 article:first-child {
   border-top: none;
 }
-article.feed div div {
+.feed div div, .directory .meta {
   min-height: 68px;
 }
 article.item {
