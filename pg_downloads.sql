@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
               FROM (SELECT info_hash, seeders, leechers, upspeed, downspeed, downloaded
                       FROM scraped
                      ORDER BY (seeders + leechers) DESC, downloaded DESC
-                     LIMIT $1
+                     LIMIT (2 * $1)
                    ) AS scraped
               JOIN torrents USING (info_hash)
               JOIN enclosure_torrents ON (scraped.info_hash=enclosure_torrents.info_hash AND LENGTH(enclosure_torrents.info_hash)=20)
@@ -86,7 +86,7 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
               FROM (SELECT feed, id, title, published, homepage, payment, image
                     FROM feed_items
                     ORDER BY published DESC
-                    LIMIT $1
+                    LIMIT (3 * $1)
                    ) AS feed_items
              JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
              JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
@@ -145,7 +145,7 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
                     FROM feed_items
                     WHERE feed IN (SELECT feed FROM user_feeds WHERE "user"=$2)
                     ORDER BY published DESC
-                    LIMIT $1
+                    LIMIT (3 * $1)
                    ) AS feed_items
              JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
              JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
