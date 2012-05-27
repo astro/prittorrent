@@ -5,6 +5,7 @@
 
 -include("../include/ui.hrl").
 
+-define(HTML_HEADERS, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}]).
 %% TODO: make configurable
 -define(COOKIE_OPTS, [%{secure, true},
 		      {http_only, true},
@@ -41,11 +42,11 @@ handle(Req, State) ->
 	{http, Status} ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
-	    {ok, Req2} = cowboy_http_req:reply(Status, [], <<"Oops">>, Req),
+	    {ok, Req2} = cowboy_http_req:reply(Status, ?HTML_HEADERS, ui_template:render_error(Status), Req),
 	    {ok, Req2, State};
 	E ->
 	    io:format("Error handling ~s ~p:~n~p~n", [Method, RawPath, E]),
-	    {ok, Req2} = cowboy_http_req:reply(500, [], <<"Oops">>, Req),
+	    {ok, Req2} = cowboy_http_req:reply(500, ?HTML_HEADERS, ui_template:render_error(500), Req),
 	    {ok, Req2, State}
     end.		    
 
@@ -53,7 +54,7 @@ terminate(_Req, _State) ->
     ok.
 
 html_ok(Body) ->
-    {ok, 200, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}], [], Body}.
+    {ok, 200, ?HTML_HEADERS, [], Body}.
 
 json_ok(JSON) ->
     json_ok(JSON, []).
@@ -85,6 +86,7 @@ handle_request1(Req) ->
 	       true ->
 		   []
 	   end,
+
     handle_request2(#req{method = Method,
 			 path = Path,
 			 encodings = Encodings,
@@ -97,7 +99,7 @@ handle_request1(Req) ->
 handle_request2(#req{method = 'GET',
 		     path = [<<"favicon.", _:3/binary>>]
 		    }) ->
-    {ok, 301, [{<<"Location">>, <<"/static/favicon.png">>}], <<>>};
+    {ok, 301, [{<<"Location">>, <<"/static/favicon.png">>}], [], <<>>};
 
 %% Login page
 handle_request2(#req{method = 'GET',

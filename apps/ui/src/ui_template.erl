@@ -1,6 +1,6 @@
 -module(ui_template).
 
--export([render_message/2,
+-export([render_message/2, render_error/1,
 	 render_login/1, render_signup/1,
 	 render_activate/3, render_reactivate/1,
 	 render_front/1,
@@ -403,6 +403,45 @@ render_message(Req, Msg) ->
       no_feed,
       {p, Msg}
      ).
+
+render_error(403) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Forbidden">>,
+		   ui_req = #req{}},
+      no_feed,
+      {h2, <<"403: Forbidden">>}
+     );
+
+render_error(404) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Not found">>,
+		   ui_req = #req{}},
+      no_feed,
+      [{h2, <<"404: Not found">>},
+       {img, [{src, <<"/static/404.jpg">>}], []},
+       {p, [{class, "hint"}], <<"Here's a kitten instead.">>}
+      ]
+     );
+
+render_error(500) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Oops">>,
+		   ui_req = #req{}},
+      no_feed,
+      [{h2, <<"500: Oops">>},
+       {img, [{src, <<"/static/500.jpg">>}], []}
+      ]
+     );
+
+render_error(Status) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Oops">>,
+		   ui_req = #req{}},
+      no_feed,
+      [{h2, <<"HTTP ", (list_to_binary(integer_to_list(Status)))/binary>>}
+      ]
+     ).
+
 
 render_login(Req) ->
     page_1column(
