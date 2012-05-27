@@ -327,16 +327,16 @@ render_enclosure(#download{user = UserName,
 		[]
 	end,
 	{dl,
-	 [{dt, integer_to_list(Downloaded)},
-	  {dd, <<"Downloads">>}
-	 ]},
-	{dl,
 	 [{dt, integer_to_list(Seeders + 1)},
 	  {dd, <<"Seeders">>}
 	 ]},
 	{dl,
 	 [{dt, integer_to_list(Leechers)},
 	  {dd, <<"Leechers">>}
+	 ]},
+	{dl,
+	 [{dt, integer_to_list(Downloaded)},
+	  {dd, <<"Downloads">>}
 	 ]}
        ]}
      ]}.
