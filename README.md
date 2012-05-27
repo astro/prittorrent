@@ -12,12 +12,13 @@ rebar get-deps compile generate
 TODO
 ----
 
-* update cowboy
+* model:
+  * queueify scraped triggers
+  * composite feeds
 
-* 404 & 500
-* payload's feedback
-* Flattr donate
-
+* style:
+  * Fonts
+  * Flattr donate
 
 * API
 * Composite feeds (map item ids)
@@ -28,8 +29,12 @@ TODO
 * lhttpc + https! + zlib
 
 * Edit feeds:
+  * Add & fetch immediately
   * HTTP status
   * Enclosure HTTP status
+  * Style pending feeds
+
+* update cowboy
 
 * enforce https for log in
 * more configurability
