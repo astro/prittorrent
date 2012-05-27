@@ -35,6 +35,7 @@ TODO
   * Style pending feeds
 
 * update cowboy
+* feeds_parse: http://video.search.yahoo.com/mrss
 
 * enforce https for log in
 * more configurability
