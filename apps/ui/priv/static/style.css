@@ -128,7 +128,8 @@ header.site .slogan {
   color: #666;
 }
 .about b {
-  font-weight: 900;
+  font-weight: 500;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
 }
 
 h2 { 
@@ -455,7 +456,7 @@ footer div {
 footer p {
   color: #777;
   font-size: 70%;
-  margin: 0 2em;
+  margin: 0 6em;
   padding: 0;
 }
 footer a {

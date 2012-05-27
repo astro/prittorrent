@@ -590,8 +590,8 @@ render_front(Req) ->
 	 {b, <<"P2P speed">>},
 	 <<". We generate a ">>,
 	 {b, <<"Torrent">>},
-	 <<" for all media files of an RSS ">>,
-	 {b, <<"feed">>},
+	 <<" for all media files of an ">>,
+	 {b, <<"RSS feed">>},
 	 <<" and will ">>,
 	 {b, <<"seed">>},
 	 <<" them all the time.">>
