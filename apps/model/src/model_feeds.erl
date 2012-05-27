@@ -37,7 +37,6 @@ prepare_update(FeedURL) ->
 	    {ok, undefined, undefined}
     end.
 
-%% TODO: transaction
 -spec(write_update/8 :: (string(),
 			 {binary() | null, binary() | null},
 			 binary() | null,
@@ -57,6 +56,7 @@ write_update(FeedURL, {Etag, LastModified},
 		 Error, Xml, Title, Homepage, Image, Items);
 %% TODO: don't drop xml on error!
 write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, Items) ->
+    T1 = util:get_now_us(),
     ?T(fun(Q) ->
 	       %% Update feed entry
 	       case Error of
@@ -135,9 +135,10 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 		 end, Items),
 
 	       ok
-       end).
-
-
+       end),
+    
+    T2 = util:get_now_us(),
+    io:format("[~.1fms] write_update ~s - ~B items~n", [(T2 - T1) / 1000, FeedURL, length(Items)]).
 
 
 user_feeds_details(UserName, Private) ->

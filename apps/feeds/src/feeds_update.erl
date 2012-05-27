@@ -110,7 +110,6 @@ update1(URL, Etag1, LastModified1) ->
 	 FeedXml,
 	 Title2, Homepage2, Image2,
 	 Items3} ->
-	    io:format("model_feeds:write_update(~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p)~n", [URL, {Etag2, LastModified2}, null, size(FeedXml), Title2, Homepage2, Image2, length(Items3)]),
 	    model_feeds:write_update(URL, {Etag2, LastModified2},
 				     null, FeedXml,
 				     Title2, Homepage2, Image2,
