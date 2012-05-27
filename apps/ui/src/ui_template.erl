@@ -15,6 +15,7 @@
 		      publisher = false,
 		      homepage = false,
 		      flattr = false,
+		      item_id_unique = false,
 		      ui_req}).
 
 -define(SCRIPT_TAG(Src),
@@ -357,8 +358,13 @@ render_downloads(Opts, Downloads) ->
 			  end
 		  end,
 
-	      {article, [{class, "item"},
-			 {id, ItemId}],
+	      {article, [{class, "item"} |
+			 if
+			     Opts#render_opts.item_id_unique ->
+				 [{id, ItemId}];
+			     true ->
+				 []
+			 end],
 	       [render_item(Opts, Item),
 		lists:map(RenderEnclosure, ItemDownloads)
 	       ]}
@@ -766,6 +772,7 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 	    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
 				flattr = true,
 				homepage = true,
+				item_id_unique = true,
 				ui_req = Req},
 
 	    page_1column(
