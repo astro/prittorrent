@@ -7,8 +7,6 @@ CREATE TABLE gauges (
        "info_hash" BYTEA,
        "value" BIGINT DEFAULT 1
 );
--- TODO: test whether this actually accelerates querying with time
--- ranges (like in the deduplication below)
 CREATE INDEX gauges_kind_info_hash_time ON gauges ("kind","info_hash","time");
 
 CREATE OR REPLACE FUNCTION set_gauge(
