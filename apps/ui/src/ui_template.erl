@@ -213,12 +213,22 @@ render_item(Opts, #feed_item{user = User,
 	case (catch erlang:universaltime_to_localtime({PublishedDate, {PublishedHour, PublishedMin, 0}})) of
 	    %% No interest in seconds at all
 	    {{Y, Mo, D}, {H, M, _S}} ->
+		DateStr = io_lib:format("~B-~2..0B-~2..0B",
+					[Y, Mo, D]),
+		TimeStr = io_lib:format("~2..0B:~2..0B",
+					[H, M]),
 		{p, [{class, "published"}],
-		 [io_lib:format("~B-~2..0B-~2..0B",
-				[Y, Mo, D]),
+		 [case calendar:local_time() of
+		      {{Y1, Mo1, D1}, _}
+			when Y1 == Y,
+			     Mo1 == Mo,
+			     D1 == D ->
+			  {span, [{class, "today"}], DateStr};
+		      _ ->
+			  DateStr
+		  end,
 		  {br, []},
-		  io_lib:format("~2..0B:~2..0B",
-				[H, M])
+		  TimeStr
 		 ]};
 	    _ ->
 		[]

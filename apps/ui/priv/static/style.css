@@ -197,6 +197,9 @@ p.feed {
   border-radius: 2px;*/
   color: #888;
 }
+.published .today {
+  font-weight: 700;
+}
 section {
   width: 100%;
 }
