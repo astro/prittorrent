@@ -9,6 +9,11 @@ $('#login').click(function(ev) {
     function progress(s) {
 	$('#progress').text(s);
     }
+    function fail(s) {
+	progress(s);
+	$('.login input').prop('disabled', false);
+	$('#login').show();
+    }
     /* Request salt+challenge for hashing */
     progress("Obtaining challenge...");
     $.ajax({ type: 'POST',
@@ -34,19 +39,19 @@ $('#login').click(function(ev) {
 				      progress("Welcome to Bitlove!");
 				      document.location = response.welcome;
 				  } else {
-				      progress((response && response.error) || "Cannot authenticate");
+				      fail((response && response.error) || "Cannot authenticate");
 				  }
 			      },
 			      error: function() {
-				  progress("Error sending response");
+				  fail("Error sending response");
 			      }
 			    });
 		     } else {
-			 progress((challenge && challenge.error) || "Cannot login");
+			 fail((challenge && challenge.error) || "Cannot login");
 		     }
 		 },
 		 error: function() {
-		     progress("Error obtaining challenge");
+		     fail("Error obtaining challenge");
 		 }
 	     });
 });
