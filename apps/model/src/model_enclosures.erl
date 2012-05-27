@@ -110,15 +110,28 @@ group_downloads([Download | Downloads]) ->
 	      image = Image} = Download,
     {SiblingDownloads, OtherDownloads} =
 	lists:splitwith(
-	  fun(#download{item = Item1,
-			homepage = Homepage1}) ->
+	  fun(#download{user = User1,
+			item = Item1,
+			title = Title1,
+			homepage = Homepage1}) when User == User1 ->
 		  if
+		      %% Items from the very same homepage
 		      is_binary(Homepage1),
-		      size(Homepage1) > 0 ->
-			  Homepage == Homepage1;
+		      size(Homepage1) > 0,
+		      Homepage == Homepage1 ->
+			  true;
+		      %% Probably same homepage, but masked by
+		      %% Feedburner's redirecting URLs to track users
+		      is_binary(Title1),
+		      size(Title1) > 0,
+		      Title == Title1 ->
+			  true;
+		      %% Equal item id
 		      true ->
 			  Item == Item1
-		  end
+		  end;
+	     (_) ->
+		  false
 	  end, Downloads),
     FeedItem =
 	#feed_item{user = User,
