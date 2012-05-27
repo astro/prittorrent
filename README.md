@@ -22,12 +22,15 @@ TODO
 
 * API
 * Composite feeds (map item ids)
+* More visible feeds
 
 * Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
 * Zlib for UI
 * lhttpc + https! + zlib
 
+* Edit user:
+  * About field
 * Edit feeds:
   * Add & fetch immediately
   * HTTP status
@@ -39,6 +42,9 @@ TODO
 
 * enforce https for log in
 * more configurability
+
+* Fetch & display feed summaries
+* Download buttons: display mime type/titles
 
 * Feed summaries: X items, Y torrents
 * <atom:link rel="self">
