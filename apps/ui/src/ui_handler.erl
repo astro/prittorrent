@@ -64,7 +64,14 @@ json_ok(JSON, Cookies) ->
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
-    {Method, _} = cowboy_http_req:method(Req),
+    Method = case cowboy_http_req:method(Req) of
+		 {'HEAD', _} ->
+		     %% Implicitly support HEAD, cowboy omits the body
+		     %% for us
+		     'GET';
+		 {Method1, _} ->
+		     Method1
+	     end,
     {Path, _} = cowboy_http_req:path(Req),
     {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
     {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
@@ -265,12 +272,9 @@ handle_request2(#req{method = 'GET',
     {ok, 303, [{<<"Location">>, <<"/login">>}], [{<<"sid">>, <<>>}], <<"Bye">>};
 
 %% Torrent download by info_hash
-%% TODO: 'HEAD' too
-handle_request2(#req{method = Method,
+handle_request2(#req{method = 'GET',
 		     path = [<<"t">>, <<InfoHashHex:40/binary, ".torrent">>]
-		    })
-  when Method =:= 'GET';
-       Method =:= 'HEAD' ->
+		    }) ->
     InfoHash = util:hex_to_binary(InfoHashHex),
     case model_torrents:get_torrent(InfoHash) of
 	{ok, Name, Torrent} ->
@@ -460,11 +464,9 @@ handle_request2(#req{method = 'POST',
     end;
 
 %% Torrent download by user/slug/name
-handle_request2(#req{method = Method,
+handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>]
-		    })
-  when Method =:= 'GET';
-       Method =:= 'HEAD' ->
+		    }) ->
     %% Parse torrent name
     case parse_torrent_name(FilePath) of
 	{ok, Name} ->
