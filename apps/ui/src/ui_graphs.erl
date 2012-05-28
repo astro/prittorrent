@@ -197,18 +197,43 @@ get_top(Max) ->
 		lists:seq(10 * M, 1 * M, -M)).
 
 render_line(#line{data = Data,
+		  type = Type,
 		  color = Color}, MapX, MapY) ->
-    case Data of
-	[{Time, Value} | Data1] ->
-	    D = io_lib:format("M ~.5f ~.5f",
-			      [MapX(Time), MapY(Value)]) ++
-		[io_lib:format(" L ~.5f ~.5f",
-			       [MapX(Time1), MapY(Value1)])
-		 || {Time1, Value1} <- Data1],
-	    {path, [{d, iolist_to_binary(D)},
-		    {fill, "none"},
-		    {stroke, Color},
-		    {'stroke-width', "2px"}], []};
-	_ ->
-	    []
+    Points = [{MapX(Time), MapY(Value)}
+	      || {Time, Value} <- Data],
+    case Type of
+	smooth ->
+	    case Data of
+		[{Time, Value} | Data1] ->
+		    {path, [{d, iolist_to_binary(smooth_path(Points))},
+			    {fill, "none"},
+			    {stroke, Color},
+			    {'stroke-width', "2px"}], []};
+		_ ->
+		    []
+	    end
     end.
+
+smooth_path(Points) ->
+    smooth_path(Points, 0).
+
+smooth_path([], _) ->
+    "";
+smooth_path([{PX, PY} | Points], N) ->
+    [io_lib:format("~s ~.5f ~.5f",
+		   [if
+			N == 0 ->
+			    "M";
+			true ->
+			    ""
+		    end, PX, PY]),
+     case Points of
+	 [{NX, NY} | _] ->
+	     DX = NX - PX,
+	     [io_lib:format(" C ~.5f ~.5f ~.5f ~.5f",
+			    [PX + DX * 0.4, PY,
+			     NX - DX * 0.4, NY]),
+	      smooth_path(Points, N + 1)];
+	 [] ->
+	     ""
+     end].
