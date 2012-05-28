@@ -79,6 +79,7 @@ choose_interval(Start, Stop) ->
     end.
 
 normalize_gauge(Data1, Start, Interval) ->
+    %% TODO: fill gaps properly too
     Data2 = convert_data_time(Data1),
     case Data2 of
 	[{Time1, Value1} | _]
