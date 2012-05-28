@@ -497,6 +497,41 @@ handle_request2(#req{method = 'DELETE',
 	    throw({http, 404})
     end;
 
+%% Graphs
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<FilePath/binary>>, <<"g">>, TimeSpec, Graph]
+		    }) ->
+    InfoHash =
+	case model_enclosures:get_info_hash_by_name(UserName, Slug, FilePath) of
+	    {ok, InfoHash1} ->
+		InfoHash1;
+	    {error, not_found} ->
+		throw({http, 404})
+	end,
+    Period = case TimeSpec of
+		 <<"day">> -> 24 * 60 * 60;
+		 <<"week">> -> 7 * 24 * 60 * 60;
+		 <<"month">> -> 30 * 24 * 60 * 60;
+		 <<"year">> -> 365 * 24 * 60 * 60
+	     end,
+    Stop = calendar:universal_time(),
+    Start = calendar:gregorian_seconds_to_datetime(
+	      calendar:datetime_to_gregorian_seconds(Stop) - Period),
+    Body =
+	case Graph of
+	    <<"swarm.svg">> ->
+		ui_graphs:render_swarm(InfoHash, Start, Stop);
+	    <<"traffic.svg">> ->
+		ui_graphs:render_traffic(InfoHash, Start, Stop);
+	    <<"downloads.svg">> ->
+		ui_graphs:render_downloads(InfoHash, Start, Stop);
+	    _ ->
+		throw({http, 404})
+	end,
+    {ok, 200,
+     [{<<"Content-Type">>, <<"image/svg+xml">>}], [],
+     Body};
+
 %% 404
 handle_request2(_Req) ->
     throw({http, 404}).

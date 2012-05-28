@@ -1,7 +1,8 @@
 -module(model_enclosures).
 
 -export([to_hash/0, set_torrent/3,
-	 get_torrent_by_name/3, purge/3,
+	 get_info_hash_by_name/3, get_torrent_by_name/3,
+	 purge/3,
 	 recent_downloads/1, popular_downloads/1,
 	 user_downloads/2, feed_downloads/2]).
 
@@ -36,6 +37,15 @@ get_torrent_by_name(UserName, Slug, Name) ->
 	    [UserName, Slug, Name]) of
 	{ok, _, [{Torrent} | _]} ->
 	    {ok, Torrent};
+	{ok, _, []} ->
+	    {error, not_found}
+    end.
+
+get_info_hash_by_name(UserName, Slug, Name) ->
+    case ?Q("SELECT torrents.\"info_hash\" FROM user_feeds JOIN enclosures USING (feed) JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2 AND torrents.\"name\"=$3",
+	    [UserName, Slug, Name]) of
+	{ok, _, [{InfoHash} | _]} ->
+	    {ok, InfoHash};
 	{ok, _, []} ->
 	    {error, not_found}
     end.
