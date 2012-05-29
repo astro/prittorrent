@@ -490,9 +490,15 @@ footer a {
 .r {
   text-align: right;
 }
-.login, .signup * {
-  margin: 0.3em 0;
-  max-width: 40em;
+.login, .signup {
+  margin: 0.3em auto;
+  max-width: 20em;
+}
+.signup {
+  max-width: 35em;
+}
+.signup #usernamehint {
+  margin-left: 1em;
 }
 .login label, .signup label {
   display: inline-block;

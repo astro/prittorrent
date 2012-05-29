@@ -542,7 +542,8 @@ render_signup(Req) ->
 	  [{label, [{for, "username"}], <<"Username:">>},
 	   {input, [{id, "username"},
 		    {name, "username"}], []},
-	   {span, [{class, "hint"}], <<"">>}
+	   {span, [{id, "usernamehint"},
+		   {class, "hint"}], <<"">>}
 	  ]},
 	 {p, [{class, "hint"}],
 	  <<"Your username is your label. It will be visible everywhere, and you can put multiple feeds under it. Give it some thought.">>},
@@ -614,7 +615,7 @@ render_reactivate(Req) ->
       #render_opts{title = <<"Bitlove: Activate your account">>,
 		   ui_req = Req},
       [],
-      [{form, [{class, "login r"},
+      [{form, [{class, "login"},
 	       {method, "POST"},
 	       {enctype, "application/x-www-form-urlencoded"},
 	       {action, "/reactivate"}],

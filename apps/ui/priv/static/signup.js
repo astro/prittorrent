@@ -1,5 +1,5 @@
 var username = $('#username');
-var hint = $('.signup .hint');
+var hint = $('#usernamehint');
 function fixUsername() {
     var s = username.val().
 	toLowerCase().
