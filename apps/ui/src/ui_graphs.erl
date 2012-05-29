@@ -79,21 +79,37 @@ choose_interval(Start, Stop) ->
     end.
 
 normalize_gauge(Data1, Start, Interval) ->
-    %% TODO: fill gaps properly too
     Data2 = convert_data_time(Data1),
-    case Data2 of
-	[{Time1, Value1} | _]
-	  when Time1 > Start,
-	       Value1 > 0 ->
-	    [{Time1 - Interval, 0} | Data2];
-	_ ->
-	    Data2
-    end.
+    Data3 = case Data2 of
+		[{Time1, Value1} | _]
+		  when Time1 > Start,
+		       Value1 > 0 ->
+		    [{Time1 - Interval, 0} | Data2];
+		_ ->
+		    Data2
+	    end,
+    fixup_gauge_data(Data3, Interval).
 
 convert_data_time(Data) ->
     [{calendar:datetime_to_gregorian_seconds({Date, {H, M, trunc(S)}}),
       Value}
      || {{Date, {H, M, S}}, Value} <- Data].
+
+fixup_gauge_data([], _) ->
+    [];
+fixup_gauge_data([{Time, Value}], _) ->
+    [{Time, Value}];
+%% Because gauges store only changes
+fixup_gauge_data([{Time1, Value1} | [{Time2, Value2} | _] = Data], Interval)
+  when Value1 =/= Value2,
+       Time1 < Time2 - Interval ->
+    [{Time1, Value1},
+     {Time2 - Interval, Value1} |
+     fixup_gauge_data(Data, Interval)];
+fixup_gauge_data([{Time1, Value1} | Data], Interval) ->
+    [{Time1, Value1} | fixup_gauge_data(Data, Interval)].
+
+
 
 fill_data_gaps([], _) ->
     [];
