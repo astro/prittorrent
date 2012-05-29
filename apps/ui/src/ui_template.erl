@@ -453,7 +453,7 @@ render_message(Req, Msg) ->
     page_1column(
       #render_opts{title = <<"Bitlove">>,
 		   ui_req = Req},
-      no_feed,
+      [],
       {p, Msg}
      ).
 
@@ -461,7 +461,7 @@ render_error(403) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Forbidden">>,
 		   ui_req = #req{}},
-      no_feed,
+      [],
       {h2, <<"403: Forbidden">>}
      );
 
@@ -469,7 +469,7 @@ render_error(404) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Not found">>,
 		   ui_req = #req{}},
-      no_feed,
+      [],
       [{h2, <<"404: Not found">>},
        {img, [{src, <<"/static/404.jpg">>}], []},
        {p, [{class, "hint"}], <<"Here's a kitten instead.">>}
@@ -480,7 +480,7 @@ render_error(500) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Oops">>,
 		   ui_req = #req{}},
-      no_feed,
+      [],
       [{h2, <<"500: Oops">>},
        {img, [{src, <<"/static/500.jpg">>}], []}
       ]
@@ -490,7 +490,7 @@ render_error(Status) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Oops">>,
 		   ui_req = #req{}},
-      no_feed,
+      [],
       [{h2, <<"HTTP ", (list_to_binary(integer_to_list(Status)))/binary>>}
       ]
      ).
@@ -500,7 +500,7 @@ render_login(Req) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Login">>,
 		   ui_req = Req},
-      no_feed,
+      [],
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
        {form, [{class, "login r"}],
@@ -530,7 +530,7 @@ render_signup(Req) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Signup">>,
 		   ui_req = Req},
-      no_feed,
+      [],
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
        {form, [{class, "signup"},
@@ -581,7 +581,7 @@ render_activate(Req, HexToken, HexSalt) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Activate your account">>,
 		   ui_req = Req},
-      no_feed,
+      [],
       [{noscript,
 	<<"JavaScript is mandatory beyond this point">>},
        {form, [{class, "login r"}],
@@ -613,7 +613,7 @@ render_reactivate(Req) ->
     page_1column(
       #render_opts{title = <<"Bitlove: Activate your account">>,
 		   ui_req = Req},
-      no_feed,
+      [],
       [{form, [{class, "login r"},
 	       {method, "POST"},
 	       {enctype, "application/x-www-form-urlencoded"},
