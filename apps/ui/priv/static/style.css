@@ -475,6 +475,7 @@ footer a {
 }
 .login, .signup * {
   margin: 0.3em 0;
+  max-width: 40em;
 }
 .login label, .signup label {
   display: inline-block;

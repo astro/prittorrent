@@ -513,11 +513,15 @@ render_signup(Req) ->
 		    {name, "username"}], []},
 	   {span, [{class, "hint"}], <<"">>}
 	  ]},
+	 {p, [{class, "hint"}],
+	  <<"Your username is your label. It will be visible everywhere, and you can put multiple feeds under it. Give it some thought.">>},
 	 {p,
-	  [{label, [{for, "email"}], <<"E-Mail:">>},
+	  [{label, [{for, "email"}], <<"EMail:">>},
 	   {input, [{id, "email"},
 		    {name, "email"}], []}
 	  ]},
+	 {p, [{class, "hint"}],
+	  <<"We will send a password activation EMail for completing signup.">>},
 	 {p, [{class, "tos"}],
 	  [{input, [{type, "checkbox"},
 		    {id, "tos-1"},
