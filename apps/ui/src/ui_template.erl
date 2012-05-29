@@ -389,6 +389,27 @@ render_downloads(Opts, Downloads) ->
 	       ]}
       end, Downloads).
 
+render_feedslist(UserName) ->
+    {dl, [{class, "feedslist"}],
+     [{dt, <<"Downloads:">>},
+      {dd, {a, [{href, ui_link:link_downloads_feed(UserName, rss)}],
+	    <<"RSS">>}},
+      {dd, {a, [{href, ui_link:link_downloads_feed(UserName, atom)}],
+	    <<"ATOM">>}}
+     ]}.
+
+render_feedslist(UserName, Slug) ->
+    {dl, [{class, "feedslist"}],
+     [{dt, <<"Subscribe:">>},
+      {dd, {a, [{href, ui_link:link_user_feed_xml(UserName, Slug)}],
+	    <<"Feed">>}},
+      {dt, <<"Just downloads:">>},
+      {dd, {a, [{href, ui_link:link_downloads_feed(UserName, Slug, rss)}],
+	    <<"RSS">>}},
+      {dd, {a, [{href, ui_link:link_downloads_feed(UserName, Slug, atom)}],
+	    <<"ATOM">>}}
+     ]}.
+
 page_1column(Opts,
 	     FeedLink, Col) ->
     HeadEls =
@@ -652,7 +673,8 @@ render_new(Req) ->
       Opts,
       no_feed,
       {'div',
-       [{h2, <<"New Torrents">>} |
+       [{h2, <<"New Torrents">>},
+	render_feedslist(new) |
 	render_downloads(Opts, RecentDownloads)]}
      ).
 
@@ -668,7 +690,8 @@ render_top(Req) ->
       Opts,
       no_feed,
       {'div', 
-       [{h2, <<"Top Torrents">>} |
+       [{h2, <<"Top Torrents">>},
+	render_feedslist(top) |
 	render_downloads(Opts, PopularDownloads)]}
      ).
 
@@ -736,7 +759,9 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
     page_2column(
       Opts,
       {header, [{class, "user"}],
-       render_meta(h2, UserTitle, UserImage, UserHomepage)},
+       [render_meta(h2, UserTitle, UserImage, UserHomepage),
+	render_feedslist(UserName)
+       ]},
       [{h2, "Feeds"} |
        lists:map(fun({Slug, _Feed, Title, Homepage, Image, Public}) ->
 			 {article, [{class, "feed"}],
@@ -802,28 +827,26 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 	      Opts,
 	      ui_link:link_user_feed_xml(UserName, Slug),
 	      [{header, [{class, "feed"}],
-		render_meta(h2,
-			    [FeedTitle,
-			     {a, [{class, "feedicon"},
-				  {href, ui_link:link_user_feed_xml(UserName, Slug)}],
-			      <<" (Subscribe)">>},
-			     {span, [{class, "publisher"}],
-			      [<<" by ">>,
-			       {a, [{href, ui_link:link_user(UserName)}],
-				UserName}
-			      ]}
-			    ],
-			    FeedImage,
-			    FeedHomepage,
-			    case FeedTorrentify of
-				true ->
-				    [];
-				_ ->
-				    {p, [{class, "hint"}],
-				     <<"The feed is pending operator confirmation before automatic torrentification can happen.">>}
-			    end
-			   )
-	       },
+		[render_meta(h2,
+			     [FeedTitle,
+			      {span, [{class, "publisher"}],
+			       [<<" by ">>,
+				{a, [{href, ui_link:link_user(UserName)}],
+				 UserName}
+			       ]}
+			     ],
+			     FeedImage,
+			     FeedHomepage,
+			     case FeedTorrentify of
+				 true ->
+				     [];
+				 _ ->
+				     {p, [{class, "hint"}],
+				      <<"The feed is pending operator confirmation before automatic torrentification can happen.">>}
+			     end
+			    ),
+		 render_feedslist(UserName, Slug)
+		]},
 	       render_downloads(Opts, FeedDownloads) |
 	       if
 		   SessionUser == UserName ->
@@ -891,8 +914,15 @@ render_downloads_feed(rss, Image, Link,
 	{channel,
 	 [{title, Opts#render_opts.title},
 	  {link, Link},
-	  {image,
-	   {url, Image}} |
+	  if
+	      is_binary(Image),
+	      size(Image) > 0 ->
+		  io:format("Image: ~p~n",[Image]),
+		  {image,
+		   {url, Image}};
+	      true ->
+		  []
+	  end |
 	  lists:map(fun(#feed_item{user = User1,
 				   slug = Slug1,
 				   title = ItemTitle,
@@ -911,8 +941,14 @@ render_downloads_feed(rss, Image, Link,
 			       ItemLink},
 			      {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
 							[Y, Mo, D, H, M, trunc(S)])},
-			      {'atom:link', [{rel, "payment"}],
-			       ItemPayment},
+			      if
+				  is_binary(ItemPayment),
+				  size(ItemPayment) > 0 ->
+				      {'atom:link', [{rel, "payment"}],
+				       ItemPayment};
+				  true ->
+				      []
+			      end,
 			      {description, <<"">>}  %% TODO
 			       | lists:map(fun(#download{user = User2,
 							 slug = Slug2,
@@ -943,7 +979,13 @@ render_downloads_feed(atom, Image, Link,
 	 {link, [{rel, "alternate"},
 		 {type, "text/html"}
 		], Link},
-	 {logo, Image} |
+	 if
+	     is_binary(Image),
+	     size(Image) > 0 ->
+		 {logo, Image};
+	     true ->
+		 []
+	 end |
 	 lists:map(fun(#feed_item{user = User1,
 				  slug = Slug1,
 				  title = ItemTitle,
@@ -956,15 +998,26 @@ render_downloads_feed(atom, Image, Link,
 			       [ui_link:base(),
 				ui_link:link_item(User1, Slug1, ItemId)],
 			   {entry,
-			    [{title, ItemTitle},
+			    [{title, if
+					 is_binary(ItemTitle) ->
+					     ItemTitle;
+					 true ->
+					     ItemId
+				     end},
 			     {link, [{rel, "alternate"},
 				     {type, "text/html"}
 				    ], ItemLink},
 			     {id, ItemLink},
 			     {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
 						       [Y, Mo, D, H, M, trunc(S)])},
-			     {link, [{rel, "payment"}],
-			      ItemPayment},
+			     if
+				 is_binary(ItemPayment),
+				 size(ItemPayment) > 0 ->
+				     {link, [{rel, "payment"}],
+				      ItemPayment};
+				 true ->
+				     []
+			     end,
 			     {content, <<"">>}  %% TODO
 			     | lists:map(fun(#download{user = User2,
 						       slug = Slug2,

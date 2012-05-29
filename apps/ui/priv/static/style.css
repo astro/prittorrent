@@ -248,6 +248,23 @@ article:first-child {
 .feed div div, .directory .meta {
   min-height: 68px;
 }
+.feedslist {
+  font-size: 60%;
+  color: #555;
+  text-align: right;
+  margin: 1em 0.5em 0;
+}
+.feedslist dt, .feedslist dd {
+  display: inline-block;
+  margin: 0 0.3em;
+}
+.feedslist dt {
+  margin-left: 3em;
+}
+.feedslist dt:first-child {
+  margin-left: 0.3em;
+}
+
 article.item {
   min-height: 40px;
 }

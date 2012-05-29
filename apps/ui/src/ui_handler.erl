@@ -407,6 +407,7 @@ handle_request2(#req{method = 'GET',
     %% All hashed episodes
     html_ok(ui_template:render_user_feed(validate_session(Req), UserName, Slug));
 
+
 %% Create user feed
 handle_request2(#req{method = 'PUT',
 		     path = [<<UserName/binary>>, <<Slug/binary>>],
