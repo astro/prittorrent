@@ -179,8 +179,11 @@ render_meta(Heading, Title, Image, Homepage, Trailing) ->
 	if
 	    is_binary(Homepage),
 	    size(Homepage) > 0 ->
+		{a, LinkAttr, LinkEl} =
+		    render_link(Homepage),
 		{p, [{class, "homepage"}],
-		 render_link(Homepage)};
+		 {a, [{rel, "me"}
+		      | LinkAttr], LinkEl}};
 	    true ->
 		[]
 	end,
@@ -639,7 +642,11 @@ render_front(Req) ->
 			flattr = true,
 			ui_req = Req},
     page_2column(
-      Opts, [],
+      Opts,
+      [{link, [{rel, "bookmark"},
+	       {href, [ui_link:base(), $/]}
+	      ], []}
+      ],
       [{'p', [{class, "about"}],
 	[{b, <<"Bitlove">>},
 	 <<" is the fully ">>,
@@ -766,7 +773,10 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 			ui_req = Req},
     page_2column(
       Opts,
-      render_feedslinks(UserName),
+      [{link, [{rel, "bookmark"},
+	       {href, [ui_link:base(), ui_link:link_user(UserName)]}
+	      ], []}
+       | render_feedslinks(UserName)],
       {header, [{class, "user"}],
        [render_meta(h2, UserTitle, UserImage, UserHomepage),
 	render_feedslist(UserName)
@@ -834,13 +844,17 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 
 	    page_1column(
 	      Opts,
-	      render_feedslinks(UserName, Slug),
+	      [{link, [{rel, "bookmark"},
+		       {href, [ui_link:base(), ui_link:link_user_feed(UserName, Slug)]}
+		      ], []}
+	       | render_feedslinks(UserName, Slug)],
 	      [{header, [{class, "feed"}],
 		[render_meta(h2,
 			     [FeedTitle,
 			      {span, [{class, "publisher"}],
 			       [<<" by ">>,
-				{a, [{href, ui_link:link_user(UserName)}],
+				{a, [{href, ui_link:link_user(UserName)},
+				     {rel, "author"}],
 				 UserName}
 			       ]}
 			     ],
