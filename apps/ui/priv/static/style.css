@@ -413,6 +413,9 @@ h3 {
   line-height: 0.8em;
   letter-spacing: -0.5px;
 }
+.graphs img {
+  max-width: 100%;
+}
 
 ul.feeds {
   list-style-type: none;

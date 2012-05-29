@@ -29,10 +29,10 @@ io:format("Start: ~p\tStop: ~p\tI: ~p~n", [Start2, Stop2, Interval]),
 			stop = Stop2,
 			interval = Interval,
 			plots =
-			    [#plot{x1 = 20,
-				   y1 = 199,
+			    [#plot{x1 = 40,
+				   y1 = 99,
 				   x2 = 399,
-				   y2 = 1,
+				   y2 = 4,
 				   lines =
 				       [#line{data = Leechers,
 					      color = <<"#2f2fff">>,
@@ -45,13 +45,76 @@ io:format("Start: ~p\tStop: ~p\tI: ~p~n", [Start2, Stop2, Interval]),
 				       ]}
 			    ]}).
 
-render_traffic(InfoHash, Start, Stop) ->
-    %% TODO: fill_data_gaps()
-    InfoHash, Start, Stop, ok.
+render_traffic(InfoHash, Start1, Stop1) ->
+    Start2 = calendar:datetime_to_gregorian_seconds(Start1),
+    Stop2 = calendar:datetime_to_gregorian_seconds(Stop1),
+    Interval = choose_interval(Start2, Stop2),
+    Down =
+	normalize_counters(
+	  model_graphs:get_counter(down, InfoHash, Start1, Stop1, Interval),
+	  Interval),
+    Up =
+	normalize_counters(
+	  model_graphs:get_counter(up, InfoHash, Start1, Stop1, Interval),
+	  Interval),
+    UpSeeder =
+	normalize_counters(
+	  model_graphs:get_counter(up_seeder, InfoHash, Start1, Stop1, Interval),
+	  Interval),
+    render_graph(#graph{start = Start2,
+			stop = Stop2,
+			interval = Interval,
+			plots =
+			    [#plot{x1 = 80,
+				   y1 = 50,
+				   x2 = 399,
+				   y2 = 4,
+				   lines =
+				       [#line{data = Up,
+					      color = <<"#40ff20">>,
+					      type = smooth,
+					      title = <<"Up">>},
+					#line{data = UpSeeder,
+					      color = <<"#cfcf20">>,
+					      type = smooth,
+					      title = <<"Up (Bitlove)">>}
+				       ]},
+			     #plot{x1 = 80,
+				   y1 = 50,
+				   x2 = 399,
+				   y2 = 95,
+				   lines =
+				       [#line{data = Down,
+					      color = <<"#3f5fff">>,
+					      type = smooth,
+					      title = <<"Down">>}
+				       ]}
+			    ]}).
 
-render_downloads(InfoHash, Start, Stop) ->
-    %% TODO: fill_data_gaps()
-    InfoHash, Start, Stop, ok.
+
+render_downloads(InfoHash, Start1, Stop1) ->
+    Start2 = calendar:datetime_to_gregorian_seconds(Start1),
+    Stop2 = calendar:datetime_to_gregorian_seconds(Stop1),
+    Interval = choose_interval(Start2, Stop2),
+    Downloads =
+	normalize_counters(
+	  model_graphs:get_counter(complete, InfoHash, Start1, Stop1, Interval),
+	  Interval),
+    render_graph(#graph{start = Start2,
+			stop = Stop2,
+			interval = Interval,
+			plots =
+			    [#plot{x1 = 20,
+				   y1 = 99,
+				   x2 = 399,
+				   y2 = 4,
+				   lines =
+				       [#line{data = Downloads,
+					      color = <<"#40ff20">>,
+					      type = smooth,
+					      title = <<"Downloads">>}
+				       ]}
+			    ]}).
 
 
 choose_interval(Start, Stop) ->
@@ -110,6 +173,9 @@ fixup_gauge_data([{Time1, Value1} | Data], Interval) ->
     [{Time1, Value1} | fixup_gauge_data(Data, Interval)].
 
 
+normalize_counters(Data1, Interval) ->
+    Data2 = convert_data_time(Data1),
+    fill_data_gaps(Data2, Interval).
 
 fill_data_gaps([], _) ->
     [];
@@ -131,9 +197,9 @@ render_graph(#graph{start = Start,
     html:to_iolist(
       {svg, [{xmlns, ?NS_SVG},
 	     {version, "1.1"},
-	     {viewBox, "0 0 400 200"},
+	     {viewBox, "0 0 400 100"},
 	     {width, "400px"},
-	     {height, "200px"},
+	     {height, "100px"},
 	     {preserveAspectRatio, "xMidYMid"}],
        [{g, [{transform, "translate(0.5, 0.5)"}],
 	 lists:map(fun render_plot/1, Plots)
@@ -272,8 +338,8 @@ smooth_path([{PX, PY} | Points], N) ->
 	 [{NX, NY} | _] ->
 	     DX = NX - PX,
 	     [io_lib:format(" C ~.5f ~.5f ~.5f ~.5f",
-			    [PX + DX * 0.4, PY,
-			     NX - DX * 0.4, NY]),
+			    [PX + DX * 0.5, PY,
+			     NX - DX * 0.5, NY]),
 	      smooth_path(Points, N + 1)];
 	 [] ->
 	     ""

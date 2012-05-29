@@ -18,7 +18,8 @@ get_counter(Kind, InfoHash, Start, Stop, Interval) ->
     {ok, _, Rows} =
 	?Q("SELECT TO_TIMESTAMP(FLOOR(EXTRACT(EPOCH FROM \"time\") / $5) * $5) AS t, SUM(\"value\") FROM counters WHERE \"kind\"=$1 AND \"info_hash\"=$2 AND \"time\">=$3 AND \"time\"<=$4 GROUP BY t ORDER BY t ASC",
 	   [Kind, InfoHash, Start, Stop, Interval]),
-    Rows.
+    [{Date, list_to_integer(binary_to_list(Sum))}
+     || {Date, Sum} <- Rows].
 
 get_gauge(Kind, InfoHash, Start, Stop, Interval) ->
     {ok, _, Rows} =
