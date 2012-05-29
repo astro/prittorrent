@@ -396,7 +396,7 @@ page_1column(Opts,
 		    <<(ui_link:base())/binary,
 		      FeedLink/binary>>,
 		%% TODO: type can be ATOM
-		[{alternate, [{rel, <<"alternate">>},
+		[{link, [{rel, <<"alternate">>},
 			      {type, <<"application/rss+xml">>},
 			      {href, FeedURL}], []}];
 	    true ->
