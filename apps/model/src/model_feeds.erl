@@ -161,6 +161,8 @@ user_feed_details(UserName, Slug) ->
 	    [UserName, Slug]) of
 	{ok, _, [{URL, Title, Homepage, Image, Public, Torrentify}]} ->
 	    {ok, URL, Title, Homepage, Image, Public, Torrentify};
+	{ok, _, []} ->
+	    {error, not_found};
 	{error, Reason} ->
 	    {error, Reason}
     end.

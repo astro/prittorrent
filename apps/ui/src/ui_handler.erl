@@ -300,9 +300,41 @@ handle_request2(#req{method = 'GET',
     html_ok(ui_template:render_new(validate_session(Req)));
 
 handle_request2(#req{method = 'GET',
+		     path = [<<"new.rss">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(rss, Req, new),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"new.atom">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(atom, Req, new),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
 		     path = [<<"top">>]
 		    } = Req) ->
     html_ok(ui_template:render_top(validate_session(Req)));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top.rss">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(rss, Req, top),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top.atom">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(atom, Req, top),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     Body};
 
 handle_request2(#req{method = 'GET',
 		     path = [<<"directory">>]
@@ -314,6 +346,22 @@ handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>]
 		    } = Req) ->
     html_ok(ui_template:render_user(validate_session(Req), UserName));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<"downloads.rss">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(rss, Req, UserName),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<"downloads.atom">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(atom, Req, UserName),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     Body};
 
 %% User profile as json
 handle_request2(#req{method = 'GET',
@@ -419,6 +467,22 @@ handle_request2(#req{method = 'GET',
 				  _ -> <<"application/rss+xml">>
 			      end}],
     {ok, 200, Headers, [], Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"downloads.rss">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(rss, Req, UserName, Slug),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<UserName/binary>>, <<Slug/binary>>, <<"downloads.atom">>]
+		    } = Req) ->
+    {ok, Body} = ui_template:export_downloads(atom, Req, UserName, Slug),
+    {ok, 200,
+     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     Body};
 
 %% User feed as json
 handle_request2(#req{method = 'GET',

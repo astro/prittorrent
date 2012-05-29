@@ -6,7 +6,8 @@
 	 render_front/1,
 	 render_new/1, render_top/1, render_directory/1,
 	 render_user/2,
-	 render_user_feed/3, export_feed/3]).
+	 render_user_feed/3, export_feed/3,
+	 export_downloads/3, export_downloads/4]).
 
 -include("../include/ui.hrl").
 -include_lib("model/include/model.hrl").
@@ -17,6 +18,8 @@
 		      flattr = false,
 		      item_id_unique = false,
 		      ui_req}).
+
+-define(NS_ATOM, "http://www.w3.org/2005/Atom").
 
 -define(SCRIPT_TAG(Src),
 	{script, [{src, Src},
@@ -832,6 +835,9 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 	      ])
     end.
 
+%%
+%% 1:1 feed mapping
+%%
 export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of
 	{ok, FeedURL} ->
@@ -871,6 +877,172 @@ export_feed(_Req, UserName, Slug) ->
 	{error, not_found} ->
 	    throw({http, 404})
     end.
+
+%%
+%% Thin RSS/ATOM exports
+%%
+
+render_downloads_feed(rss, Image, Link,
+		      Opts, Items) ->
+    [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
+     html:to_iolist(
+       {rss, [{version, "2.0"},
+	      {'xmlns:atom', ?NS_ATOM}],
+	{channel,
+	 [{title, Opts#render_opts.title},
+	  {link, Link},
+	  {image,
+	   {url, Image}} |
+	  lists:map(fun(#feed_item{user = User1,
+				   slug = Slug1,
+				   title = ItemTitle,
+				   id = ItemId,
+				   published = {{Y, Mo, D}, {H, M, S}},
+				   payment = ItemPayment,
+				   downloads = Downloads
+				  }) ->
+			    ItemLink =
+				[ui_link:base(),
+				 ui_link:link_item(User1, Slug1, ItemId)],
+			    {item,
+			     [{title, ItemTitle},
+			      {link, ItemLink},
+			      {guid, [{isPermaLink, "true"}],
+			       ItemLink},
+			      {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
+							[Y, Mo, D, H, M, trunc(S)])},
+			      {'atom:link', [{rel, "payment"}],
+			       ItemPayment},
+			      {description, <<"">>}  %% TODO
+			       | lists:map(fun(#download{user = User2,
+							 slug = Slug2,
+							 name = Name,
+							 size = Size
+							}) ->
+						   TorrentURL =
+						       [ui_link:base(),
+							ui_link:torrent(User2, Slug2, Name)],
+						   {enclosure,
+						    [{url, TorrentURL},
+						     {length, integer_to_list(Size)},
+						     {type, <<"application/x-bittorrent">>}], []}
+					   end, Downloads)
+			     ]}
+		    end, Items)
+	 ]}
+       }
+      )];
+
+render_downloads_feed(atom, Image, Link,
+		      Opts, Items) ->
+    [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
+     html:to_iolist(
+       {feed, [{xmlns, ?NS_ATOM},
+	       {version, "1.0"}],
+	[{title, Opts#render_opts.title},
+	 {link, [{rel, "alternate"},
+		 {type, "text/html"}
+		], Link},
+	 {logo, Image} |
+	 lists:map(fun(#feed_item{user = User1,
+				  slug = Slug1,
+				  title = ItemTitle,
+				  id = ItemId,
+				  published = {{Y, Mo, D}, {H, M, S}},
+				  payment = ItemPayment,
+				  downloads = Downloads
+				 }) ->
+			   ItemLink =
+			       [ui_link:base(),
+				ui_link:link_item(User1, Slug1, ItemId)],
+			   {entry,
+			    [{title, ItemTitle},
+			     {link, [{rel, "alternate"},
+				     {type, "text/html"}
+				    ], ItemLink},
+			     {id, ItemLink},
+			     {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
+						       [Y, Mo, D, H, M, trunc(S)])},
+			     {link, [{rel, "payment"}],
+			      ItemPayment},
+			     {content, <<"">>}  %% TODO
+			     | lists:map(fun(#download{user = User2,
+						       slug = Slug2,
+						       name = Name,
+						       size = Size
+						      }) ->
+						 TorrentURL =
+						     [ui_link:base(),
+						      ui_link:torrent(User2, Slug2, Name)],
+						 {link,
+						  [{rel, "enclosure"},
+						   {href, TorrentURL},
+						   {length, integer_to_list(Size)},
+						   {type, <<"application/x-bittorrent">>}], []}
+					 end, Downloads)
+			    ]}
+		   end, Items)
+	]}
+      )].
+
+export_downloads(Type, Req, new) ->
+    {ok, RecentDownloads} =
+	model_enclosures:recent_downloads(50),
+
+    Opts = #render_opts{title = [<<"Bitlove: New">>],
+			ui_req = Req},
+    {ok,
+     render_downloads_feed(Type,
+			   [ui_link:base(), <<"/static/logo.svg">>],
+			   [ui_link:base(), <<"/new">>],
+			   Opts, RecentDownloads)};
+
+export_downloads(Type, Req, top) ->
+    {ok, PopularDownloads} =
+	model_enclosures:popular_downloads(50),
+    
+    Opts = #render_opts{title = [<<"Bitlove: Top">>],
+			ui_req = Req},
+    {ok,
+     render_downloads_feed(Type,
+			   [ui_link:base(), <<"/static/logo.svg">>],
+			   [ui_link:base(), <<"/top">>],
+			   Opts, PopularDownloads)};
+
+export_downloads(Type, Req, UserName) ->
+    case model_users:get_details(UserName) of
+	{ok, _FeedTitle, FeedImage, _FeedHomepage} ->
+	    {ok, UserDownloads} =
+		model_enclosures:user_downloads(UserName, 100),
+
+	    Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
+				ui_req = Req},
+	    {ok,
+	     render_downloads_feed(Type,
+				   FeedImage,
+				   [ui_link:base(), ui_link:link_user(UserName)],
+				   Opts, UserDownloads)};
+	{error, not_found} ->
+	    throw({http, 404})
+    end.
+
+export_downloads(Type, Req, UserName, Slug) ->
+    case model_feeds:user_feed_details(UserName, Slug) of
+	{error, not_found} ->
+	    throw({http, 404});
+	{ok, FeedURL, FeedTitle, _FeedHomepage, FeedImage, _FeedPublic, _FeedTorrentify} ->
+	    {ok, FeedDownloads} =
+		model_enclosures:feed_downloads(FeedURL, 100),
+    
+	    Opts = #render_opts{title = [FeedTitle, <<" on Bitlove">>],
+				ui_req = Req},
+	    {ok,
+	     render_downloads_feed(Type,
+				   FeedImage,
+				   [ui_link:base(), ui_link:link_user_feed(UserName, Slug)],
+				   Opts, FeedDownloads)}
+    end.
+
 
 %%
 %% Helpers
