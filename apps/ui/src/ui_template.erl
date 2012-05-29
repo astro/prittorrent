@@ -19,8 +19,6 @@
 		      item_id_unique = false,
 		      ui_req}).
 
--define(NS_ATOM, "http://www.w3.org/2005/Atom").
-
 -define(SCRIPT_TAG(Src),
 	{script, [{src, Src},
 		  {type, <<"text/javascript">>}], <<" ">>}).
@@ -389,6 +387,32 @@ render_downloads(Opts, Downloads) ->
 	       ]}
       end, Downloads).
 
+render_feedslinks(UserName) ->
+    [{link, [{rel, "alternate"},
+	     {type, ?MIME_RSS},
+	     {title, "Downloads (RSS)"},
+	     {href, [ui_link:base(), ui_link:link_downloads_feed(UserName, rss)]}], []},
+     {link, [{rel, "alternate"},
+	     {type, ?MIME_ATOM},
+	     {title, "Downloads (ATOM)"},
+	     {href, [ui_link:base(), ui_link:link_downloads_feed(UserName, atom)]}], []}
+    ].
+
+render_feedslinks(UserName, Slug) ->
+    [{link, [{rel, "alternate"},
+	     {type, ?MIME_RSS},
+	     {title, "Feed"},
+	     {href, [ui_link:base(), ui_link:link_user_feed_xml(UserName, Slug)]}], []},
+     {link, [{rel, "alternate"},
+	     {type, ?MIME_RSS},
+	     {title, "Downloads (RSS)"},
+	     {href, [ui_link:base(), ui_link:link_downloads_feed(UserName, Slug, rss)]}], []},
+     {link, [{rel, "alternate"},
+	     {type, ?MIME_ATOM},
+	     {title, "Downloads (ATOM)"},
+	     {href, [ui_link:base(), ui_link:link_downloads_feed(UserName, Slug, atom)]}], []}
+    ].
+
 render_feedslist(UserName) ->
     {dl, [{class, "feedslist"}],
      [{dt, <<"Downloads:">>},
@@ -410,32 +434,15 @@ render_feedslist(UserName, Slug) ->
 	    <<"ATOM">>}}
      ]}.
 
-page_1column(Opts,
-	     FeedLink, Col) ->
-    HeadEls =
-	if
-	    is_binary(FeedLink),
-	    size(FeedLink) > 0 ->
-		FeedURL =
-		    <<(ui_link:base())/binary,
-		      FeedLink/binary>>,
-		%% TODO: type can be ATOM
-		[{alternate, [{rel, <<"alternate">>},
-			      {type, <<"application/rss+xml">>},
-			      {href, FeedURL}], []}];
-	    true ->
-		[]
-	end,
-    html(Opts,
-	 HeadEls,
+page_1column(Opts, HeadEls, Col) ->
+    html(Opts, HeadEls,
 	 [{section, [{class, "col"}], Col}]).
 
-page_2column(Title,
-	     Col1, Col2) ->
-    page_2column(Title, [], Col1, Col2).
+page_2column(Title, HeadEls, Col1, Col2) ->
+    page_2column(Title, HeadEls, [], Col1, Col2).
 
-page_2column(Opts, Prologue, Col1, Col2) ->
-    html(Opts, [],
+page_2column(Opts, HeadEls, Prologue, Col1, Col2) ->
+    html(Opts, HeadEls,
 	 [Prologue,
 	  {section, [{class, "col1"}], Col1},
 	  {section, [{class, "col2"}], Col2}
@@ -631,7 +638,7 @@ render_front(Req) ->
 			flattr = true,
 			ui_req = Req},
     page_2column(
-      Opts,
+      Opts, [],
       [{'p', [{class, "about"}],
 	[{b, <<"Bitlove">>},
 	 <<" is the fully ">>,
@@ -671,7 +678,7 @@ render_new(Req) ->
 			ui_req = Req},
     page_1column(
       Opts,
-      no_feed,
+      render_feedslinks(new),
       {'div',
        [{h2, <<"New Torrents">>},
 	render_feedslist(new) |
@@ -688,7 +695,7 @@ render_top(Req) ->
 			ui_req = Req},
     page_1column(
       Opts,
-      no_feed,
+      render_feedslinks(top),
       {'div', 
        [{h2, <<"Top Torrents">>},
 	render_feedslist(top) |
@@ -731,6 +738,7 @@ render_directory(Req) ->
 
     page_2column(
       Opts,
+      [],
       [{h2, <<"Directory of Torrentified Podcasters">>}],
       lists:map(fun render_directory_item/1, Directory1),
       lists:map(fun render_directory_item/1, Directory2)
@@ -755,9 +763,9 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
     Opts = #render_opts{title = [UserName, <<" at Bitlove">>],
 			flattr = true,
 			ui_req = Req},
-    io:format("SessionUser: ~p\tUserName: ~p~n", [SessionUser, UserName]),
     page_2column(
       Opts,
+      render_feedslinks(UserName),
       {header, [{class, "user"}],
        [render_meta(h2, UserTitle, UserImage, UserHomepage),
 	render_feedslist(UserName)
@@ -825,7 +833,7 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 
 	    page_1column(
 	      Opts,
-	      ui_link:link_user_feed_xml(UserName, Slug),
+	      render_feedslinks(UserName, Slug),
 	      [{header, [{class, "feed"}],
 		[render_meta(h2,
 			     [FeedTitle,
@@ -970,7 +978,7 @@ render_downloads_feed(rss, Image, Link,
 						   {enclosure,
 						    [{url, TorrentURL},
 						     {length, integer_to_list(Size)},
-						     {type, <<"application/x-bittorrent">>}], []}
+						     {type, ?MIME_TORRENT}], []}
 					   end, Downloads)
 			     ]}
 		    end, Items)
@@ -1049,7 +1057,7 @@ render_downloads_feed(atom, Image, Link,
 						  [{rel, "enclosure"},
 						   {href, TorrentURL},
 						   {length, integer_to_list(Size)},
-						   {type, <<"application/x-bittorrent">>}], []}
+						   {type, ?MIME_TORRENT}], []}
 					 end, Downloads)
 			    ]}
 		   end, Items)
