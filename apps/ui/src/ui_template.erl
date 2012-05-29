@@ -353,11 +353,6 @@ render_enclosure(#download{user = UserName,
 	 [{dt, integer_to_list(Downloaded)},
 	  {dd, <<"Downloads">>}
 	 ]}
-       ]},
-      {li, [{class, "graphs"}],
-       [{img, [{src, <<"/", UserName/binary, "/", Slug/binary, "/", Name/binary, "/g/month/swarm.svg">>}], []},
-	{img, [{src, <<"/", UserName/binary, "/", Slug/binary, "/", Name/binary, "/g/month/traffic.svg">>}], []},
-	{img, [{src, <<"/", UserName/binary, "/", Slug/binary, "/", Name/binary, "/g/month/downloads.svg">>}], []}
        ]}
      ]}.
 

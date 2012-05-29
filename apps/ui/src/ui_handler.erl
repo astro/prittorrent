@@ -573,29 +573,48 @@ handle_request2(#req{method = 'GET',
 	    {error, not_found} ->
 		throw({http, 404})
 	end,
-    Period = case TimeSpec of
-		 <<"day">> -> 24 * 60 * 60;
-		 <<"week">> -> 7 * 24 * 60 * 60;
-		 <<"month">> -> 30 * 24 * 60 * 60;
-		 <<"year">> -> 365 * 24 * 60 * 60
-	     end,
+    {Period, Interval} =
+	case TimeSpec of
+	    <<"day">> ->
+		{24 * 60 * 60, 60 * 60};
+	    <<"week">> ->
+		{7 * 24 * 60 * 60, 24 * 60 * 60};
+	    <<"month">> ->
+		{30 * 24 * 60 * 60, 24 * 60 * 60};
+	    <<"year">> ->
+		{365 * 24 * 60 * 60, 7 * 24 * 60 * 60 }
+	end,
     Stop = calendar:universal_time(),
     Start = calendar:gregorian_seconds_to_datetime(
 	      calendar:datetime_to_gregorian_seconds(Stop) - Period),
-    Body =
-	case Graph of
-	    <<"swarm.svg">> ->
-		ui_graphs:render_swarm(InfoHash, Start, Stop);
-	    <<"traffic.svg">> ->
-		ui_graphs:render_traffic(InfoHash, Start, Stop);
-	    <<"downloads.svg">> ->
-		ui_graphs:render_downloads(InfoHash, Start, Stop);
-	    _ ->
-		throw({http, 404})
-	end,
-    {ok, 200,
-     [{<<"Content-Type">>, <<"image/svg+xml">>}], [],
-     Body};
+    case Graph of
+	<<"swarm.json">> ->
+	    Seeders =
+		model_graphs:get_gauge(seeders, InfoHash, Start, Stop, Interval),
+	    Leechers =
+		model_graphs:get_gauge(leechers, InfoHash, Start, Stop, Interval),
+	    json_ok({obj, [{<<"seeders">>, {obj, convert_graphs_time(Seeders)}},
+			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}}
+			  ]});
+	<<"traffic.json">> ->
+	    Down =
+		model_graphs:get_counter(down, InfoHash, Start, Stop, Interval),
+	    Up =
+		model_graphs:get_counter(up, InfoHash, Start, Stop, Interval),
+	    UpSeeder =
+		model_graphs:get_counter(up_seeder, InfoHash, Start, Stop, Interval),
+	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
+			   {<<"up">>, {obj, convert_graphs_time(Up)}},
+			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}}
+			  ]});
+	<<"downloads.json">> ->
+	    Downloads =
+		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
+	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}}
+			  ]});
+	_ ->
+	    throw({http, 404})
+    end;
 
 %% 404
 handle_request2(_Req) ->
@@ -767,3 +786,14 @@ hmac(Key, Text) ->
     Ctx1 = crypto:hmac_init(sha, Key),
     Ctx2 = crypto:hmac_update(Ctx1, Text),
     crypto:hmac_final(Ctx2).
+
+convert_graphs_time(Data) ->
+    lists:map(
+      fun({{{Y, Mo, D}, {H, M, S}}, Value}) ->
+	      Date =
+		  list_to_binary(
+		    io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
+				  [Y, Mo, D, H, M, trunc(S)])),
+	      {Date, Value}
+      end, Data).
+
