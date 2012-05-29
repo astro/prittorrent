@@ -928,6 +928,7 @@ render_downloads_feed(rss, Image, Link,
 				   title = ItemTitle,
 				   id = ItemId,
 				   published = {{Y, Mo, D}, {H, M, S}},
+				   image = ItemImage,
 				   payment = ItemPayment,
 				   downloads = Downloads
 				  }) ->
@@ -941,6 +942,14 @@ render_downloads_feed(rss, Image, Link,
 			       ItemLink},
 			      {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
 							[Y, Mo, D, H, M, trunc(S)])},
+			      if
+				  is_binary(ItemImage),
+				  size(ItemImage) > 0 ->
+				      {image,
+				       {url, ItemImage}};
+				  true ->
+				      []
+			      end,
 			      if
 				  is_binary(ItemPayment),
 				  size(ItemPayment) > 0 ->
@@ -991,6 +1000,7 @@ render_downloads_feed(atom, Image, Link,
 				  title = ItemTitle,
 				  id = ItemId,
 				  published = {{Y, Mo, D}, {H, M, S}},
+				  image = ItemImage,
 				  payment = ItemPayment,
 				  downloads = Downloads
 				 }) ->
@@ -1010,6 +1020,14 @@ render_downloads_feed(atom, Image, Link,
 			     {id, ItemLink},
 			     {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
 						       [Y, Mo, D, H, M, trunc(S)])},
+			     if
+				 is_binary(ItemImage),
+				 size(ItemImage) > 0 ->
+				     {link, [{rel, "icon"}],
+				      ItemImage};
+				 true ->
+				     []
+			     end,
 			     if
 				 is_binary(ItemPayment),
 				 size(ItemPayment) > 0 ->
