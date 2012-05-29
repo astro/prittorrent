@@ -42,7 +42,7 @@ header.site {
 }
 header.site h1 {
   min-height: 35px;
-  font-size: 300%;
+  font-size: 400%;
   margin: 0;
   padding: 0 0;
 }
@@ -61,12 +61,12 @@ header.site h1:after {
   padding: 0 2px;
   margin-left: 4px;
   color: white;
-  font-size: 30%;
+  font-size: 20%;
   font-family: sans-serif;
   font-weight: bold;
   font-style: normal;
   border-radius: 2px;
-  vertical-align: 130%;
+  vertical-align: 210%;
 }
 header.site .slogan {
   margin: 0;
