@@ -192,12 +192,36 @@ render_plot(#plot{x1 = X1, y1 = Y1,
 	       {stroke, "black"},
 	       {'stroke-width', "0.5px"}
 	      ], []},
+       %% Top label
        {text, [{x, io_lib:format("~p", [X1 - 2])},
-	       {y, io_lib:format("~p", [Y2 + 5])},
+	       {y, io_lib:format("~p", [Y2 + 3])},
 	       {'text-anchor', "end"},
 	       {'font-size', "10px"},
 	       {fill, "black"}],
-	integer_to_list(Top)}
+	integer_to_list(Top)},
+       {path, [{d, io_lib:format("M ~p ~p L ~p ~p",
+				 [X1 - 1, Y2, X1 + 1, Y2])},
+	       {stroke, "black"},
+	       {'stroke-width', "1px"}
+	      ], []} |
+       if
+	   Top / 2 == trunc(Top / 2) ->
+	       HalfTop = trunc(Top / 2),
+	       HalfTopY = MapY(HalfTop),
+	       [{text, [{x, io_lib:format("~p", [X1 - 2])},
+			{y, io_lib:format("~p", [HalfTopY + 3])},
+			{'text-anchor', "end"},
+			{'font-size', "10px"},
+			{fill, "black"}],
+		 integer_to_list(HalfTop)},
+		{path, [{d, io_lib:format("M ~p ~p L ~p ~p",
+					  [X1 - 1, HalfTopY, X1 + 1, HalfTopY])},
+			{stroke, "black"},
+			{'stroke-width', "1px"}
+		       ], []}];
+	   true ->
+	       []
+       end
       ]} |
      [render_line(Line, MapX, MapY)
       || Line <- Lines]
