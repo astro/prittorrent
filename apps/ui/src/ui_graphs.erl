@@ -19,11 +19,9 @@ render_swarm(InfoHash, Start1, Stop1) ->
     Seeders = normalize_gauge(
 		model_graphs:get_gauge(seeders, InfoHash, Start1, Stop1, Interval),
 		Start2, Interval),
-io:format("Seeders: ~p~n",[Seeders]),
     Leechers = normalize_gauge(
 		 model_graphs:get_gauge(leechers, InfoHash, Start1, Stop1, Interval),
 		 Start2, Interval),
-io:format("Leechers: ~p~n",[Leechers]),
 io:format("Start: ~p\tStop: ~p\tI: ~p~n", [Start2, Stop2, Interval]),
     render_graph(#graph{start = Start2,
 			stop = Stop2,
@@ -123,7 +121,6 @@ choose_interval(Start, Stop) ->
     Days = 24 * Hours,
     Years = 365 * Days,
     Diff = Stop - Start,
-    io:format("Diff: ~p~n", [Diff]),
     if
 	Diff =< 2 * Hours ->
 	    10 * Minutes;
@@ -185,7 +182,7 @@ fill_data_gaps([], _, _) ->
     [];
 fill_data_gaps([{Time, Value} | _] = Data, Start, Interval)
   when Start < Time ->
-    [{Start, 0}, fill_data_gaps(Data, Start + Interval, Data)];
+    [{Start, 0} | fill_data_gaps(Data, Start + Interval, Interval)];
 fill_data_gaps([{Time, Value} | Data], Start, Interval) ->
     [{Time, Value} |
      fill_data_gaps(Data, Start + Interval, Interval)].
