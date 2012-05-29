@@ -60,7 +60,7 @@ json_ok(JSON) ->
     json_ok(JSON, []).
 json_ok(JSON, Cookies) ->
     Body = rfc4627:encode(JSON),
-    {ok, 200, [{<<"Content-Type">>, <<"application/json">>}], Cookies, Body}.
+    {ok, 200, [{<<"Content-Type">>, ?MIME_JSON}], Cookies, Body}.
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
@@ -280,7 +280,7 @@ handle_request2(#req{method = 'GET',
 	{ok, Name, Torrent} ->
 	    NameE = escape_bin(Name, $\"),
 	    Headers =
-		[{<<"Content-Type">>, <<"application/x-bittorrent">>},
+		[{<<"Content-Type">>, ?MIME_TORRENT},
 		 {<<"Content-Disposition">>,
 		  <<"attachment; filename=\"", NameE/binary, ".torrent\"">>}],
 	    {ok, 200, Headers, [], Torrent};
@@ -304,7 +304,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(rss, Req, new),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_RSS}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -312,7 +312,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(atom, Req, new),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_ATOM}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -325,7 +325,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(rss, Req, top),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_RSS}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -333,7 +333,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(atom, Req, top),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_ATOM}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -352,7 +352,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(rss, Req, UserName),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_RSS}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -360,7 +360,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(atom, Req, UserName),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_ATOM}], [],
      Body};
 
 %% User profile as json
@@ -464,8 +464,8 @@ handle_request2(#req{method = 'GET',
     {ok, Type, Body} = ui_template:export_feed(Req, UserName, Slug),
     Headers =
 	[{<<"Content-Type">>, case Type of
-				  atom -> <<"application/atom+xml">>;
-				  _ -> <<"application/rss+xml">>
+				  atom -> ?MIME_ATOM;
+				  _ -> ?MIME_RSS
 			      end}],
     {ok, 200, Headers, [], Body};
 
@@ -474,7 +474,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(rss, Req, UserName, Slug),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/rss+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_RSS}], [],
      Body};
 
 handle_request2(#req{method = 'GET',
@@ -482,7 +482,7 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     {ok, Body} = ui_template:export_downloads(atom, Req, UserName, Slug),
     {ok, 200,
-     [{<<"Content-Type">>, <<"application/atom+xml">>}], [],
+     [{<<"Content-Type">>, ?MIME_ATOM}], [],
      Body};
 
 %% User feed as json
@@ -538,7 +538,7 @@ handle_request2(#req{method = 'GET',
 	    case model_enclosures:get_torrent_by_name(UserName, Slug, Name) of
 		{ok, Torrent} ->
 		    {ok, 200,
-		     [{<<"Content-Type">>, <<"application/x-bittorrent">>}], [],
+		     [{<<"Content-Type">>, ?MIME_TORRENT}], [],
 		     Torrent};
 		{error, not_found} ->
 		    throw({http, 404})

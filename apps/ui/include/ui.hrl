@@ -7,7 +7,7 @@
 -define(NS_ATOM, <<"http://www.w3.org/2005/Atom">>).
 
 -define(MIME_TORRENT, <<"application/x-bittorrent">>).
--define(MIME_RSS, <<"application/atom+xml">>).
--define(MIME_ATOM, <<"application/rss+xml">>).
-
+-define(MIME_RSS, <<"application/rss+xml">>).
+-define(MIME_ATOM, <<"application/atom+xml">>).
+-define(MIME_JSON, <<"application/json">>).
 
