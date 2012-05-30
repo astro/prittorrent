@@ -803,7 +803,9 @@ iso8601({{Y, Mo, D}, {H, M, S}}) ->
     
 convert_graphs_time(Data) ->
     lists:map(
-      fun({Date, Value}) ->
-	      {iso8601(Date), Value}
+      fun({{Date, {H, M, S}}, Value}) ->
+	      LocalDate = calendar:universal_time_to_local_time(
+			    {Date, {H, M, trunc(S)}}),
+	      {iso8601(LocalDate), Value}
       end, Data).
 
