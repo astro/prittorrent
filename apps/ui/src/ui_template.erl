@@ -37,7 +37,7 @@
 
     s.type = 'text/javascript';
     s.async = true;
-    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=1&button=compact';
+    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=0&button=compact';
 
     t.parentNode.insertBefore(s, t);
  })();
