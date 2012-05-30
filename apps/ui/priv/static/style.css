@@ -430,8 +430,28 @@ h3 {
   line-height: 0.8em;
   letter-spacing: -0.5px;
 }
-.graphs img {
-  max-width: 100%;
+.stats .toggleable {
+  cursor: pointer;
+}
+.stats .toggleable:hover {
+  color: #333;
+}
+.stats .toggleable:hover dt {
+  color: #555;
+}
+.stats .toggled {
+  color: #281;
+}
+.stats .toggled dt {
+  color: #4a3;
+}
+.graph {
+  text-align: center;
+  color: #666;
+  margin: 0.5em 0;
+}
+.graph h4 {
+  margin: 0;
 }
 
 ul.feeds {

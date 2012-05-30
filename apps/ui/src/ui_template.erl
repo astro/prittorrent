@@ -125,7 +125,10 @@ html(#render_opts{title = HtmlTitle,
 		<<"Bitlove.org is IPv6-ready!">>}
 	      ]}
 	    ]},
-	   ?SCRIPT_FLATTR
+	   ?SCRIPT_FLATTR,
+	   ?INCLUDE_JQUERY,
+	   ?SCRIPT_TAG(<<"/static/jquery.flot.js">>),
+	   ?SCRIPT_TAG(<<"/static/graphs.js">>)
 	  ]}
 	]}
       )].
@@ -341,15 +344,15 @@ render_enclosure(#download{user = UserName,
 	    true ->
 		[]
 	end,
-	{dl,
+	{dl, [{class, "seeders"}],
 	 [{dt, integer_to_list(Seeders + 1)},
 	  {dd, <<"Seeders">>}
 	 ]},
-	{dl,
+	{dl, [{class, "leechers"}],
 	 [{dt, integer_to_list(Leechers)},
 	  {dd, <<"Leechers">>}
 	 ]},
-	{dl,
+	{dl, [{class, "downloads"}],
 	 [{dt, integer_to_list(Downloaded)},
 	  {dd, <<"Downloads">>}
 	 ]}
