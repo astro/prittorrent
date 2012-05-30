@@ -50,7 +50,7 @@ Graph.prototype.setData = function(response) {
     var type = this.type;
     var interval = response.interval * 1000;
     for(var name in response) {
-	if (name == 'interval')
+	if (name == 'interval' || name == 'start' || name == 'stop')
 	    continue;
 
 	var line = response[name];
@@ -140,7 +140,9 @@ Graph.prototype.setData = function(response) {
 	xaxis: {
 	    mode: "time",
 	    timeformat: "%m-%d\n%H:%M",
-	    tickLength: 7
+	    tickLength: 7,
+	    min: new Date(response.start).getTime(),
+	    max: new Date(response.stop).getTime()
 	},
 	yaxis: {
 	    tickFormatter: tickFormatter
