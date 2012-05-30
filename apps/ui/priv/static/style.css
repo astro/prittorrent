@@ -453,6 +453,10 @@ h3 {
 .graph h4 {
   margin: 0;
 }
+.graph .timeselect {
+  float: right;
+  margin: 0 2em 0 0;
+}
 
 ul.feeds {
   list-style-type: none;

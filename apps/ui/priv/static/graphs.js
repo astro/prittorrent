@@ -1,7 +1,8 @@
 function Graph(basepath, type) {
+    this.basepath = basepath;
     this.type = type;
-    this.el = $('<li class="graph"><h4></h4></li>');
-    this.el.hide();
+
+    this.el = $('<li class="graph"><select class="timeselect"><option value="day">Day</option><option value="week">Week</option><option value="month" selected>Month</option><option value="year">Year</option></select><h4></h4><div class="placeholder"></div></li>');
     switch(type) {
 	case 'swarm':
 	    this.el.find('h4').text("Swarm");
@@ -14,15 +15,32 @@ function Graph(basepath, type) {
 	    break;
     }
 
-    $.ajax({ url: basepath + "/g/month/" + type + ".json",
-	     success: this.setData.bind(this),
-	     error: this.el.text.bind(this.el, "Error retrieving " + type + ".json")
-	   });
+    var timeselect = this.el.find('.timeselect');
+    var that = this;
+    timeselect.change(function() {
+	that.loadGraph();
+    });
+
+    this.loadGraph();
 }
 
 Graph.prototype = {};
 
+Graph.prototype.loadGraph = function() {
+    var timespec = this.el.find('.timeselect').val();
+    var url = this.basepath + "/g/" + timespec + "/" + this.type + ".json";
+    $.ajax({ url: url,
+	     success: this.setData.bind(this),
+	     error: this.el.text.bind(this.el, "Error retrieving " + url)
+	   });
+};
+
 Graph.prototype.setData = function(response) {
+    if (this.plot) {
+	this.plot.shutdown();
+	delete this.plot;
+    }
+
     /* Prepare data */
     var i;
     var data = [];
@@ -104,11 +122,11 @@ Graph.prototype.setData = function(response) {
 	    return Math.round(value) + " " + units[u] + "B";
 	};
 
-    var width = this.el.parent().innerWidth() || 400;
     /* Attach */
-    var placeholder = $('<div style="width: ' + width + 'px; height: 200px"></div>');
-    this.el.append(placeholder);
-    $.plot(placeholder, data, {
+    var width = this.el.parent().innerWidth() || 400;
+    var placeholder = this.el.find('.placeholder');
+    placeholder.attr('style', "width: " + width + "px; height: 200px");
+    this.plot = $.plot(placeholder, data, {
 	xaxis: {
 	    mode: "time",
 	    timeformat: "%m-%d\n%H:%M",
@@ -156,6 +174,7 @@ StatsHook.prototype.toggleGraph = function(type, toggle) {
     } else {
 	toggle.addClass('toggled');
 	var graph = this.graphs[type] = new Graph(this.basepath, type);
+	graph.el.hide();
 	this.stats.after(graph.el);
     }
 };
