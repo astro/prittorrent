@@ -12,9 +12,6 @@ rebar get-deps compile generate
 TODO
 ----
 
-* user_feeds feed_title in directory?
-* lhttpc + https
-
 * model:
   * queueify scraped triggers
 
