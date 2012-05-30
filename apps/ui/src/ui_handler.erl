@@ -418,7 +418,9 @@ handle_request2(#req{method = 'PUT',
     case {SessionUser == UserName,
 	  validate_slug(Slug),
 	  URL} of
-	{true, true, <<"http://", _/binary>>} ->
+	{true, true, <<Scheme:7/binary, _/binary>>}
+	  when Scheme == <<"http://">>;
+	       Scheme == <<"https:/">> ->
 	    {ok, BaseURL} = application:get_env(ui, base_url),
 	    Link = <<BaseURL/binary, (ui_link:link_user_feed(UserName, Slug))/binary>>,
 	    case model_users:add_feed(UserName, Slug, URL) of
