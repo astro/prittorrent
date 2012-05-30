@@ -587,6 +587,8 @@ handle_request2(#req{method = 'GET',
     Stop = calendar:universal_time(),
     Start = calendar:gregorian_seconds_to_datetime(
 	      calendar:datetime_to_gregorian_seconds(Stop) - Period),
+    LocalStop = universal_to_local_time(Stop),
+    LocalStart = universal_to_local_time(Start),
     case Graph of
 	<<"swarm.json">> ->
 	    Seeders =
@@ -595,8 +597,8 @@ handle_request2(#req{method = 'GET',
 		model_graphs:get_gauge(leechers, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"seeders">>, {obj, convert_graphs_time(Seeders)}},
 			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, iso8601(LocalStart)},
+			   {<<"stop">>, iso8601(LocalStop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"traffic.json">> ->
@@ -609,16 +611,16 @@ handle_request2(#req{method = 'GET',
 	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
 			   {<<"up">>, {obj, convert_graphs_time(Up)}},
 			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, iso8601(LocalStart)},
+			   {<<"stop">>, iso8601(LocalStop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"downloads.json">> ->
 	    Downloads =
 		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, iso8601(LocalStart)},
+			   {<<"stop">>, iso8601(LocalStop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	_ ->
@@ -800,12 +802,15 @@ iso8601({{Y, Mo, D}, {H, M, S}}) ->
     list_to_binary(
       io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
 		    [Y, Mo, D, H, M, trunc(S)])).
+
+universal_to_local_time({Date, {H, M, S}}) ->
+    calendar:universal_time_to_local_time(
+      {Date, {H, M, trunc(S)}}).
     
 convert_graphs_time(Data) ->
     lists:map(
-      fun({{Date, {H, M, S}}, Value}) ->
-	      LocalDate = calendar:universal_time_to_local_time(
-			    {Date, {H, M, trunc(S)}}),
+      fun({Date, Value}) ->
+	      LocalDate = universal_to_local_time(Date),
 	      {iso8601(LocalDate), Value}
       end, Data).
 
