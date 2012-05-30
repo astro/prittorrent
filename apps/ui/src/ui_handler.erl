@@ -584,7 +584,7 @@ handle_request2(#req{method = 'GET',
 	    <<"year">> ->
 		{365 * 24 * 60 * 60, 7 * 24 * 60 * 60 }
 	end,
-    Stop = calendar:universal_time(),
+    Stop = calendar:local_time(),
     Start = calendar:gregorian_seconds_to_datetime(
 	      calendar:datetime_to_gregorian_seconds(Stop) - Period),
     case Graph of
