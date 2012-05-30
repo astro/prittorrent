@@ -70,6 +70,10 @@ Graph.prototype.setData = function(response) {
 	switch(type) {
 	    case 'swarm':
 		series.label = "Downloads";
+		series.lines = {
+		    show: true,
+		    lineWidth: 3
+		};
 		switch(name) {
 		    case 'seeders':
 			series.label = "Seeders";
