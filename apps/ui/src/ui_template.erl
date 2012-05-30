@@ -1,8 +1,9 @@
 -module(ui_template).
 
 -export([render_message/2, render_error/1,
-	 render_login/1, render_signup/1,
+	 render_login/1, render_signup/1, render_signup_response/1,
 	 render_activate/3, render_reactivate/1,
+	 render_help/2,
 	 render_front/1,
 	 render_new/1, render_top/1, render_directory/1,
 	 render_user/2,
@@ -528,7 +529,7 @@ render_login(Req) ->
        ]).
 
 render_signup(Req) ->
-    page_1column(
+    page_2column(
       #render_opts{title = <<"Bitlove: Signup">>,
 		   ui_req = Req},
       [],
@@ -577,7 +578,23 @@ render_signup(Req) ->
 	]},
        ?INCLUDE_JQUERY,
        ?SCRIPT_TAG(<<"/static/signup.js">>)
-       ]).
+      ],
+      [{h2, <<"Are you a w4r3z d00d?">>},
+       {p, <<"All podcast feeds are confirmed by staff before torrentification starts. Get your own seedbox.">>},
+       {h2, <<"Representing a broadcast institution?">>},
+       {p,
+	[<<"Place your content on Bitlove and make your audience happy! Contact us at ">>,
+	 {a, [{href, <<"mailto:mail@bitlove.org">>}], <<"mail@bitlove.org">>}
+	]}
+      ]).
+
+render_signup_response(Req) ->
+    render_message(Req,
+		   [{img, [{class, "right"},
+			   {src, <<"/static/mail-bird.png">>}], []},
+		    <<"Check your mail!">>
+		   ]).
+
 
 render_activate(Req, HexToken, HexSalt) ->
     page_1column(
@@ -631,9 +648,105 @@ render_reactivate(Req) ->
 	]}
        ]).
 
+render_help(Req, []) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Help">>,
+		   ui_req = Req},
+      [],
+      [{h2, <<"Help">>},
+       {'div', [{class, "navtabs"}],
+	{ul,
+	 [{li,
+	   {a, [{href, "/help"}], <<"Users">>}},
+	  {li,
+	   {a, [{href, "/help/podcaster"}], <<"Podcasters">>}}
+	 ]}},
+       {h3, <<"How do I download .torrent files?">>},
+       {p,
+	[<<"BitTorrent is a system in which downloaders support each other by sharing pieces of data. To participate, you need to run one of ">>,
+	 {a, [{href, <<"http://en.wikipedia.org/wiki/Comparison_of_BitTorrent_clients">>}], <<"many torrent clients.">>}
+	]},
+       {p,
+	[<<"If you tune in to podcasts regularly, you will probably want to subscribe to feeds. We wholeheartedly recommend ">>,
+	 {a, [{href, <<"http://www.getmiro.com/">>}], <<"Miro!">>}
+	]},
+       {h3, <<"Is file-sharing legal (here)?">>},
+       {p,
+	<<"Yes. Bitlove distributes only content which publishers explicitly ordered. If you get caught because of file-sharing activities, it's due to content, not technology.">>}
+      ]);
+
+render_help(Req, [<<"podcaster">>]) ->
+    page_1column(
+      #render_opts{title = <<"Bitlove: Help">>,
+		   ui_req = Req},
+      [],
+      [{h2, <<"Help for Podcasters">>},
+       {'div', [{class, "navtabs"}],
+	{ul,
+	 [{li,
+	   {a, [{href, "/help"}], <<"Users">>}},
+	  {li,
+	   {a, [{href, "/help/podcaster"}], <<"Podcasters">>}}
+	 ]}},
+       {h3, <<"What do I need to publish?">>},
+       {img, [{class, "right"},
+	      {src, <<"/static/help-podcaster-feed.png">>}], []},
+       {p, [{class, "about"}],
+	[<<"A ">>,
+	 {b, <<"Podcast Feed">>},
+	 <<" (RSS/ATOM), which tells us what's new, and what is to torrentify. A ">>,
+	 {b, <<"web server">>},
+	 <<" that your users download from. Bitlove downloads from there too. And possibly a ">>,
+	 {b, <<"Homepage">>},
+	 <<" to point to, to serve your user picture from, to provide more information for users.">>
+	]},
+       {h3, <<"How do I sign up?">>},
+       {p, [{class, "about"}],
+	[{a, [{href, "/signup"}], <<"You enter your desired username">>},
+	 <<" and your email address, in case we need to talk to you individually.">>
+	]},
+       {img, [{class, "left"},
+	      {src, "/static/mail-bird.png"}], []},
+       {p, [{class, "about"}],
+	[<<"Your account ">>,
+	 {b, <<"activation mail">>},
+	 <<" arrives.">>
+	]},
+       {img, [{class, "right"},
+	      {src, "/static/activate-account.png"}], []},
+       {p, [{class, "about"}],
+	[<<"Set your new password. Done. ">>,
+	 {b, <<"Welcome to Bitlove!">>}
+	]},
+       {img, [{class, "left"},
+	      {src, "/static/edit.png"}], []},
+       {p, [{class, "about"}],
+	[<<"You now have a user profile page. When you are logged in, you can click the edit button to complete your information. ">>,
+	 {b, <<"Click the Add button">>},
+	 <<" to add a new feed. We will check regularly for newly entered feeds, verify them and set the torrentification flag. This is not censorship, we just don't want to help broadcasting Hollywood's next busted movie.">>
+	]},
+       {p, [{class, "about"}],
+	[<<"We want your consent on content distribution.">>,
+	 <<"Only when you are happy with the way your feeds are represented, you ">>,
+	 {b, <<"click Edit">>},
+	 <<" and set your feed ">>,
+	 {b, <<"public.">>},
+	 <<" Now the feed's torrents are listed on your public user profile and in the directory pages.">>
+	]},
+       {p, [{class, "about"}],
+	[{b, <<"Questions?">>},
+	 <<" Don't hesitate. Contact ">>,
+	 {a, [{href, <<"mailto:mail@bitlove.org">>}], <<"mail@bitlove.org">>},
+	 <<" today!">>
+	]}
+      ]);
+
+render_help(_Req, _) ->
+    throw({http, 404}).
+
 render_front(Req) ->
     {ok, RecentDownloads} =
-	model_enclosures:recent_downloads(3),
+	model_enclosures:recent_downloads(5),
     
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
@@ -659,15 +772,26 @@ render_front(Req) ->
 	 {b, <<"seed">>},
 	 <<" them all the time.">>
 	]},
-       %% {h2, <<"Are You a Podcast Publisher?">>},
-       %% {p, [{class, "about"}],
-       %% 	<<"Sign up soon!">>},
        {'div', [{class, "navtabs"}],
 	{ul,
-	 [{li, <<"Sign up soon!">>},
+	 [{li,
+	   {a, [{href, "/help"}],
+	    <<"Learn more…">>}}
+	 ]}
+       },
+       {'p', [{class, "about"}],
+	[<<"Are You a ">>,
+	{b,
+	 <<"Podcast Publisher?">>}
+	]},
+       {'div', [{class, "navtabs"}],
+	{ul,
+	 [{li,
+	   {a, [{href, "/signup"}],
+	    <<"Sign up">>}},
 	  {li,
 	   {a, [{href, "/login"}],
-	    <<"Podcaster Login">>}}
+	    <<"Login">>}}
 	 ]}
        }
       ],
@@ -862,8 +986,11 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 				 true ->
 				     [];
 				 _ ->
-				     {p, [{class, "hint"}],
-				      <<"The feed is pending operator confirmation before automatic torrentification can happen.">>}
+				     [{img, [{class, "left"},
+					     {src, <<"/static/torrentify.png">>}], []},
+				      {p, [{class, "hint"}],
+				       <<"The feed is pending operator confirmation before automatic torrentification can happen.">>
+				      }]
 			     end
 			    ),
 		 render_feedslist(UserName, Slug)

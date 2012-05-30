@@ -195,7 +195,7 @@ handle_request2(#req{method = 'POST',
 	{true, true, <<"tos-1">>, <<"tos-2">>} ->
 	    case create_account(UserName, Email) of
 		ok ->
-		    html_ok(ui_template:render_message(Req, <<"Check your mail!">>));
+		    html_ok(ui_template:render_signup_response(Req));
 		{error, Message} ->
 		    html_ok(ui_template:render_message(Req, Message))
 	    end;
@@ -270,6 +270,15 @@ handle_request2(#req{method = 'GET',
 	    ignore
     end,
     {ok, 303, [{<<"Location">>, <<"/login">>}], [{<<"sid">>, <<>>}], <<"Bye">>};
+
+%% Help pages
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"help">> | Path]
+		    } = Req) ->
+    html_ok(ui_template:render_help(
+	      validate_session(Req), Path));
+
 
 %% Torrent download by info_hash
 handle_request2(#req{method = 'GET',

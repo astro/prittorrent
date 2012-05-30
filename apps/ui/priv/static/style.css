@@ -56,7 +56,7 @@ header.site h1 a:hover {
   text-decoration: none;
 }
 header.site h1:after {
-  content: 'Alpha';
+  content: 'Beta';
   background-color: #073;
   padding: 0 2px;
   margin-left: 4px;
@@ -228,8 +228,15 @@ img.logo {
 }
 .right {
   float: right;
+  clear: right;
   text-align: right;
   margin-left: 0.5em;
+}
+.left {
+  float: left;
+  clear: left;
+  text-align: left;
+  margin-right: 0.5em;
 }
 
 article {
