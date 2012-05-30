@@ -14,20 +14,18 @@ TODO
 
 * model:
   * queueify scraped triggers
-  * composite feeds
 
 * style:
   * Fonts
   * Flattr donate
 
 * API
-* Composite feeds (map item ids)
-* More visible feeds
 
 * Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
 * Zlib for UI
 * lhttpc + https! + zlib
+* parse rss pubDate tz offset
 
 * Edit user:
   * About field
