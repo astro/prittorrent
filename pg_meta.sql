@@ -94,7 +94,7 @@ CREATE OR REPLACE VIEW directory AS
            COALESCE(users.title, users.name) As title,
            users.image,
            user_feeds.slug,
-           feeds.title AS feed_title
+           COALESCE(user_feeds.title, feeds.title) AS feed_title
       FROM users
       JOIN user_feeds ON (users.name=user_feeds."user")
       JOIN feeds ON (user_feeds.feed=feeds.url)
