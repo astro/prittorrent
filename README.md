@@ -12,6 +12,9 @@ rebar get-deps compile generate
 TODO
 ----
 
+* user_feeds feed_title in directory?
+* lhttpc + https
+
 * model:
   * queueify scraped triggers
 
@@ -24,7 +27,7 @@ TODO
 * Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
 * Zlib for UI
-* lhttpc + https! + zlib
+* lhttpc + zlib
 * parse rss pubDate tz offset
 
 * Edit user:
