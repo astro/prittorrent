@@ -789,11 +789,14 @@ hmac(Key, Text) ->
 
 convert_graphs_time(Data) ->
     lists:map(
-      fun({{{Y, Mo, D}, {H, M, S}}, Value}) ->
-	      Date =
+      fun({{Date, {H, M, S}}, Value}) ->
+	      {{Y, Mo, D}, {LH, LM, LS}} =
+		  erlang:universaltime_to_localtime(
+		    {Date, {H, M, trunc(S)}}),
+	      DateStr =
 		  list_to_binary(
 		    io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
-				  [Y, Mo, D, H, M, trunc(S)])),
-	      {Date, Value}
+				  [Y, Mo, D, LH, LM, LS])),
+	      {DateStr, Value}
       end, Data).
 
