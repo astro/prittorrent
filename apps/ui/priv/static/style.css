@@ -457,6 +457,14 @@ h3 {
   float: right;
   margin: 0 2em 0 0;
 }
+.graph .floater {
+  position: absolute;
+  padding: 0 0 0 2px;
+  font-size: 70%;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: bold;
+  text-shadow: -1px 0 1px white, 0 -1px 1px white, 1px 0 1px white, 0 1px 1px white;
+}
 
 ul.feeds {
   list-style-type: none;

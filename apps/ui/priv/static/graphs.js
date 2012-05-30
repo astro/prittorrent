@@ -1,3 +1,16 @@
+function humanSize(value) {
+    var units = ["", "K", "M", "G", "T"];
+    var u = 0;
+    while(value >= 1024 && u < units.length - 1) {
+	value /= 1024;
+	u++;
+    }
+    var v = (value < 10) ?
+	Math.round(value * 10) / 10 :
+	Math.round(value);
+    return v + " " + units[u] + "B";
+};
+
 /**
  * TODO: inherit for the three graph types
  */
@@ -77,9 +90,11 @@ Graph.prototype.setData = function(response) {
 		switch(name) {
 		    case 'seeders':
 			series.label = "Seeders";
+			series.color = '#4faf1f';
 			break;
 		    case 'leechers':
 			series.label = "Leechers";
+			series.color = '#1f4faf';
 			break;
 		}
 		break;
@@ -89,12 +104,12 @@ Graph.prototype.setData = function(response) {
 			      };
 		switch(name) {
 		    case 'down':
-			series.label = "Downloaded";
+			series.label = "Downloaded by peers";
 			series.color = '#1f4faf';
 			series.bars.fillColor = '#3fafef';
 			break;
 		    case 'up':
-			series.label = "Uploaded";
+			series.label = "Uploaded by peers";
 			series.color = '#4faf1f';
 			series.bars.fillColor = '#afef3f';
 			break;
@@ -122,15 +137,7 @@ Graph.prototype.setData = function(response) {
 	function(value) {
 	    return "" + Math.round(value);
 	} :
-	function(value) {
-	    var units = ["", "K", "M", "G", "T"];
-	    var u = 0;
-	    while(value >= 1000 && u < units.length - 1) {
-		value /= 1000;
-		u++;
-	    }
-	    return Math.round(value) + " " + units[u] + "B";
-	};
+	humanSize;
 
     /* Attach */
     var width = this.el.parent().innerWidth() || 400;
@@ -147,8 +154,26 @@ Graph.prototype.setData = function(response) {
 	yaxis: {
 	    tickFormatter: tickFormatter
 	},
-	hoverable: true,
-	clickable: true
+	grid: {
+	    hoverable: true
+	}
+    });
+    var that = this;
+    var floater;
+    placeholder.bind("plothover", function (event, pos, item) {
+	if (floater)
+	    floater.remove();
+
+        if (item) {
+	    var o = that.plot.pointOffset({
+		x: item.datapoint[0],
+		y: item.datapoint[1]
+	    });
+	    floater = $('<div class="floater" style="left: ' + o.left + 'px; top: ' + (o.top - 16) + 'px;"></div>');
+	    var v = item.datapoint[1];
+	    floater.text(type == 'traffic' ? humanSize(v) : v);
+	    placeholder.prepend(floater);
+        }
     });
     this.el.slideDown(200);
 };
