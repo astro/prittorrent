@@ -1,3 +1,6 @@
+/**
+ * TODO: inherit for the three graph types
+ */
 function Graph(basepath, type) {
     this.basepath = basepath;
     this.type = type;
@@ -59,6 +62,9 @@ Graph.prototype.setData = function(response) {
 	var label = name;
 	var series = {
 	    label: name,
+	    legend: {
+		show: true
+	    },
 	    data: d
 	};
 	switch(type) {
@@ -134,9 +140,6 @@ Graph.prototype.setData = function(response) {
 	},
 	yaxis: {
 	    tickFormatter: tickFormatter
-	},
-	legend: {
-	    show: true
 	},
 	hoverable: true,
 	clickable: true
