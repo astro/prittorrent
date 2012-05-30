@@ -126,7 +126,7 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 				       end
 			       end,
 			       sets:from_list([Enclosure || {Enclosure} <- ToDeleteRows]),
-			       Item#feed_item.enclosures),
+			       list_uniq(Item#feed_item.enclosures)),
 			 lists:foreach(
 			   fun(Enclosure) ->
 				   ?Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
@@ -224,3 +224,11 @@ list_drop_subsequent_dups([E, E | L]) ->
     list_drop_subsequent_dups([E | L]);
 list_drop_subsequent_dups([E | L]) ->
     [E | list_drop_subsequent_dups(L)].
+
+list_uniq([]) ->
+    [];
+list_uniq([E | L]) ->
+    [E |
+     list_uniq([E1
+		|| E1 <- L,
+		   E1 =/= E])].
