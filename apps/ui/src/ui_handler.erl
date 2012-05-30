@@ -594,7 +594,8 @@ handle_request2(#req{method = 'GET',
 	    Leechers =
 		model_graphs:get_gauge(leechers, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"seeders">>, {obj, convert_graphs_time(Seeders)}},
-			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}}
+			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}},
+			   {<<"interval">>, Interval}
 			  ]});
 	<<"traffic.json">> ->
 	    Down =
@@ -605,12 +606,14 @@ handle_request2(#req{method = 'GET',
 		model_graphs:get_counter(up_seeder, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
 			   {<<"up">>, {obj, convert_graphs_time(Up)}},
-			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}}
+			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}},
+			   {<<"interval">>, Interval}
 			  ]});
 	<<"downloads.json">> ->
 	    Downloads =
 		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
-	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}}
+	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}},
+			   {<<"interval">>, Interval}
 			  ]});
 	_ ->
 	    throw({http, 404})

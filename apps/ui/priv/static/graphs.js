@@ -22,22 +22,75 @@ function Graph(basepath, type) {
 
 Graph.prototype = {};
 
-Graph.prototype.setData = function(data) {
+Graph.prototype.setData = function(response) {
     /* Prepare data */
     var i;
-    var ds = [];
-    for(var name in data) {
-	var line = data[name];
+    var data = [];
+    var type = this.type;
+    var interval = response.interval * 1000;
+    for(var name in response) {
+	if (name == 'interval')
+	    continue;
+
+	var line = response[name];
 	var d = Object.keys(line).sort().map(function(k) {
 	    var v = line[k];
 	    return [new Date(k).getTime(), v];
 	});
-	ds.push({ label: name,
-		  data: d
-		});
+
+	var label = name;
+	var series = {
+	    label: name,
+	    data: d
+	};
+	switch(type) {
+	    case 'swarm':
+		series.label = "Downloads";
+		switch(name) {
+		    case 'seeders':
+			series.label = "Seeders";
+			break;
+		    case 'leechers':
+			series.label = "Leechers";
+			break;
+		}
+		break;
+	    case 'traffic':
+		series.bars = { show: true,
+				barWidth: interval
+			      };
+		switch(name) {
+		    case 'down':
+			series.label = "Downloaded";
+			series.color = '#1f4faf';
+			series.bars.fillColor = '#3fafef';
+			break;
+		    case 'up':
+			series.label = "Uploaded";
+			series.color = '#4faf1f';
+			series.bars.fillColor = '#afef3f';
+			break;
+		    case 'up_seeder':
+			series.label = "Uploaded by Bitlove";
+			series.color = '#afaf1f';
+			series.bars.fillColor = '#efef3f';
+			break;
+		}
+		break;
+	    case 'downloads':
+		series.label = "Downloads";
+		series.color = '#5faf1f';
+		series.bars = { show: true,
+				barWidth: interval,
+				fillColor: '#afef3f'
+			      };
+		break;
+	}
+
+	data.push(series);
     }
 
-    var tickFormatter = (this.type != 'traffic') ?
+    var tickFormatter = (type != 'traffic') ?
 	function(value) {
 	    return "" + Math.round(value);
 	} :
@@ -48,14 +101,14 @@ Graph.prototype.setData = function(data) {
 		value /= 1000;
 		u++;
 	    }
-	    return Math.round(value) + " " + units[u] + "B/s";
+	    return Math.round(value) + " " + units[u] + "B";
 	};
 
     var width = this.el.parent().innerWidth() || 400;
     /* Attach */
     var placeholder = $('<div style="width: ' + width + 'px; height: 200px"></div>');
     this.el.append(placeholder);
-    $.plot(placeholder, ds, {
+    $.plot(placeholder, data, {
 	xaxis: {
 	    mode: "time",
 	    timeformat: "%m-%d\n%H:%M",
