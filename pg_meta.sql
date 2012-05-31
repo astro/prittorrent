@@ -16,7 +16,7 @@ CREATE TABLE feeds ("url" TEXT NOT NULL,
                     "homepage" TEXT,
                     "image" TEXT,
                     "xml" TEXT,
-                    "torrentify" BOOL,
+                    "torrentify" BOOL DEFAULT TRUE,
                     PRIMARY KEY ("url"));
 
 CREATE TABLE user_feeds ("user" TEXT NOT NULL REFERENCES "users" ("name"),

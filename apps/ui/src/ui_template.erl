@@ -723,7 +723,7 @@ render_help(Req, [<<"podcaster">>]) ->
        {p, [{class, "about"}],
 	[<<"You now have a user profile page. When you are logged in, you can click the edit button to complete your information. ">>,
 	 {b, <<"Click the Add button">>},
-	 <<" to add a new feed. We will check regularly for newly entered feeds, verify them and set the torrentification flag. This is not censorship, we just don't want to help distributing Hollywood's next busted movie.">>
+	 <<" to add a new feed.">>
 	]},
        {p, [{class, "about"}],
 	[<<"We want your consent on content distribution. ">>,
