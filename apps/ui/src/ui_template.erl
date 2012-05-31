@@ -579,7 +579,7 @@ render_signup(Req) ->
        ?INCLUDE_JQUERY,
        ?SCRIPT_TAG(<<"/static/signup.js">>)
       ],
-      [{h2, <<"Are you a w4r3z d00d?">>},
+      [{h2, <<"No warez">>},
        {p, <<"All podcast feeds are confirmed by staff before torrentification starts. Get your own seedbox.">>},
        {h2, <<"Representing a broadcast institution?">>},
        {p,
