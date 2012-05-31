@@ -746,7 +746,7 @@ render_help(_Req, _) ->
 
 render_front(Req) ->
     {ok, RecentDownloads} =
-	model_enclosures:recent_downloads(5),
+	model_enclosures:recent_downloads(4),
     
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
