@@ -694,7 +694,7 @@ render_help(Req, [<<"podcaster">>]) ->
        {p, [{class, "about"}],
 	[<<"A ">>,
 	 {b, <<"Podcast Feed">>},
-	 <<" (RSS/ATOM), which tells us what's new, and what is to torrentify. A ">>,
+	 <<" (RSS/ATOM), which tells us what's new, and what is there for torrentification. A ">>,
 	 {b, <<"web server">>},
 	 <<" that your users download from. Bitlove downloads from there too. And possibly a ">>,
 	 {b, <<"Homepage">>},
@@ -723,10 +723,10 @@ render_help(Req, [<<"podcaster">>]) ->
        {p, [{class, "about"}],
 	[<<"You now have a user profile page. When you are logged in, you can click the edit button to complete your information. ">>,
 	 {b, <<"Click the Add button">>},
-	 <<" to add a new feed. We will check regularly for newly entered feeds, verify them and set the torrentification flag. This is not censorship, we just don't want to help broadcasting Hollywood's next busted movie.">>
+	 <<" to add a new feed. We will check regularly for newly entered feeds, verify them and set the torrentification flag. This is not censorship, we just don't want to help distributing Hollywood's next busted movie.">>
 	]},
        {p, [{class, "about"}],
-	[<<"We want your consent on content distribution.">>,
+	[<<"We want your consent on content distribution. ">>,
 	 <<"Only when you are happy with the way your feeds are represented, you ">>,
 	 {b, <<"click Edit">>},
 	 <<" and set your feed ">>,

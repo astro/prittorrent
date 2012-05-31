@@ -129,7 +129,7 @@ header.site .slogan {
 }
 .about b {
   font-weight: 500;
-  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+  text-shadow: 2px 1px 0 rgba(0, 0, 0, 0.15);
 }
 
 h2 { 
