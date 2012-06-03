@@ -52,8 +52,11 @@ Graph.prototype.loadGraph = function() {
 };
 
 Graph.prototype.setData = function(response) {
+    var placeholder = this.el.find('.placeholder');
+
     if (this.plot) {
 	this.plot.shutdown();
+	placeholder.empty();
 	delete this.plot;
     }
 
@@ -141,7 +144,6 @@ Graph.prototype.setData = function(response) {
 
     /* Attach */
     var width = this.el.parent().innerWidth() || 400;
-    var placeholder = this.el.find('.placeholder');
     placeholder.attr('style', "width: " + width + "px; height: 200px");
     this.plot = $.plot(placeholder, data, {
 	xaxis: {
