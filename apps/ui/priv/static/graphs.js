@@ -148,7 +148,7 @@ Graph.prototype.setData = function(response) {
     this.plot = $.plot(placeholder, data, {
 	xaxis: {
 	    mode: "time",
-	    timeformat: "%m-%d\n%H:%M",
+	    timeformat: interval >= 86400000 ? "%m-%d" : "%m-%d\n%H:%M",
 	    tickLength: 7,
 	    min: new Date(response.start).getTime(),
 	    max: new Date(response.stop).getTime()
