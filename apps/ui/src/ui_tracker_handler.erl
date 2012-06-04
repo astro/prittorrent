@@ -28,7 +28,7 @@ handle(Req, _State) ->
 		[{<<"failure">>, <<"Internal server error">>}]
 	end,
     
-    Body = benc:to_binary(Reply),
+    Body = benc:to_iolist(Reply),
     {ok, Req2} =
 	cowboy_http_req:reply(200, [{<<"Content-Type">>, <<"application/x-bittorrent">>}],
 			      Body, Req),

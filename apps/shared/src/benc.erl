@@ -3,7 +3,7 @@
 %%%-------------------------------------------------------------------
 -module(benc).
 -export([parse_file/1, parse/1]).
--export([to_binary/1, hash/1]).
+-export([to_binary/1, to_iolist/1, hash/1]).
 
 %%% API %%%
 
@@ -96,6 +96,20 @@ to_binary(<<String/binary>>) ->
     Length = list_to_binary(integer_to_list(size(String))),
     <<Length/binary, ":", String/binary>>.
 
+
+to_iolist([{_, _} | _] = Dict) ->
+    B = [[to_iolist(K), to_iolist(V)]
+	 || {K, V} <- lists:sort(Dict)],
+    [$d, B, $e];
+
+to_iolist(List) when is_list(List) ->
+    [$l, lists:map(fun to_iolist/1, List), $e];
+
+to_iolist(I) when is_integer(I) ->
+    [$i, integer_to_list(I), $e];
+
+to_iolist(String) when is_binary(String) ->
+    [integer_to_list(size(String)), $:, String].
      
 
 hash(Dict) ->
