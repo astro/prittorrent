@@ -29,22 +29,7 @@
 	?SCRIPT_TAG(<<"/static/jsSHA.js">>)).
 
 -define(SCRIPT_FLATTR,
-	{script, [{type, <<"text/javascript">>}],
-	 [<<"/* ">>,
-	  {'!CDATA', <<" */
-(function() {
-    var s = document.createElement('script');
-    var t = document.getElementsByTagName('script')[0];
-
-    s.type = 'text/javascript';
-    s.async = true;
-    s.src = 'https://api.flattr.com/js/0.6/load.js?mode=auto&popout=0&button=compact';
-
-    t.parentNode.insertBefore(s, t);
- })();
-/* ">>},
-	  <<" */">>]
-	}).
+	?SCRIPT_TAG(<<"https://api.flattr.com/js/0.6/load.js?mode=auto&popout=0&button=compact">>)).
 
 html(#render_opts{title = HtmlTitle,
 		  ui_req = #req{session_user = SessionUser}

@@ -3,93 +3,46 @@
 
 -export([to_iolist/1]).
 
-to_iolist(S) when is_atom(S) ->
-    to_iolist(atom_to_list(S));
+to_iolist(S) ->
+    Xml1 = to_exmpp_xml(S),
+    exmpp_xml:document_to_iolist(Xml1).
 
-to_iolist(S) when is_list(S) ->
-    %% Recurse
-    lists:map(fun to_iolist/1, S);
+to_exmpp_xml(S) when is_atom(S) ->
+    exmpp_xml:cdata(S);
 
-to_iolist(S) when is_binary(S) ->
-    escape(S);
-
-to_iolist(S) when is_integer(S) ->
-    case escape([S]) of
-	[R] when is_integer(R) ->
-	    R;
-	R ->
-	    R
-    end;
-
-to_iolist({'!CDATA', S}) ->
-    [<<"<![CDATA[">>, S, <<"]]>">>];
-
-to_iolist({El, Children}) when is_atom(El) ->
-    to_iolist({atom_to_list(El), Children});
-
-to_iolist({El, Children}) ->
-    [<<"<">>, El,
-     case Children of
-	 [] -> <<"/>">>;
-	 _ -> [<<">">>,
-	       to_iolist(Children),
-	       <<"</">>, El, <<">">>]
+to_exmpp_xml(S1) when is_list(S1) ->
+    S2 = lists:flatten(S1),
+    {String, S3} =
+	lists:splitwith(fun(C) ->
+				not is_tuple(C)
+			end, S2),
+    [exmpp_xml:cdata(String) |
+     case S3 of
+	 [] ->
+	     [];
+	 [El | S4] ->
+	     [to_exmpp_xml(El) | to_exmpp_xml(S4)]
      end];
 
-to_iolist({El, Attrs, Children}) when is_atom(El) ->
-    to_iolist({atom_to_list(El), Attrs, Children});
+to_exmpp_xml(S) when is_binary(S) ->
+    exmpp_xml:cdata(S);
 
-to_iolist({El, Attrs, Children}) ->
-    [<<"<">>, El,
-     [[<<" ">>, 
-       if
-	   is_binary(K);
-	   is_list(K) ->
-	       K;
-	   is_atom(K) ->
-	       atom_to_list(K);
-	   true ->
-	       throw({invalid_attr, K})
-       end, <<"=\"">>, escape_attr(V), <<"\"">>]
-      || {K, V} <- Attrs],
-     case Children of
-	 [] -> <<"/>">>;
-	 _ ->
-	     [<<">">>,
-	      to_iolist(Children),
-	      <<"</">>, El, <<">">>]
-     end];
+to_exmpp_xml(S) when is_integer(S) ->
+    exmpp_xml:cdata([S]);
 
-to_iolist(X) ->
+to_exmpp_xml({El, Children}) when is_atom(El) ->
+    exmpp_xml:element(undefined, El, [],
+		      to_exmpp_xml(Children));
+
+to_exmpp_xml({El, Attrs, Children}) ->
+    exmpp_xml:element(undefined, El,
+		      attributes_to_exmpp_xml(Attrs),
+		      to_exmpp_xml(Children));
+
+to_exmpp_xml(X) ->
     exit({invalid_html, X}).
 
 
-escape(Bin) when is_binary(Bin) ->
-    escape(binary_to_list(Bin));
-escape(L) when is_list(L) ->
-    lists:map(fun escape/1, L);
-escape($&) ->
-    <<"&amp;">>;
-escape($<) ->
-    <<"&lt;">>;
-escape($>) ->
-    <<"&gt;">>;
-escape(C) when is_integer(C) ->
-    C.
-
-escape_attr(Bin) when is_binary(Bin) ->
-    escape_attr(binary_to_list(Bin));
-escape_attr(L) when is_list(L) ->
-    lists:map(fun escape_attr/1, L);
-escape_attr($&) ->
-    <<"&amp;">>;
-escape_attr($<) ->
-    <<"&lt;">>;
-escape_attr($>) ->
-    <<"&gt;">>;
-escape_attr($') ->
-    <<"&apos;">>;
-escape_attr($") ->
-    <<"&quot;">>;
-escape_attr(C) when is_integer(C) ->
-    C.
+attributes_to_exmpp_xml(Attrs) ->
+    [exmpp_xml:attribute(exmpp_utils:any_to_binary(N), V)
+     || {N, V} <- Attrs].
