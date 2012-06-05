@@ -192,10 +192,8 @@ p.feed {
   padding: 0 2px;
   font-size: 50%;
   line-height: 1em;
-  /*background-color: #070;
-  color: white;
-  border-radius: 2px;*/
   color: #888;
+  white-space: pre;
 }
 .published .today {
   font-weight: 700;

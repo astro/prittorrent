@@ -220,7 +220,7 @@ render_item(Opts, #feed_item{user = User,
 		      _ ->
 			  DateStr
 		  end,
-		  {br, []},
+		  $\n,
 		  TimeStr
 		 ]};
 	    _ ->
