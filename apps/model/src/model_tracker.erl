@@ -10,7 +10,7 @@
 
 
 scrape(InfoHash) ->
-    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\", \"downloaded\" FROM scraped WHERE \"info_hash\"=$1",
+    case ?Q("SELECT \"leechers\", \"seeders\", \"downspeed\", \"downloaded\" FROM scraped LEFT JOIN downloaded_stats USING (info_hash) WHERE \"info_hash\"=$1",
 	    [InfoHash]) of
 	{ok, _, [{Leechers, Seeders, Downspeed, Downloaded}]} ->
 	    {ok, Leechers, Seeders, Downspeed, Downloaded};
