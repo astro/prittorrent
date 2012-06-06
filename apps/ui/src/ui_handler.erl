@@ -327,7 +327,20 @@ handle_request2(#req{method = 'GET',
 handle_request2(#req{method = 'GET',
 		     path = [<<"top">>]
 		    } = Req) ->
-    html_ok(ui_template:render_top(validate_session(Req)));
+    html_ok(ui_template:render_top(validate_session(Req), peers));
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top">>, Path1]
+		    } = Req) ->
+    Period =
+	case Path1 of
+	    <<"1">> -> 1;
+	    <<"7">> -> 7;
+	    <<"30">> -> 30;
+	    <<"all">> -> all;
+	    _ -> throw({http, 404})
+	end,
+    html_ok(ui_template:render_top(validate_session(Req), Period));
 
 handle_request2(#req{method = 'GET',
 		     path = [<<"top.rss">>]

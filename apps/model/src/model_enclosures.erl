@@ -3,7 +3,7 @@
 -export([to_hash/0, set_torrent/3,
 	 get_info_hash_by_name/3, get_torrent_by_name/3,
 	 purge/3,
-	 recent_downloads/1, popular_downloads/1,
+	 recent_downloads/1, popular_downloads/2,
 	 user_downloads/2, feed_downloads/2]).
 
 -include("../include/model.hrl").
@@ -56,8 +56,16 @@ purge(UserName, Slug, Name) ->
 recent_downloads(Limit) ->
     query_downloads("get_recent_downloads($1)", [Limit]).
 
-popular_downloads(Limit) ->
-    query_downloads("get_popular_downloads($1)", [Limit]).
+popular_downloads(Limit, peers) ->
+    query_downloads("get_popular_downloads($1)", [Limit]);
+
+popular_downloads(Limit, Period) when is_integer(Period) ->
+    io:format("popular_downloads ~p ~p~n", [Limit, Period]),
+    query_downloads("get_most_downloaded($1, $2)", [Limit, Period]);
+popular_downloads(Limit, all) ->
+    %% get_popular_downloads() will select "downloaded"
+    popular_downloads(Limit, 10000).
+
 
 user_downloads(UserName, Limit) ->
     query_downloads("get_user_recent_downloads($2, $1)", [UserName, Limit]).

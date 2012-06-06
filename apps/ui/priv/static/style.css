@@ -94,6 +94,31 @@ header.site .slogan {
 .navtabs ul li a {
   font-size: 90%;
 }
+.navtop {
+  position: relative;
+}
+.navtop .navDownloaded {
+  display: none;
+}
+.navtop:hover .navDownloaded {
+  display: block;
+  position: absolute;
+  left: -5em;
+  min-width: 10em;
+  margin: 0 2.5em;
+  padding: 0 0 0.1em;
+}
+
+.navtabs .navDownloaded {
+  font-size: 90%;
+  background-color: white;
+  border-radius: 0.5em;
+}
+.navtabs .navDownloaded li {
+  display: inline;
+  margin: 0.5em auto 1.5em;
+  padding: 0 0.3em;
+}
 
 .content {
   width: 100%;

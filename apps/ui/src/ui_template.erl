@@ -5,7 +5,7 @@
 	 render_activate/3, render_reactivate/1,
 	 render_help/2,
 	 render_front/1,
-	 render_new/1, render_top/1, render_directory/1,
+	 render_new/1, render_top/2, render_directory/1,
 	 render_user/2,
 	 render_user_feed/3, export_feed/3,
 	 export_downloads/3, export_downloads/4]).
@@ -67,8 +67,20 @@ html(#render_opts{title = HtmlTitle,
 	    {ul,
 	     [{li,
 	       {a, [{href, "/new"}], <<"New">>}},
-	      {li,
-	       {a, [{href, "/top"}], <<"Top">>}},
+	      {li, [{class, "navtop"}],
+	       [{a, [{href, "/top"}], <<"Top">>},
+		{ul, [{class, "navDownloaded"}],
+		 [{li,
+		   {a, [{href, "/top/1"}], <<"1">>}},
+		  {li,
+		   {a, [{href, "/top/7"}], <<"7">>}},
+		  {li,
+		   {a, [{href, "/top/30"}], <<"30">>}},
+		  {li,
+		   {a, [{href, "/top/all"}], <<"∞">>}},
+		  {li, <<"days">>}
+		 ]}
+	       ]},
 	      {li,
 	       {a, [{href, "/directory"}], <<"Directory">>}}
 	     ]}},
@@ -800,11 +812,24 @@ render_new(Req) ->
 	render_downloads(Opts, RecentDownloads)]}
      ).
 
-render_top(Req) ->
+render_top(Req, Period) ->
     {ok, PopularDownloads} =
-	model_enclosures:popular_downloads(30),
+	model_enclosures:popular_downloads(30, Period),
+
+    Title =
+	case Period of
+	    1 ->
+		"Top downloaded in 1 day";
+	    _ when is_integer(Period) ->
+		io_lib:format("Top downloaded in ~B days",
+			      [Period]);
+	    all ->
+		<<"Top downloaded">>;
+	    peers ->
+		<<"Top active torrents">>
+	end,
     
-    Opts = #render_opts{title = <<"Bitlove: Top torrents">>,
+    Opts = #render_opts{title = [<<"Bitlove: ">>, Title],
 			publisher = true,
 			flattr = true,
 			ui_req = Req},
@@ -812,7 +837,7 @@ render_top(Req) ->
       Opts,
       render_feedslinks(top),
       {'div', 
-       [{h2, <<"Top Torrents">>},
+       [{h2, Title},
 	render_feedslist(top) |
 	render_downloads(Opts, PopularDownloads)]}
      ).
@@ -1203,7 +1228,7 @@ export_downloads(Type, Req, new) ->
 
 export_downloads(Type, Req, top) ->
     {ok, PopularDownloads} =
-	model_enclosures:popular_downloads(50),
+	model_enclosures:popular_downloads(50, peers),
     
     Opts = #render_opts{title = [<<"Bitlove: Top">>],
 			ui_req = Req},
