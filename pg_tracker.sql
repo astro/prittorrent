@@ -85,10 +85,9 @@ CREATE TABLE scraped (
        "seeders" INT,
        "leechers" INT,
        "upspeed" BIGINT,
-       "downspeed" BIGINT,
-       "downloaded" BIGINT
+       "downspeed" BIGINT
 );
-CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers") DESC, "downloaded" DESC);
+CREATE INDEX scraped_popularity ON scraped (("seeders" + "leechers") DESC);
 
 CREATE OR REPLACE FUNCTION update_scraped(
     "t_info_hash" BYTEA
@@ -98,7 +97,6 @@ CREATE OR REPLACE FUNCTION update_scraped(
         "t_leechers" BIGINT;
         "t_upspeed" BIGINT;
         "t_downspeed" BIGINT;
-        "t_downloaded" BIGINT;
     BEGIN
         -- Collect data
         SELECT SUM(CASE "left"
@@ -120,29 +118,20 @@ CREATE OR REPLACE FUNCTION update_scraped(
         "t_upspeed" := COALESCE("t_upspeed", 0);
         "t_downspeed" := COALESCE("t_downspeed", 0);
 
-        SELECT SUM("value")
-          INTO "t_downloaded"
-          FROM counters
-         WHERE "kind"='complete'
-           AND "info_hash"=t_info_hash;
-
-        "t_downloaded" := COALESCE("t_downloaded", 0);
-
         -- Is worth an entry?
-        IF "t_leechers" > 0 OR "t_seeders" > 0 OR "t_downloaded" > 0 THEN
+        IF "t_leechers" > 0 OR "t_seeders" > 0 THEN
             UPDATE scraped
                SET "seeders"="t_seeders",
                    "leechers"="t_leechers",
                    "upspeed"="t_upspeed",
-                   "downspeed"="t_downspeed",
-                   "downloaded"="t_downloaded"
+                   "downspeed"="t_downspeed"
              WHERE scraped.info_hash="t_info_hash";
 
              -- Row didn't exist? Create:
              IF NOT FOUND THEN
                 INSERT INTO scraped
-                            ("info_hash", "seeders", "leechers", "upspeed", "downspeed", "downloaded")
-                     VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed, "t_downloaded");
+                            ("info_hash", "seeders", "leechers", "upspeed", "downspeed")
+                     VALUES (t_info_hash, t_seeders, t_leechers, t_upspeed, t_downspeed);
              END IF;
         ELSE
             -- Discard on idle

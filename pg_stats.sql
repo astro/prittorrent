@@ -104,48 +104,92 @@ CREATE OR REPLACE FUNCTION add_counter(
     END;
 $$ LANGUAGE plpgsql;
 
--- Only for trigger when "kind"='complete'
-CREATE OR REPLACE FUNCTION counters_update_scraped_downloaded() RETURNS trigger AS $$
+
+
+CREATE TABLE downloaded_stats (
+    "info_hash" BYTEA PRIMARY KEY,
+    downloaded BIGINT,
+    downloaded30 BIGINT,
+    downloaded7 BIGINT,
+    downloaded1 BIGINT
+);
+
+CREATE INDEX downloaded_stats_downloaded ON downloaded_stats (downloaded);
+CREATE INDEX downloaded_stats_downloaded30 ON downloaded_stats (downloaded30);
+CREATE INDEX downloaded_stats_downloaded7 ON downloaded_stats (downloaded7);
+CREATE INDEX downloaded_stats_downloaded1 ON downloaded_stats (downloaded1);
+
+CREATE OR REPLACE FUNCTION update_downloaded_stats(
+    "t_info_hash" BYTEA
+) RETURNS void AS $$
+    DECLARE
+        "t_downloaded" BIGINT;
+        "t_downloaded30" BIGINT;
+        "t_downloaded7" BIGINT;
+        "t_downloaded1" BIGINT;
     BEGIN
-        PERFORM update_scraped(NEW.info_hash);
+        DELETE FROM downloaded_stats WHERE info_hash=t_info_hash;
+
+        SELECT COALESCE(SUM("value"), 0)
+          INTO "t_downloaded"
+          FROM counters
+         WHERE "kind"='complete'
+           AND "info_hash"=t_info_hash;
+        SELECT COALESCE(SUM("value"), 0)
+          INTO "t_downloaded30"
+          FROM counters
+         WHERE "kind"='complete'
+           AND "info_hash"=t_info_hash
+           AND "time" > (NOW() - '30 days'::INTERVAL);
+        SELECT COALESCE(SUM("value"), 0)
+          INTO "t_downloaded7"
+          FROM counters
+         WHERE "kind"='complete'
+           AND "info_hash"=t_info_hash
+           AND "time" > (NOW() - '7 days'::INTERVAL);
+        SELECT COALESCE(SUM("value"), 0)
+          INTO "t_downloaded1"
+          FROM counters
+         WHERE "kind"='complete'
+           AND "info_hash"=t_info_hash
+           AND "time" > (NOW() - '1 day'::INTERVAL);
+
+        INSERT INTO downloaded_stats (info_hash, downloaded, downloaded30, downloaded7, downloaded1)
+             VALUES (t_info_hash, t_downloaded, t_downloaded30, t_downloaded7, t_downloaded1);
+    END;
+$$ LANGUAGE plpgsql;
+
+
+-- Only for trigger when "kind"='complete'
+CREATE OR REPLACE FUNCTION counters_update_downloaded_stats() RETURNS trigger AS $$
+    BEGIN
+        PERFORM update_downloaded_stats(NEW.info_hash);
 
         RETURN NEW;
     END;
 $$ LANGUAGE plpgsql;
 
 -- Push "downloaded" count to "scraped" cache
-CREATE TRIGGER counters_update_downloaded AFTER INSERT OR UPDATE ON counters
+CREATE TRIGGER counters_update_downloaded_stats AFTER INSERT OR UPDATE ON counters
        FOR EACH ROW
        WHEN (NEW.kind = 'complete')
-       EXECUTE PROCEDURE counters_update_scraped_downloaded();
+       EXECUTE PROCEDURE counters_update_downloaded_stats();
 
 
-CREATE OR REPLACE FUNCTION fix_up_down_counters() RETURNS void AS $$
+
+-- Run periodically to update scaped.downloaded{30,7,1}
+CREATE OR REPLACE FUNCTION update_all_downloaded_stats() RETURNS void AS $$
     DECLARE
-        stime TIMESTAMP;
-        skind TEXT;
-        prev_skind TEXT;
-        sih BYTEA;
-        prev_sih BYTEA;
-        svalue BIGINT;
-        prev_svalue BIGINT;
-        diff BIGINT;
+        t_info_hash BYTEA;
     BEGIN
-        FOR stime, skind, sih, svalue IN
-            SELECT "time", "kind", "info_hash", "value"
+        FOR t_info_hash IN
+            SELECT DISTINCT "info_hash"
               FROM counters
-             WHERE kind='up' OR kind='down'
-          ORDER BY "kind", "info_hash", "time" ASC
+             WHERE kind = 'complete'
+               AND time >= (NOW() - '31 days'::INTERVAL)
+               AND time <= (NOW() - '1 day'::INTERVAL)
         LOOP
-            IF skind = prev_skind AND sih = prev_sih AND prev_svalue IS NOT NULL THEN
-                diff := svalue - prev_svalue;
-                IF diff < 0 THEN
-                   diff := 0;
-                END IF;
-                UPDATE counters
-                   SET "value"=diff
-                 WHERE "time"=stime AND "kind"=skind AND "info_hash"=sih;
-            END IF;
+            PERFORM update_downloaded_stats(t_info_hash);
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
