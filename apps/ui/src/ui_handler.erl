@@ -345,7 +345,23 @@ handle_request2(#req{method = 'GET',
 handle_request2(#req{method = 'GET',
 		     path = [<<"top.rss">>]
 		    } = Req) ->
-    {ok, Body} = ui_template:export_downloads(rss, Req, top),
+    {ok, Body} = ui_template:export_downloads(rss, Req, {top, peers}),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_RSS}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top.rss">>, Path1]
+		    } = Req) ->
+    Period =
+	case Path1 of
+	    <<"1">> -> 1;
+	    <<"7">> -> 7;
+	    <<"30">> -> 30;
+	    <<"all">> -> all;
+	    _ -> throw({http, 404})
+	end,
+    {ok, Body} = ui_template:export_downloads(rss, Req, {top, Period}),
     {ok, 200,
      [{<<"Content-Type">>, ?MIME_RSS}], [],
      Body};
@@ -353,7 +369,23 @@ handle_request2(#req{method = 'GET',
 handle_request2(#req{method = 'GET',
 		     path = [<<"top.atom">>]
 		    } = Req) ->
-    {ok, Body} = ui_template:export_downloads(atom, Req, top),
+    {ok, Body} = ui_template:export_downloads(atom, Req, {top, peers}),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_ATOM}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"top.atom">>, Path1]
+		    } = Req) ->
+    Period =
+	case Path1 of
+	    <<"1">> -> 1;
+	    <<"7">> -> 7;
+	    <<"30">> -> 30;
+	    <<"all">> -> all;
+	    _ -> throw({http, 404})
+	end,
+    {ok, Body} = ui_template:export_downloads(atom, Req, {top, Period}),
     {ok, 200,
      [{<<"Content-Type">>, ?MIME_ATOM}], [],
      Body};

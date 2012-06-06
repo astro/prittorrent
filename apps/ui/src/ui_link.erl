@@ -33,9 +33,12 @@ link_user_feed_xml(UserName, Slug) ->
 link_downloads_feed(new, Type) ->
     <<"/new.",
       (list_to_binary(atom_to_list(Type)))/binary>>;
-link_downloads_feed(top, Type) ->
+link_downloads_feed({top, peers}, Type) ->
     <<"/top.",
       (list_to_binary(atom_to_list(Type)))/binary>>;
+link_downloads_feed({top, Period}, Type) ->
+    list_to_binary(
+      io_lib:format("/top.~s/~p", [Type, Period]));
 link_downloads_feed(UserName, Type) ->
     <<"/", UserName/binary,
       "/downloads.",

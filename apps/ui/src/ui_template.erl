@@ -835,10 +835,10 @@ render_top(Req, Period) ->
 			ui_req = Req},
     page_1column(
       Opts,
-      render_feedslinks(top),
+      render_feedslinks({top, Period}),
       {'div', 
        [{h2, Title},
-	render_feedslist(top) |
+	render_feedslist({top, Period}) |
 	render_downloads(Opts, PopularDownloads)]}
      ).
 
@@ -1226,9 +1226,11 @@ export_downloads(Type, Req, new) ->
 			   [ui_link:base(), <<"/new">>],
 			   Opts, RecentDownloads)};
 
-export_downloads(Type, Req, top) ->
+export_downloads(Type, Req, {top, Period})
+  when is_atom(Period);
+       is_integer(Period) ->
     {ok, PopularDownloads} =
-	model_enclosures:popular_downloads(50, peers),
+	model_enclosures:popular_downloads(50, Period),
     
     Opts = #render_opts{title = [<<"Bitlove: Top">>],
 			ui_req = Req},

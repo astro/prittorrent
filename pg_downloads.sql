@@ -90,7 +90,7 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
                          WHEN $2 <= 30 THEN downloaded30
                          ELSE downloaded
                     END) DESC
-             LIMIT (2 * $1)
+             LIMIT $1
            ) AS downloaded_stats
       JOIN torrents USING (info_hash)
       JOIN enclosure_torrents USING (info_hash)
