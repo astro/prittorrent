@@ -761,42 +761,46 @@ validate_slug(Slug) ->
 
 create_account(UserName, Email) ->
     %% Create Account
-    model_users:register(UserName, Email),
-    %% Prepare Activation
-    {ok, Token} =
-	model_token:generate(activate, UserName),
-    TokenHex = util:binary_to_hex(Token),
-    
-    %% Send Email
-    {ok, BaseURLSSL} = application:get_env(ui, base_url_ssl),
-    {ok, SmtpOptions} = application:get_env(ui, smtp_options),
-    MailFrom = <<"mail@bitlove.org">>,
-    Mail =
-	mimemail:encode(
-	  {"text", "plain",
-	   [{<<"From">>, MailFrom},
-	    {<<"To">>, <<UserName/binary, " <", Email/binary, ">">>},
-	    {<<"Subject">>, <<"Welcome to Bitlove">>},
-	    {<<"User-Agent">>, <<"PritTorrent">>}],
-	   [],
-	   <<"Welcome to Bitlove!\r\n",
-	     "\r\n",
-	     "To complete signup visit the following link:\r\n",
-	     "    ", BaseURLSSL/binary, "/activate/", TokenHex/binary, "\r\n",
-	     "\r\n",
-	     "\r\n",
-	     "Thanks for sharing\r\n",
-	     "    The Bitlove Team\r\n">>
-	  }),
-    case gen_smtp_client:send_blocking({MailFrom, [Email], Mail},
-				       SmtpOptions) of
-	Response when is_binary(Response) ->
-	    %% Respond
-	    ok;
-	{error, Reason} ->
-	    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
-		      [Mail, SmtpOptions, Reason]),
-	    {error, <<"Cannot send mail">>}
+    case model_users:register(UserName, Email) of
+	{error, exists} ->
+	    {error, <<"Username already exists">>};
+	ok ->
+	    %% Prepare Activation
+	    {ok, Token} =
+		model_token:generate(activate, UserName),
+	    TokenHex = util:binary_to_hex(Token),
+
+	    %% Send Email
+	    {ok, BaseURLSSL} = application:get_env(ui, base_url_ssl),
+	    {ok, SmtpOptions} = application:get_env(ui, smtp_options),
+	    MailFrom = <<"mail@bitlove.org">>,
+	    Mail =
+		mimemail:encode(
+		  {"text", "plain",
+		   [{<<"From">>, MailFrom},
+		    {<<"To">>, <<UserName/binary, " <", Email/binary, ">">>},
+		    {<<"Subject">>, <<"Welcome to Bitlove">>},
+		    {<<"User-Agent">>, <<"PritTorrent">>}],
+		   [],
+		   <<"Welcome to Bitlove!\r\n",
+		     "\r\n",
+		     "To complete signup visit the following link:\r\n",
+		     "    ", BaseURLSSL/binary, "/activate/", TokenHex/binary, "\r\n",
+		     "\r\n",
+		     "\r\n",
+		     "Thanks for sharing\r\n",
+		     "    The Bitlove Team\r\n">>
+		  }),
+	    case gen_smtp_client:send_blocking({MailFrom, [Email], Mail},
+					       SmtpOptions) of
+		Response when is_binary(Response) ->
+		    %% Respond
+		    ok;
+		{error, Reason} ->
+		    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
+			      [Mail, SmtpOptions, Reason]),
+		    {error, <<"Cannot send mail">>}
+	    end
     end.
 
 reactivate_user(UserName, Email) ->

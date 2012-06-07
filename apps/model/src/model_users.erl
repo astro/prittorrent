@@ -10,12 +10,23 @@
 
 -define(POOL, pool_users).
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
+-define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
 %% TODO: report user exists
 register(Name, Email) ->
-    {ok, 1} =
-	?Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
-	   [Name, Email, generate_salt()]).
+    ?T(fun(Q) ->
+	       case Q("SELECT COUNT(\"name\") FROM users WHERE \"name\"=$1",
+		      [Name]) of
+		   {ok, _, [{0}]} ->
+		       {ok, 1} =
+			   ?Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
+			      [Name, Email, generate_salt()]),
+		       ok;
+		   {ok, _, _} = R ->
+		       io:format("exists: ~p~n", [R]),
+		       {error, exists}
+	       end
+       end).
 
 generate_salt() ->
     util:seed_random(),
