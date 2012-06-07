@@ -12,6 +12,8 @@ rebar get-deps compile generate
 TODO
 ----
 
+* <atom:link rel="self">
+
 * graphs:
   * smarter timespan preselect
   * refactor
@@ -50,7 +52,6 @@ TODO
 * Download buttons: display mime type/titles
 
 * Feed summaries: X items, Y torrents
-* <atom:link rel="self">
 
 * Embedable Widget
 
