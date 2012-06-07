@@ -114,10 +114,10 @@ CREATE TABLE downloaded_stats (
     downloaded1 BIGINT
 );
 
-CREATE INDEX downloaded_stats_downloaded ON downloaded_stats (downloaded);
-CREATE INDEX downloaded_stats_downloaded30 ON downloaded_stats (downloaded30);
-CREATE INDEX downloaded_stats_downloaded7 ON downloaded_stats (downloaded7);
-CREATE INDEX downloaded_stats_downloaded1 ON downloaded_stats (downloaded1);
+CREATE INDEX downloaded_stats_downloaded ON downloaded_stats (downloaded DESC);
+CREATE INDEX downloaded_stats_downloaded30 ON downloaded_stats (downloaded30 DESC);
+CREATE INDEX downloaded_stats_downloaded7 ON downloaded_stats (downloaded7 DESC);
+CREATE INDEX downloaded_stats_downloaded1 ON downloaded_stats (downloaded1 DESC);
 
 CREATE OR REPLACE FUNCTION update_downloaded_stats(
     "t_info_hash" BYTEA
