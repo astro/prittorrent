@@ -42,6 +42,8 @@ html(#render_opts{title = HtmlTitle,
 	   {link, [{rel, "stylesheet"},
 		   {type, "text/css"},
 		   {href, "/static/style.css"}], ""},
+	   {meta, [{name, "viewport"},
+		   {content, "width=480"}], []},
 	   {link, [{rel, "shortcut icon"},
 		   {type, "image/png"},
 		   {href, "/static/favicon.png"}], ""}
