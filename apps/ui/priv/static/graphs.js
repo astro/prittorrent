@@ -151,9 +151,12 @@ Graph.prototype.setData = function(response) {
 	},
 	yaxis: {
 	    tickFormatter: tickFormatter
+	},
+	grid: {
+	    hoverable: true
 	}
     });
-    /*
+
     var that = this;
     var floater;
     placeholder.bind("plothover", function (event, pos, item) {
@@ -171,7 +174,7 @@ Graph.prototype.setData = function(response) {
 	    placeholder.prepend(floater);
         }
     });
-    */
+
     this.el.slideDown(200);
 };
 
