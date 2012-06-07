@@ -12,6 +12,11 @@ rebar get-deps compile generate
 TODO
 ----
 
+* graphs:
+  * smarter timespan preselect
+  * refactor
+  * stacked traffic
+
 * model:
   * queueify scraped triggers
 
@@ -58,7 +63,6 @@ TODO
 * Widgets
 
 * Stats:
-  - Render pretty graphs
   - DLs by country/client?
 
 * Rehash on detected enclosure data change
