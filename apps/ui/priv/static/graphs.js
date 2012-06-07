@@ -32,11 +32,7 @@ function Graph(basepath, type) {
     }
 
     var timeselect = this.el.find('.timeselect');
-    var that = this;
-    timeselect.change(function() {
-	that.loadGraph();
-    });
-
+    timeselect.change(this.loadGraph.bind(this));
     this.loadGraph();
 }
 
