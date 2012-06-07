@@ -22,7 +22,11 @@ get_counter(Kind, InfoHash, Start, Stop, Interval) ->
      || {Date, Sum} <- Rows].
 
 get_gauge(Kind, InfoHash, Start, Stop, Interval) ->
+    Agg = case Kind of
+	      leechers -> "MIN";
+	      _ -> "MAX"
+	  end,
     {ok, _, Rows} =
-	?Q("SELECT TO_TIMESTAMP(FLOOR(EXTRACT(EPOCH FROM \"time\") / $5) * $5) AS t, MAX(\"value\") FROM gauges WHERE \"kind\"=$1 AND \"info_hash\"=$2 AND \"time\">=$3 AND \"time\"<=$4 GROUP BY t ORDER BY t ASC",
+	?Q("SELECT TO_TIMESTAMP(FLOOR(EXTRACT(EPOCH FROM \"time\") / $5) * $5) AS t, " ++ Agg ++ "(\"value\") FROM gauges WHERE \"kind\"=$1 AND \"info_hash\"=$2 AND \"time\">=$3 AND \"time\"<=$4 GROUP BY t ORDER BY t ASC",
 	   [Kind, InfoHash, Start, Stop, Interval]),
     Rows.
