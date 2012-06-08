@@ -21,7 +21,7 @@ loop() ->
 	    io:format("Nothing to hash, sleeping ~Bs~n", [SleepTime]),
 	    receive
 		{'EXIT', Pid, Reason} ->
-		    io:format("Hasher ~p exited:~n~p~n", [Pid, Reason])
+		    error_logger:error_msg("Hasher ~p exited:~n~p~n", [Pid, Reason])
 	    after SleepTime * 1000 ->
 		    ok
 	    end
@@ -32,7 +32,7 @@ loop() ->
 hash(URL) ->
     case (catch hash1(URL)) of
 	{'EXIT', Reason} ->
-	    io:format("Failed hashing ~s~n~p~n", [URL, Reason]),
+	    error_logger:error_msg("Failed hashing ~s~n~p~n", [URL, Reason]),
 	    model_enclosures:set_torrent(
 	      URL, list_to_binary(io_lib:format("~p", [Reason])), <<"">>);
 	_ ->
