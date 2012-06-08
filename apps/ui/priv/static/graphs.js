@@ -34,7 +34,7 @@ function Graph(basepath, type, published) {
     var timeselect = this.el.find('.timeselect');
     timeselect.change(this.loadGraph.bind(this));
     var age = new Date().getTime() - new Date(published).getTime();
-    if (age <= 24 * 60 * 60)
+    if (age <= 24 * 60 * 60 * 1000)
 	timeselect.val('day');
     else if (age <= 7 * 24 * 60 * 60 * 1000)
 	timeselect.val('week');
