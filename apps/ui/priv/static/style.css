@@ -165,7 +165,7 @@ h2 {
   font-size: 150%;
   font-weight: normal;
   color: #777;
-  padding: 0.4em 0 0.1em;
+  padding: 0.4em 0 0;
   margin: 0;
   font-family: 'Georgia', serif;
 }
@@ -193,6 +193,7 @@ header .meta, header .meta div {
   padding: 0;
   font-size: 300%;
   text-align: left;
+  line-height: 1.1em;
 }
 h2 .feedicon {
   font-size: 0;
@@ -203,9 +204,6 @@ h2 .feedicon {
   padding-top: 16px;
   padding-left: 16px;
   background: url('rss.png') no-repeat center top;
-}
-h2 .publisher {
-  font-size: 40%;
 }
 .directory h2 {
   font-size: 200%;
@@ -278,8 +276,11 @@ article {
 article:first-child {
   border-top: none;
 }
-.feed div div, .directory .meta {
+.feed div, .directory .meta {
   min-height: 68px;
+}
+.feed div div {
+  min-height: 0;
 }
 .feedslist {
   font-size: 60%;
@@ -314,7 +315,6 @@ h3 {
 }
 .homepage {
   margin: 0;
-  margin-top: 0.5em;
   font-size: 70%;
 }
 .homepage a {

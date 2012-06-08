@@ -980,8 +980,8 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 		      ], []}
 	       | render_feedslinks(UserName, Slug)],
 	      [{header, [{class, "feed"}],
-		[render_meta(h2,
-			     [FeedTitle,
+		[render_meta('div',
+			     [{h2, FeedTitle},
 			      {span, [{class, "publisher"}],
 			       [<<" by ">>,
 				{a, [{href, ui_link:link_user(UserName)},
