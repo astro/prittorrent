@@ -255,8 +255,7 @@ render_item(Opts, #feed_item{user = User,
 				    _ ->
 					K2 = [C
 					      || C <- binary_to_list(K),
-						 C =/= $&,
-						 C =/= $;],
+						 C >= $a, C =< $z],
 					{"data-flattr-" ++ K2, V}
 				end
 				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
