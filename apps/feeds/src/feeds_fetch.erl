@@ -27,17 +27,18 @@ fetch(Url, Etag1, LastModified1) ->
     Parser = exmpp_xml:start_parser([{max_size, 30 * 1024 * 1024},
 					{names_as_atom, false},
 					{engine, libxml2}]),
-    HttpRes =
-	http_fold(Url, Headers,
-		  fun(Els, Chunk) ->
-			  case exmpp_xml:parse(Parser, Chunk) of
-			      continue ->
-				  Els;
-			      Els1 when is_list(Els1) ->
-				  Els1 ++ Els
-			  end
-		  end, []),
-
+    HttpRes = (catch
+		  http_fold(
+		    Url, Headers,
+		    fun(Els, Chunk) ->
+			    case exmpp_xml:parse(Parser, Chunk) of
+				continue ->
+				    Els;
+				Els1 when is_list(Els1) ->
+				    Els1 ++ Els
+			    end
+		    end, [])),
+    
     Result =
 	case HttpRes of
 	    {ok, {Etag2, LastModified2}, Els1} ->
