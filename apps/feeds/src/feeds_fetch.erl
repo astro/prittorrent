@@ -23,8 +23,6 @@ fetch(Url, Etag1, LastModified1) ->
 	    true ->
 		[]
 	end,
-    io:format("EL: ~p~nH: ~p~n",[{Etag1, LastModified1}, Headers]),
-
 	    
     Parser = exmpp_xml:start_parser([{max_size, 30 * 1024 * 1024},
 					{names_as_atom, false},

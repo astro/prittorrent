@@ -23,7 +23,6 @@ register(Name, Email) ->
 			      [Name, Email, generate_salt()]),
 		       ok;
 		   {ok, _, _} = R ->
-		       io:format("exists: ~p~n", [R]),
 		       {error, exists}
 	       end
        end).

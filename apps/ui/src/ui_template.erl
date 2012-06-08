@@ -1077,7 +1077,6 @@ render_downloads_feed(rss, Image, Link,
 	  if
 	      is_binary(Image),
 	      size(Image) > 0 ->
-		  io:format("Image: ~p~n",[Image]),
 		  {image,
 		   {url, Image}};
 	      true ->

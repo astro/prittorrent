@@ -26,7 +26,6 @@ handle(Req, State) ->
 	{ok, Status, Headers, Cookies, Body} ->
 	    Req3 = lists:foldl(
 		     fun({CookieName, CookieValue}, Req2) ->
-			     io:format("Set cookie ~s: ~p~n", [CookieName, CookieValue]),
 			     {ok, Req3} =
 				 cowboy_http_req:set_resp_cookie(
 				   CookieName, CookieValue,
@@ -83,12 +82,10 @@ handle_request1(Req) ->
 	    _ ->
 		undefined
 	end,
-    io:format("Encodings: ~p~nLanguages: ~p~nSid: ~p~n", [Encodings,Languages,HexSid]),
     Body = if
 	       Method =:= 'POST';
 	       Method =:= 'PUT' ->
 		   {Body1, _Req2} = cowboy_http_req:body_qs(Req),
-		   io:format("BodyQS: ~p~n~p~n", [Body1, _Req2]),
 		   Body1;
 	       true ->
 		   []
@@ -444,7 +441,6 @@ handle_request2(#req{method = 'POST',
     #req{session_user = SessionUser} = validate_session(Req),
     if
 	SessionUser == UserName ->
-	    io:format("Body: ~p~n", [Body]),
 	    Title = proplists:get_value(<<"title">>, Body, null),
 	    Image = proplists:get_value(<<"image">>, Body, null),
 	    Homepage = proplists:get_value(<<"homepage">>, Body, null),
@@ -549,7 +545,6 @@ handle_request2(#req{method = 'GET',
     if
 	SessionUser == UserName ->
 	    {ok, _Feed, Public, Title} = model_users:get_user_feed(UserName, Slug),
-	    io:format("Public: ~p~n", [Public]),
 	    json_ok({obj, [{public, Public} |
 			   if
 			       is_binary(Title) ->
@@ -569,7 +564,6 @@ handle_request2(#req{method = 'POST',
     #req{session_user = SessionUser} = validate_session(Req),
     if
 	SessionUser == UserName ->
-	    io:format("Body: ~p~n", [Body]),
 	    Public = case proplists:get_value(<<"public">>, Body, <<"false">>) of
 			 <<"true">> ->
 			     true;
