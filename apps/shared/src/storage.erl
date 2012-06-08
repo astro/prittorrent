@@ -51,10 +51,10 @@ resource_size(URL) ->
 		    resource_size(Location)
 	    end;
 	{ok, {{Status, _}, _, _}} ->
-	    io:format("~B ~s~n", [Status, URL]),
+	    error_logger:warning_msg("HTTP ~B~n~s~n", [Status, URL]),
 	    exit({http, Status});
 	{error, Reason} ->
-	    io:format("~s ~p~n", [URL, Reason]),
+	    error_logger:warning_msg("~s~n~p~n", [URL, Reason]),
 	    exit(Reason)
     end.
 
@@ -150,7 +150,7 @@ fold_resource1(Pid, F, AccIn) ->
 	{ok, {http_eob, _Trailers}} ->
 	    AccIn;
 	{'EXIT', Reason} ->
-	    io:format("storage fold interrupted: ~p~n", [Reason]),
+	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
 	    AccIn
     end.
 
