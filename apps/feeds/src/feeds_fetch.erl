@@ -26,7 +26,7 @@ fetch(Url, Etag1, LastModified1) ->
 	    
     Parser = exmpp_xml:start_parser([{max_size, 30 * 1024 * 1024},
 					{names_as_atom, false},
-					{engine, expat}]),
+					{engine, libxml2}]),
     HttpRes =
 	http_fold(Url, Headers,
 		  fun(Els, Chunk) ->
