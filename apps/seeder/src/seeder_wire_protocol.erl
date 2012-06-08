@@ -69,7 +69,7 @@ handle_call(_Request, _From, State) ->
 
 handle_cast(handshake, #state{socket = Socket} = State) ->
     {ok, Peername} = inet:peername(Socket),
-    io:format("Peer ~p just connected~n", [Peername]),
+    io:format("Peer ~p connected~n", [Peername]),
 
     %% Handshake
     {ok, <<19, "BitTorrent protocol">>} = gen_tcp:recv(Socket, 20),
@@ -87,7 +87,7 @@ handle_cast(handshake, #state{socket = Socket} = State) ->
 
     %% Peer ID
     {ok, PeerID} = gen_tcp:recv(Socket, 20),
-    io:format("Peer ~p~n connected from ~p~n", [PeerID, Peername]),
+    io:format("Peer ~p~nconnected from ~p~n", [PeerID, Peername]),
     ok = gen_tcp:send(Socket, peer_id:generate()),
 
     %% All following messages will be length-prefixed.
@@ -128,16 +128,16 @@ handle_info(request_pieces,
 	tcp_closed ->
 	    {stop, normal, State2};
 	{'EXIT', Reason} ->
-	    io:format("Wire cannot request_pieces: ~p~n", [Reason]),
+	    error_logger:error_msg("Wire cannot request_pieces:~n~p~n", [Reason]),
 	    {stop, Reason, State2}
     end;
 
 handle_info(timeout, State) ->
-    io:format("Activity timeout in ~p~n", [self()]),
+    error_logger:warning_msg("Activity timeout in ~p~n", [self()]),
     {stop, normal, State};
 
 handle_info(_Info, State) ->
-    io:format("Unhandled wire info in ~p: ~p~n", [self(), _Info]),
+    error_logger:warning_msg("Unhandled wire info in ~p: ~p~n", [self(), _Info]),
     {noreply, State, ?ACTIVITY_TIMEOUT}.
 
 
@@ -287,7 +287,7 @@ handle_message(<<?CANCEL, Piece:32, Offset:32, Length:32/big>>,
     {ok, State#state{request_queue = RequestQueue2}};
 
 handle_message(Data, State) ->
-    io:format("Unhandled wire message: ~p~n", [Data]),
+    error_logger:warning_msg("Unhandled wire message: ~p~n", [Data]),
     {ok, State}.
 
 check_bitfield(#state{has = Has,
@@ -348,7 +348,7 @@ request_pieces(#state{request_queue = RequestQueue1,
 					 Offset, Length,
 					 fun collect_data/2, {Requests, <<>>})) of
 		    {'EXIT', Reason} ->
-			io:format("storage request failed: ~p~n", [Reason]),
+			error_logger:error_msg("storage request failed:~n~p~n", [Reason]),
 			%% Throwing an error means nothing has been processed
 			Requests;
 		    tcp_closed ->
