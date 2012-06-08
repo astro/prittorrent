@@ -480,8 +480,8 @@ handle_request2(#req{method = 'PUT',
 		{ok, _} ->
 		    json_ok({obj, [{link, Link}]});
 		{error, Reason} ->
-		    io:format("model_users:add_feed(~p, ~p, ~p) failed: ~p~n",
-			      [UserName, Slug, URL, Reason]),
+		    error_logger:warning_msg("model_users:add_feed(~p, ~p, ~p) failed: ~p~n",
+					     [UserName, Slug, URL, Reason]),
 		    json_ok({obj, [{error, <<"Cannot add this feed">>}]})
 	    end;
 	{false, _, _} ->
@@ -791,8 +791,9 @@ create_account(UserName, Email) ->
 		    %% Respond
 		    ok;
 		{error, Reason} ->
-		    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
-			      [Mail, SmtpOptions, Reason]),
+		    error_logger:error_msg(
+		      "gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
+		      [Mail, SmtpOptions, Reason]),
 		    {error, <<"Cannot send mail">>}
 	    end
     end.
@@ -830,8 +831,9 @@ reactivate_user(UserName, Email) ->
 	    %% Respond
 	    ok;
 	{error, Reason} ->
-	    io:format("gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
-		      [Mail, SmtpOptions, Reason]),
+	    error_logger:error_msg(
+	      "gen_smtp_client:send_blocking failed with:~n~p ~p~n~p~n",
+	      [Mail, SmtpOptions, Reason]),
 	    {error, <<"Cannot send mail">>}
     end.
 

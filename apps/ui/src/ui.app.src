@@ -6,6 +6,7 @@
   {applications, [
                   kernel,
                   stdlib,
+                  sasl,
 		  cowboy,
 		  xmerl,  %% required by rfc4627_jsonrpc
 		  rfc4627_jsonrpc,

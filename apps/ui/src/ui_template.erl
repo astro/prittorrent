@@ -1044,7 +1044,8 @@ export_feed(_Req, UserName, Slug) ->
 					    <<(ui_link:base())/binary,
 					      (ui_link:torrent(UserName, Slug, Name))/binary>>;
 					_ ->
-					    io:format("Cannot map enclosure ~s~n", [URL]),
+					    error_logger:warning_msg(
+					      "Cannot map enclosure ~s~n", [URL]),
 					    URL
 				    end
 			    end)
