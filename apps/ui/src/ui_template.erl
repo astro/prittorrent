@@ -102,12 +102,10 @@ html(#render_opts{title = HtmlTitle,
 	   end,
 	   {footer,
 	    [{'div',
-	      [{p,
-		[<<"Twitter:">>,
-		 {br, []},
-		 {a, [{href, <<"http://twitter.com/bitlove_org">>}],
-		  <<"@bitlove_org">>}
-		]}
+	      [{p, <<"Twitter:">>},
+	       {p,
+		{a, [{href, <<"http://twitter.com/bitlove_org">>}],
+		 <<"@bitlove_org">>}}
 	      ]},
 	     {'div',
 	      [{p, <<"Contact:">>},
