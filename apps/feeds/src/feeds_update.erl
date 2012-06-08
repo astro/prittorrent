@@ -16,7 +16,7 @@ update_loop() ->
 	    io:format("Update ~s (scheduled in ~.2fs)~n", [URL, Delay]),
 	    case (catch update(URL)) of
 		{'EXIT', Reason} ->
-		    io:format("Error updating ~s:~n~p~n", [URL, Reason]);
+		    error_logger:error_msg("Error updating ~s:~n~p~n", [URL, Reason]);
 		_ ->
 		    ok
 	    end;
@@ -38,7 +38,7 @@ update(URL) ->
     spawn(fun() ->
 		  case (catch update1(URL, Etag1, LastModified1)) of
 		      {'EXIT', Reason} ->
-			  io:format("feeds update failed for ~s~n~p~n", [URL, Reason]);
+			  error_logger:error_msg("feeds update failed for ~s~n~p~n", [URL, Reason]);
 		      _ ->
 			  ok
 		  end
@@ -77,13 +77,13 @@ update1(URL, Etag1, LastModified1) ->
 					  %%io:format("Malformed item: ~s~n", [exmpp_xml:document_to_binary(ItemXml)]),
 					  Items2
 				  catch exit:Reason ->
-					  io:format("Cannot extract from feed item: ~s~n~p~n~s~n", [URL, Reason, ItemXml]),
+					  error_logger:warning_msg("Cannot extract from feed item: ~s~n~p~n~s~n", [URL, Reason, ItemXml]),
 					  Items2
 				  end
 			  end, [], Items1),
 		    if
 			length(Items2) < length(Items1) ->
-			    io:format("Lost ~B of ~B items of ~s~n",
+			    error_logger:warning_msg("Lost ~B of ~B items of ~s~n",
 				      [length(Items1) - length(Items2), length(Items1), URL]);
 			true ->
 			    ok
@@ -101,7 +101,7 @@ update1(URL, Etag1, LastModified1) ->
 	    {error, Reason1} ->
 		{error, {Etag1, LastModified1}, Reason1}
 	catch exit:Reason1 ->
-		io:format("fetching ~s failed: ~p~n", [URL, Reason1]),
+		error_logger:error_msg("fetching ~s failed:~n~p~n", [URL, Reason1]),
 		{error, {Etag1, LastModified1}, Reason1}
 	end,
 

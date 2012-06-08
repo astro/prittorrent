@@ -54,6 +54,8 @@ fetch(Url, Etag1, LastModified1) ->
 		{ok, {Etag2, LastModified2}, RootEl};
 	    not_modified ->
 		not_modified;
+	    {'EXIT', Reason} ->
+		{error, Reason};
 	    E ->
 		E
 	end,
