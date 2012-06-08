@@ -14,7 +14,7 @@ function humanSize(value) {
 /**
  * TODO: inherit for the three graph types
  */
-function Graph(basepath, type) {
+function Graph(basepath, type, published) {
     this.basepath = basepath;
     this.type = type;
 
@@ -33,6 +33,15 @@ function Graph(basepath, type) {
 
     var timeselect = this.el.find('.timeselect');
     timeselect.change(this.loadGraph.bind(this));
+    var age = new Date().getTime() - new Date(published).getTime();
+    if (age <= 24 * 60 * 60)
+	timeselect.val('day');
+    else if (age <= 7 * 24 * 60 * 60 * 1000)
+	timeselect.val('week');
+    else if (age <= 31 * 24 * 60 * 60 * 1000)
+	timeselect.val('month');
+    else
+	timeselect.val('year');
     this.loadGraph();
 }
 
@@ -200,6 +209,11 @@ StatsHook.prototype.attach = function(sel, type) {
     toggle.click(this.toggleGraph.bind(this, type, toggle));
 };
 
+StatsHook.prototype.getPublished = function() {
+    return this.stats.parents('article').find('.published').
+	text().replace(/\n/, "T");
+};
+
 StatsHook.prototype.toggleGraph = function(type, toggle) {
     if (this.graphs.hasOwnProperty(type)) {
 	toggle.removeClass('toggled');
@@ -207,7 +221,9 @@ StatsHook.prototype.toggleGraph = function(type, toggle) {
 	delete this.graphs[type];
     } else {
 	toggle.addClass('toggled');
-	var graph = this.graphs[type] = new Graph(this.basepath, type);
+	console.log("getPublished", new Date(this.getPublished()));
+	var graph = this.graphs[type] =
+	    new Graph(this.basepath, type, this.getPublished());
 	graph.el.hide();
 	this.stats.after(graph.el);
     }

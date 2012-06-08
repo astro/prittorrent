@@ -15,7 +15,6 @@ TODO
 * <atom:link rel="self">
 
 * graphs:
-  * smarter timespan preselect
   * refactor
   * stacked traffic
 
