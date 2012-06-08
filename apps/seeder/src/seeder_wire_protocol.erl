@@ -7,6 +7,7 @@
 -export([start_link/4]).
 
 -define(HANDSHAKE_TIMEOUT, 10000). 
+-define(ACTIVITY_TIMEOUT, 30000).
 %% Wait for subsequent chunks of a piece to be requested so they can
 %% be merged into bigger HTTP requests.
 -define(PIECE_DELAY, 50).
@@ -60,11 +61,11 @@ start_link(_ListenerPid, Socket, _Transport, Opts) ->
 
 init([Socket, _Opts]) ->
     gen_server:cast(self(), handshake),
-    {ok, #state{socket = Socket}}.
+    {ok, #state{socket = Socket}, ?ACTIVITY_TIMEOUT}.
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
-    {reply, Reply, State}.
+    {reply, Reply, State, ?ACTIVITY_TIMEOUT}.
 
 handle_cast(handshake, #state{socket = Socket} = State) ->
     {ok, Peername} = inet:peername(Socket),
@@ -101,14 +102,14 @@ handle_cast(handshake, #state{socket = Socket} = State) ->
 			  data_length = Length,
 			  piece_length = PieceLength,
 			  has = Has,
-			  storage = Storage}}.
+			  storage = Storage}, ?ACTIVITY_TIMEOUT}.
 
 handle_info({tcp, Socket, Data}, 
 	    #state{socket = Socket} = State1) ->
     case handle_message(Data, State1) of
 	{ok, State2} ->
 	    inet:setopts(Socket, [{active, once}]),
-	    {noreply, State2};
+	    {noreply, State2, ?ACTIVITY_TIMEOUT};
 	{close, State2} ->
 	    {stop, normal, State2}
     end;
@@ -123,7 +124,7 @@ handle_info(request_pieces,
     case (catch request_pieces(State2)) of
 	{ok, State3} ->
 	    State4 = may_arm_timer(State3),
-	    {noreply, State4};
+	    {noreply, State4, ?ACTIVITY_TIMEOUT};
 	tcp_closed ->
 	    {stop, normal, State2};
 	{'EXIT', Reason} ->
@@ -131,9 +132,13 @@ handle_info(request_pieces,
 	    {stop, Reason, State2}
     end;
 
+handle_info(timeout, State) ->
+    io:format("Activity timeout in ~p~n", [self()]),
+    {stop, normal, State};
+
 handle_info(_Info, State) ->
     io:format("Unhandled wire info in ~p: ~p~n", [self(), _Info]),
-    {noreply, State}.
+    {noreply, State, ?ACTIVITY_TIMEOUT}.
 
 
 terminate(_Reason, #state{socket = Socket}) ->
