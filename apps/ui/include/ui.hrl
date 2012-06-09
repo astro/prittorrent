@@ -10,4 +10,4 @@
 -define(MIME_RSS, <<"application/rss+xml">>).
 -define(MIME_ATOM, <<"application/atom+xml">>).
 -define(MIME_JSON, <<"application/json">>).
-
+-define(MIME_OPML, <<"text/x-opml">>).

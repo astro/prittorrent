@@ -5,7 +5,8 @@
 	 render_activate/3, render_reactivate/1,
 	 render_help/2,
 	 render_front/1,
-	 render_new/1, render_top/2, render_directory/1,
+	 render_new/1, render_top/2,
+	 render_directory/1, export_directory_opml/0,
 	 render_user/2,
 	 render_user_feed/3, export_feed/3,
 	 export_downloads/3, export_downloads/4]).
@@ -877,11 +878,43 @@ render_directory(Req) ->
 
     page_2column(
       Opts,
-      [],
-      [{h2, <<"Directory of Torrentified Podcasters">>}],
+      [{link, [{rel, "alternate"},
+	       {type, ?MIME_OPML},
+	       {href, [ui_link:base(), "/directory.opml"]}], []}],
+      [{h2, <<"Directory of Torrentified Podcasters">>},
+       {dl, [{class, "feedslist"}],
+	[{dt, <<"Feeds:">>},
+	 {dd, {a, [{href, "/directory.opml"}], <<"OPML">>}}
+	]}
+      ],
       lists:map(fun render_directory_item/1, Directory1),
       lists:map(fun render_directory_item/1, Directory2)
      ).
+
+export_directory_opml() ->
+    Directory = model_feeds:get_directory(),
+    OPML =
+	{opml, [{version, "2.0"}],
+	 [{head,
+	   [{title, "Bitlove.org directory"},
+	    {ownerId, "http://bitlove.org/directory"}
+	   ]},
+	  {body,
+	   [{outline, [{text, Title}
+		      ],
+	     [{outline, [{text, FeedTitle},
+			 {type, "rss"},
+			 {htmlUrl, <<(ui_link:base())/binary, (ui_link:link_user_feed(User, Slug))/binary>>},
+			 {xmlUrl, <<(ui_link:base())/binary, (ui_link:link_user_feed_xml(User, Slug))/binary>>}
+			], []}
+	      || {Slug, FeedTitle} <- Feeds
+	     ]}
+	    || {User, Title, _Image, Feeds} <- Directory
+	   ]}
+	 ]},
+    [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
+     html:to_iolist(OPML)].
+    
 
 %% Feeds, Recent Episodes
 render_user(#req{session_user = SessionUser} = Req, UserName) ->

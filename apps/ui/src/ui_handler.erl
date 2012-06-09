@@ -395,6 +395,14 @@ handle_request2(#req{method = 'GET',
 		    } = Req) ->
     html_ok(ui_template:render_directory(validate_session(Req)));
 
+handle_request2(#req{method = 'GET',
+		     path = [<<"directory.opml">>]
+		    }) ->
+    Body = ui_template:export_directory_opml(),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_OPML}], [],
+     Body};
+
 %% API
 handle_request2(#req{method = 'GET',
 		     path = [<<"by-enclosure.json">>],
