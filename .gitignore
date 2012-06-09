@@ -1,0 +1,8 @@
+erl_crash.dump
+rel/feeds/feeds/
+rel/hasher/hasher
+rel/ui/ui
+rel/seeder/seeder
+*.beam
+ebin
+deps/*
