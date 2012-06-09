@@ -4,6 +4,7 @@
 -behaviour(cowboy_http_handler).
 
 -include("../include/ui.hrl").
+-include_lib("model/include/model.hrl").
 
 -define(HTML_HEADERS, [{<<"Content-Type">>, <<"text/html; charset=UTF-8">>}]).
 %% TODO: make configurable
@@ -82,6 +83,7 @@ handle_request1(Req) ->
 	    _ ->
 		undefined
 	end,
+    {Qs, _} = cowboy_http_req:qs_vals(Req),
     Body = if
 	       Method =:= 'POST';
 	       Method =:= 'PUT' ->
@@ -93,6 +95,7 @@ handle_request1(Req) ->
 
     handle_request2(#req{method = Method,
 			 path = Path,
+			 qs = Qs,
 			 encodings = Encodings,
 			 languages = Languages,
 			 sid = Sid,
@@ -391,6 +394,67 @@ handle_request2(#req{method = 'GET',
 		     path = [<<"directory">>]
 		    } = Req) ->
     html_ok(ui_template:render_directory(validate_session(Req)));
+
+%% API
+handle_request2(#req{method = 'GET',
+		     path = [<<"by-enclosure.json">>],
+		     qs = Qs
+		    }) ->
+    Enclosures = [Enclosure1
+		  || {<<"url", _/binary>>, Enclosure1} <- Qs],
+    json_ok(
+      {obj,
+       lists:map(
+	 fun(Enclosure2) ->
+		 case model_enclosures:enclosure_downloads(Enclosure2) of
+		     [#download{info_hash = InfoHash,
+				size = Size,
+				seeders = Seeders,
+				leechers = Leechers,
+				upspeed = Upspeed,
+				downspeed = Downspeed,
+				downloaded = Downloaded
+			       } | _] = Downloads ->
+			 Sources =
+			     lists:map(
+			       fun(#download{user = User,
+					     slug = Slug,
+					     item = Id,
+					     name = Name,
+					     title = Title,
+					     published = Published,
+					     homepage = Homepage,
+					     payment = Payment,
+					     image = Image,
+					     feed_title = FeedTitle}) ->
+				       io:format("Payment: ~p~n", [Payment]),
+				       {obj,
+					[{<<"torrent">>, ui_link:torrent(User, Slug, Name)},
+					 {<<"item.id">>, Id},
+					 {<<"item.title">>, Title},
+					 {<<"item.published">>, iso8601(Published)},
+					 {<<"item.homepage">>, Homepage},
+					 {<<"item.payment">>, Payment},
+					 {<<"item.image">>, Image},
+					 {<<"feed.title">>, FeedTitle}
+					]}
+			       end, Downloads),
+			 Info = {obj,
+				 [{<<"info_hash">>, util:binary_to_hex(InfoHash)},
+				  {<<"size">>, Size},
+				  {<<"seeders">>, Seeders},
+				  {<<"leechers">>, Leechers},
+				  {<<"upspeed">>, Upspeed},
+				  {<<"downspeed">>, Downspeed},
+				  {<<"downloaded">>, Downloaded},
+				  {<<"sources">>, Sources}
+				 ]},
+			 {Enclosure2, Info};
+		     [] ->
+			 {Enclosure2, {obj, []}}
+		 end
+	 end, Enclosures)
+      });
 
 %% User profile
 handle_request2(#req{method = 'GET',

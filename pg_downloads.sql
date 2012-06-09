@@ -224,3 +224,26 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
     ORDER BY published DESC
     LIMIT $1;
 $$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION get_enclosure_downloads(
+    TEXT
+) RETURNS SETOF download AS $$
+    SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
+           enclosures.item, enclosures.url AS enclosure,
+           COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
+           torrents.info_hash, torrents.name, torrents.size,
+           feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+           COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
+           COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
+           COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
+      FROM (SELECT url, info_hash FROM enclosure_torrents
+             WHERE url=$1 AND LENGTH(info_hash)=20
+             LIMIT 100) AS enclosure_torrents
+      JOIN torrents USING (info_hash)
+      JOIN enclosures USING (url)
+      JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
+      JOIN feeds ON (feed_items.feed=feeds.url)
+      JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
+ LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
+ LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash);
+$$ LANGUAGE SQL;

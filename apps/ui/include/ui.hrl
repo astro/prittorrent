@@ -1,5 +1,5 @@
 -record(req, {method, path,
-	      body,
+	      qs, body,
 	      encodings, languages,
 	      sid, session_user
 	     }).

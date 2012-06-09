@@ -4,7 +4,8 @@
 	 get_info_hash_by_name/3, get_torrent_by_name/3,
 	 purge/3,
 	 recent_downloads/1, popular_downloads/2,
-	 user_downloads/2, feed_downloads/2]).
+	 user_downloads/2, feed_downloads/2,
+	 enclosure_downloads/1]).
 
 -include("../include/model.hrl").
 
@@ -72,6 +73,11 @@ user_downloads(UserName, Limit) ->
 
 feed_downloads(Feed, Limit) ->
     query_downloads("get_recent_downloads($2, $1)", [Feed, Limit]).
+
+enclosure_downloads(Enclosure) ->
+    {ok, _, Rows} =
+	?Q("SELECT * FROM get_enclosure_downloads($1)", [Enclosure]),
+    rows_to_downloads(Rows).
 
 query_downloads(View, Params) ->
     case ?Q("SELECT * FROM " ++ View, Params) of
