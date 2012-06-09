@@ -208,7 +208,7 @@ h2 .feedicon {
   background: url('rss.png') no-repeat center top;
 }
 .directory h2 {
-  font-size: 200%;
+  font-size: 160%;
 }
 p.feed {
   font-size: 80%;
@@ -508,8 +508,16 @@ ul.feeds {
   padding: 0;
 }
 ul.feeds li {
-  margin: 0;
-  padding: 0 0.5em 0.3em 0;
+  margin: 0.2em 0;
+  padding: 0 0.1em 0.2em 0.3em;
+  background: -moz-linear-gradient(left, #edf0e7 0%, white 100%) no-repeat; /* FF3.6+ */
+  background: -webkit-gradient(linear, left left, left bottom, color-stop(0%,#edf0e7), color-stop(100%,white)) no-repeat; /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(left, #edf0e7 0%,white 100%) no-repeat; /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(left, #edf0e7 0%,white 100%) no-repeat; /* Opera 11.10+ */
+  background: -ms-linear-gradient(left, #edf0e7 0%,white 100%) no-repeat; /* IE10+ */
+  background: linear-gradient(left, #edf0e7 0%, white 100%) no-repeat; /* W3C */
+  background-color: #d7e0dd;
+  border-radius: 0.1em;
 }
 
 
