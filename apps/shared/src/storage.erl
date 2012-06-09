@@ -18,8 +18,12 @@ set_urls(Storage, URLs1) ->
 		 {_, Size} when is_integer(Size) ->
 		     URL;
 		 _ when is_binary(URL) ->
-		     {ok, Size} = resource_size(URL),
-		     {URL, Size}
+		     case resource_size(URL) of
+			 {ok, Size} ->
+			     {URL, Size};
+			 undefined ->
+			     exit(no_content_length)
+		     end
 	     end || URL <- URLs1],
     Storage#storage{urls = URLs2}.
 
