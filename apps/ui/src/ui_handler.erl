@@ -23,8 +23,9 @@ handle(Req, State) ->
     {Method, _} = cowboy_http_req:method(Req),
     {Path, _} = cowboy_http_req:path(Req),
     {RawPath, _} = cowboy_http_req:raw_path(Req),
+    {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
     case (catch handle_request1(Req)) of
-	{ok, Status, Headers, Cookies, Body} ->
+	{ok, Status, Headers1, Cookies, Body1} ->
 	    Req3 = lists:foldl(
 		     fun({CookieName, CookieValue}, Req2) ->
 			     {ok, Req3} =
@@ -33,7 +34,17 @@ handle(Req, State) ->
 				   ?COOKIE_OPTS, Req2),
 			     Req3
 		     end, Req, Cookies),
-	    {ok, Req4} = cowboy_http_req:reply(Status, Headers, Body, Req3),
+	    {Headers2, Body3} =
+		case compress_body(Encodings, Body1) of
+		    {<<"identity">>, Body2} ->
+			{Headers1, Body2};
+		    {Encoding, Body2} ->
+			io:format("Encoding: ~s~n", [Encoding]),
+			{[{<<"Content-Encoding">>, Encoding}
+			  | Headers1],
+			 Body2}
+		end,
+	    {ok, Req4} = cowboy_http_req:reply(Status, Headers2, Body3, Req3),
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
 
@@ -73,7 +84,6 @@ handle_request1(Req) ->
 		     Method1
 	     end,
     {Path, _} = cowboy_http_req:path(Req),
-    {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
     {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
     {HexSid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
     Sid =
@@ -96,7 +106,6 @@ handle_request1(Req) ->
     handle_request2(#req{method = Method,
 			 path = Path,
 			 qs = Qs,
-			 encodings = Encodings,
 			 languages = Languages,
 			 sid = Sid,
 			 body = Body
@@ -942,3 +951,19 @@ convert_graphs_time(Data) ->
 	      {iso8601(LocalDate), Value}
       end, Data).
 
+compress_body([{<<"gzip">>, _} | _], Body) ->
+    {<<"gzip">>, zlib:gzip(Body)};
+
+compress_body([{<<"deflate">>, _} | _], Body) ->
+    Z = zlib:open(),
+    zlib:deflateInit(Z),
+    Compressed = zlib:deflate(Z, Body, finish),
+    zlib:deflateEnd(Z),
+    zlib:close(Z),
+    {<<"deflate">>, Compressed};
+
+compress_body([_ | Encodings], Body) ->
+    compress_body(Encodings, Body);
+
+compress_body([], Body) ->
+    {<<"identity">>, Body}.

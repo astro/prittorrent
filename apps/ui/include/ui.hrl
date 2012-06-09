@@ -1,6 +1,6 @@
 -record(req, {method, path,
 	      qs, body,
-	      encodings, languages,
+	      languages,
 	      sid, session_user
 	     }).
 
