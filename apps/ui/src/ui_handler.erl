@@ -715,11 +715,9 @@ handle_request2(#req{method = 'GET',
 	    <<"year">> ->
 		{365 * 24 * 60 * 60, 7 * 24 * 60 * 60 }
 	end,
-    Stop = calendar:universal_time(),
+    Stop = calendar:local_time(),
     Start = calendar:gregorian_seconds_to_datetime(
 	      calendar:datetime_to_gregorian_seconds(Stop) - Period),
-    LocalStop = universal_to_local_time(Stop),
-    LocalStart = universal_to_local_time(Start),
     case Graph of
 	<<"swarm.json">> ->
 	    Seeders =
@@ -728,8 +726,8 @@ handle_request2(#req{method = 'GET',
 		model_graphs:get_gauge(leechers, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"seeders">>, {obj, convert_graphs_time(Seeders)}},
 			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}},
-			   {<<"start">>, iso8601(LocalStart)},
-			   {<<"stop">>, iso8601(LocalStop)},
+			   {<<"start">>, iso8601(Start)},
+			   {<<"stop">>, iso8601(Stop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"traffic.json">> ->
@@ -742,16 +740,16 @@ handle_request2(#req{method = 'GET',
 	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
 			   {<<"up">>, {obj, convert_graphs_time(Up)}},
 			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}},
-			   {<<"start">>, iso8601(LocalStart)},
-			   {<<"stop">>, iso8601(LocalStop)},
+			   {<<"start">>, iso8601(Start)},
+			   {<<"stop">>, iso8601(Stop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"downloads.json">> ->
 	    Downloads =
 		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}},
-			   {<<"start">>, iso8601(LocalStart)},
-			   {<<"stop">>, iso8601(LocalStop)},
+			   {<<"start">>, iso8601(Start)},
+			   {<<"stop">>, iso8601(Stop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	_ ->
