@@ -211,7 +211,8 @@ render_item(Opts, #feed_item{user = User,
 	      {img, [{src, Image},
 		     {class, "logo"}], []};
 	  true ->
-	      []
+	      {img, [{src, <<"/static/stub.png">>},
+		     {class, "logo"}], []}
       end,
       {'div', [{class, <<"right">>}],
        [
@@ -851,7 +852,8 @@ render_directory_item({User, Title, Image, Feeds}) ->
 		{img, [{src, Image},
 		       {class, "logo"}], []};
 	    true ->
-		[]
+		{img, [{src, <<"/static/stub.png">>},
+		       {class, "logo"}], []}
 	end,
 	{'div', [{class, "title"}],
 	 {h2, 
@@ -956,7 +958,8 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 				     {img, [{src, Image},
 					    {class, "logo"}], ""};
 				 true ->
-				     []
+				     {img, [{src, <<"/static/stub.png">>},
+					    {class, "logo"}], ""}
 			     end,
 			     {'div',
 			      [{h3, 
