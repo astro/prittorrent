@@ -164,7 +164,7 @@ lookup_torrent(InfoHash) ->
 		proplists:get_value(<<"piece length">>, Info),
 
 	    [URL | _] = proplists:get_value(<<"url-list">>, Torrent),
-	    Storage = storage:make([URL]),
+	    Storage = storage:make([{URL, Length}]),
 	    if
 		is_binary(Name),
 		is_integer(Length),
