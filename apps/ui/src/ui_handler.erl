@@ -963,5 +963,7 @@ compress_body([{<<"deflate">>, _} | _], Body) ->
 compress_body([_ | Encodings], Body) ->
     compress_body(Encodings, Body);
 
-compress_body([], Body) ->
+compress_body(Encodings, Body)
+  when Encodings =:= [];
+       not is_list(Encodings) ->
     {<<"identity">>, Body}.
