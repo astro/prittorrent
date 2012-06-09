@@ -334,7 +334,8 @@ render_enclosure(#download{user = UserName,
       },
       {li, [{class, "stats"}],
        [if
-	    Downspeed > 0 ->
+	    %% Anything below 100 KB/s is embarrassing:
+	    Downspeed >= 102400 ->
 		[DownspeedN, DownspeedUnit] = size_to_human(Downspeed),
 		{dl,
 		 [{dt, [DownspeedN, {span, [{class, "unit"}], [DownspeedUnit, "/s"]}]},
