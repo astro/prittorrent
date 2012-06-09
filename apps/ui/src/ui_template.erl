@@ -577,10 +577,10 @@ render_signup(Req) ->
        ?SCRIPT_TAG(<<"/static/signup.js">>)
       ],
       [{h2, <<"No warez">>},
-       {p, <<"All podcast feeds are confirmed by staff before torrentification starts. Get your own seedbox.">>},
+       {p, <<"All podcast feeds and torrents are backed by actual Web servers. Get your own seedbox.">>},
        {h2, <<"Representing a broadcast institution?">>},
        {p,
-	[<<"Place your content on Bitlove and make your audience happy! Contact us at ">>,
+	[<<"Place your content on Bitlove to make your audience happy! Contact us at ">>,
 	 {a, [{href, <<"mailto:mail@bitlove.org">>}], <<"mail@bitlove.org">>}
 	]}
       ]).
