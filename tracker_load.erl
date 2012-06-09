@@ -38,7 +38,7 @@ run(Tracker, InfoHash, N) ->
 	       end),
     io:format("Running ~B clients~n", [N]),
     receive
-    after 200 ->
+    after 1000 ->
 	    {ok, Reqs, Time} = recv_all(),
 	    io:format("~B req/s, avg. ~B us~n", [Reqs, trunc(Time)]),
 	    run(Tracker, InfoHash, N + 4)
