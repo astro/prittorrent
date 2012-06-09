@@ -317,6 +317,7 @@ h3 {
 }
 .homepage {
   margin: 0;
+  padding-left: 0.2em;
   font-size: 70%;
 }
 .homepage a {
