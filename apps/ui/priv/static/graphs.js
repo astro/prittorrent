@@ -221,7 +221,6 @@ StatsHook.prototype.toggleGraph = function(type, toggle) {
 	delete this.graphs[type];
     } else {
 	toggle.addClass('toggled');
-	console.log("getPublished", new Date(this.getPublished()));
 	var graph = this.graphs[type] =
 	    new Graph(this.basepath, type, this.getPublished());
 	graph.el.hide();
