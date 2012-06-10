@@ -39,7 +39,6 @@ handle(Req, State) ->
 		    {<<"identity">>, Body2} ->
 			{Headers1, Body2};
 		    {Encoding, Body2} ->
-			io:format("Encoding: ~s~n", [Encoding]),
 			{[{<<"Content-Encoding">>, Encoding}
 			  | Headers1],
 			 Body2}
