@@ -25,7 +25,7 @@ start_deps() ->
     R1 =
 	lists:map(
 	  fun application:start/1,
-	  [crypto, public_key, ssl, inets, compiler]),
+	  [sasl, xmerl, crypto, public_key, ssl, inets, compiler]),
 
     {ok, Filenames} = file:list_dir("deps"),
     R2 =
