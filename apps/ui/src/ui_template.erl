@@ -248,21 +248,30 @@ render_item(Opts, #feed_item{user = User,
 		  case Payment of
 		      %% Transform an autosubmit link to Flattr button
 		      <<"https://flattr.com/submit/auto?", Payment1/binary>> ->
+			  FlattrAttrs1 =
+			      lists:map(fun({K, V}) ->
+						case K of
+						    <<"user_id">> ->
+							{"data-flattr-uid", V};
+						    _ ->
+							K2 = [C
+							      || C <- binary_to_list(K),
+								 C >= $a, C =< $z],
+							{"data-flattr-" ++ K2, V}
+						end
+					end, cowboy_http:x_www_form_urlencoded(
+					       Payment1, fun cowboy_http:urldecode/1)),
+			  FlattrAttrs2 =
+			      lists:filter(fun({"data-flattr-popout", _}) ->
+						   %% Drop individual popout=1 parameters
+						   false;
+					      ({"data-flattr-" ++ _, _}) ->
+						   true
+					   end, FlattrAttrs1),
 			  {a, [{class, <<"FlattrButton">>},
 			       {rel, <<"payment">>},
 			       {href, Payment} |
-			       [case K of
-				    <<"user_id">> ->
-					{"data-flattr-uid", V};
-				    _ ->
-					K2 = [C
-					      || C <- binary_to_list(K),
-						 C >= $a, C =< $z],
-					{"data-flattr-" ++ K2, V}
-				end
-				|| {K, V} <- cowboy_http:x_www_form_urlencoded(
-					       Payment1, fun cowboy_http:urldecode/1)
-			       ]], <<"[Flattr]">>};
+			       FlattrAttrs2], <<"[Flattr]">>};
 		      <<"http://flattr.com/", _/binary>> ->
 			  {a, [{class, <<"FlattrButton">>},
 			       {href, Payment},
