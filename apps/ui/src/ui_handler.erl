@@ -35,13 +35,18 @@ handle(Req, State) ->
 			     Req3
 		     end, Req, Cookies),
 	    {Headers2, Body3} =
-		case compress_body(Encodings, Body1) of
-		    {<<"identity">>, Body2} ->
-			{Headers1, Body2};
-		    {Encoding, Body2} ->
-			{[{<<"Content-Encoding">>, Encoding}
-			  | Headers1],
-			 Body2}
+		if
+		    Method =:= 'GET' ->
+			case compress_body(Encodings, Body1) of
+			    {<<"identity">>, Body2} ->
+				{Headers1, Body2};
+			    {Encoding, Body2} ->
+				{[{<<"Content-Encoding">>, Encoding}
+				  | Headers1],
+				 Body2}
+			end;
+		    true ->
+			{Headers1, Body1}
 		end,
 	    {ok, Req4} = cowboy_http_req:reply(Status, Headers2, Body3, Req3),
 	    T2 = util:get_now_us(),
