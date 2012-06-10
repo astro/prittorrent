@@ -340,7 +340,8 @@ request_pieces(#state{request_queue = RequestQueue1,
 	    Length = lists:foldl(fun(#request{length = Length1}, Length) ->
 					 Length + Length1
 				 end, 0, Requests),
-	    io:format("Processing ~B requests with ~B bytes~n", [length(Requests), Length]),
+	    io:format("Processing ~B requests at ~B+~B~n",
+		      [length(Requests), Request#request.offset, Length]),
 
 	    %% Transfer request by request
 	    RemainRequests =
