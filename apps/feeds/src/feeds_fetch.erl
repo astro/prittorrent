@@ -42,24 +42,34 @@ fetch(Url, Etag1, LastModified1) ->
     Result =
 	case HttpRes of
 	    {ok, {Etag2, LastModified2}, Els1} ->
-		Els2 =
-		    case exmpp_xml:parse_final(Parser, <<"">>) of
+		{Els2, Error} =
+		    case (catch exmpp_xml:parse_final(Parser, <<"">>)) of
 			done ->
-			    [];
+			    {[], <<"Empty document">>};
 			Els3 when is_list(Els3) ->
-			    Els3
+			    {Els3, <<"Empty document">>};
+			{xml_parser, _, _Reason, {_, Message}}
+			  when is_list(Message) ->
+			    {[], list_to_binary(Message)};
+			{xml_parser, _, _Reason, _Details} ->
+			    {[], <<"XML parser error">>}
 		    end,
 		%% At least one:
 		case Els1 ++ Els2 of
 		    [#xmlel{} = RootEl | _] ->
 			{ok, {Etag2, LastModified2}, RootEl};
 		    _ ->
-			{error, invalid_feed}
+			{error, Error}
 		end;
 	    not_modified ->
 		not_modified;
 	    {'EXIT', Reason} ->
 		{error, Reason};
+	    {xml_parser, _, _Reason, {_, Message}}
+	      when is_list(Message) ->
+		{error, list_to_binary(Message)};
+	    {xml_parser, _, _Reason, _Details} ->
+		{error, <<"XML parser error">>};
 	    E ->
 		E
 	end,
