@@ -48,11 +48,8 @@ fetch(Url, Etag1, LastModified1) ->
 			    {[], <<"Empty document">>};
 			Els3 when is_list(Els3) ->
 			    {Els3, <<"Empty document">>};
-			{xml_parser, _, _Reason, {_, Message}}
-			  when is_list(Message) ->
-			    {[], list_to_binary(Message)};
-			{xml_parser, _, _Reason, _Details} ->
-			    {[], <<"XML parser error">>}
+			{xml_parser, _, _Reason, _Details} = Error1 ->
+			    {[], Error1}
 		    end,
 		%% At least one:
 		case Els1 ++ Els2 of
@@ -65,13 +62,8 @@ fetch(Url, Etag1, LastModified1) ->
 		not_modified;
 	    {'EXIT', Reason} ->
 		{error, Reason};
-	    {xml_parser, _, _Reason, {_, Message}}
-	      when is_list(Message) ->
-		{error, list_to_binary(Message)};
-	    {xml_parser, _, _Reason, _Details} ->
-		{error, <<"XML parser error">>};
-	    E ->
-		E
+	    {xml_parser, _, _Reason, _Details} = Error1 ->
+		{error, Error1}
 	end,
 
     ok = exmpp_xml:stop_parser(Parser),
