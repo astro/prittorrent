@@ -50,8 +50,12 @@ fetch(Url, Etag1, LastModified1) ->
 			    Els3
 		    end,
 		%% At least one:
-		[RootEl | _] = Els1 ++ Els2,
-		{ok, {Etag2, LastModified2}, RootEl};
+		case Els1 ++ Els2 of
+		    [#xmlel{} = RootEl | _] ->
+			{ok, {Etag2, LastModified2}, RootEl};
+		    _ ->
+			{error, invalid_feed}
+		end;
 	    not_modified ->
 		not_modified;
 	    {'EXIT', Reason} ->
