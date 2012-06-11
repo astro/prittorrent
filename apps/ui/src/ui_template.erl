@@ -1064,7 +1064,10 @@ render_user_feed(Req, UserName, Slug) ->
 		     size(FeedError) > 0 ->
 			 {'div', [{class, "error"}],
 			  [{h3, <<"Feed error">>},
-			   explain_error(feed, FeedError)]};
+			   explain_error(feed, FeedError),
+			   {p, [{class, "hint"}],
+			    <<"Error information is preserved in case of later HTTP 304 Not Modified">>}
+			  ]};
 		     true ->
 			 []
 		 end,
