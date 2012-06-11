@@ -1392,13 +1392,20 @@ explain_error1(feed, {http, Status}) when is_integer(Status) ->
     io_lib:format("HTTP ~B, expected: 200 Ok", [Status]);
 explain_error1(enclosure, {http, Status}) when is_integer(Status) ->
     io_lib:format("HTTP ~B, expected: 206 Partial Content", [Status]);
+explain_error1(_, invalid_feed) ->
+    <<"Invalid feed">>;
 explain_error1(_, no_content_length) ->
     <<"Web server didn't include Content-Length on HEAD">>;
 explain_error1(_, timeout) ->
     <<"Timeout contacting server">>;
 explain_error1(_, connection_closed) ->
     <<"Connection closed">>;
-explain_error1(_, Term) ->
+explain_error1(_, {xml_parser, parsing, parsing_failed, {_, Message}})
+  when is_list(Message) ->
+    list_to_binary([<<"XML parser error: ">>, Message]);
+explain_error1(_, {xml_parser, _, _, _}) ->
+    <<"XML parser error">>;
+explain_error1(_Scope, _Term) ->
     <<"Internal error">>.
 
 
