@@ -14,10 +14,6 @@ TODO
 
 * <atom:link rel="self">
 
-* graphs:
-  * refactor
-  * stacked traffic
-
 * model:
   * queueify scraped triggers
 
@@ -25,11 +21,8 @@ TODO
   * Fonts
   * Flattr donate
 
-* API
-
 * Check U-A & replace RSS links with Miro subscribe URLs
 * UI: Detect browser language
-* Zlib for UI
 * lhttpc + zlib
 * parse rss pubDate tz offset
 
@@ -37,9 +30,10 @@ TODO
   * About field
 * Edit feeds:
   * Add & fetch immediately
-  * HTTP status
-  * Enclosure HTTP status
-  * Style pending feeds
+
+* graphs:
+  * refactor
+  * stacked traffic
 
 * update cowboy
 * feeds_parse: http://video.search.yahoo.com/mrss
