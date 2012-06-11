@@ -155,6 +155,9 @@ fold_resource1(Pid, F, AccIn) ->
 	    AccIn;
 	{'EXIT', Reason} ->
 	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
+	    AccIn;
+	{error, Reason} ->
+	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
 	    AccIn
     end.
 
