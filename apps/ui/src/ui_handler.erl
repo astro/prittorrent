@@ -13,6 +13,7 @@
 		      {max_age, 30 * 24 * 60 * 60},
 		      {path, <<"/">>}
 		     ]).
+-define(CORS_HEADER, {<<"Access-Control-Allow-Origin">>, <<"*">>}).
 
 
 init({_, http}, Req, _Opts) ->
@@ -74,8 +75,10 @@ html_ok(Body) ->
 json_ok(JSON) ->
     json_ok(JSON, []).
 json_ok(JSON, Cookies) ->
+    json_ok(JSON, Cookies, []).
+json_ok(JSON, Cookies, Headers) ->
     Body = rfc4627:encode(JSON),
-    {ok, 200, [{<<"Content-Type">>, ?MIME_JSON}], Cookies, Body}.
+    {ok, 200, [{<<"Content-Type">>, ?MIME_JSON} | Headers], Cookies, Body}.
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
@@ -475,7 +478,7 @@ handle_request2(#req{method = 'GET',
 			 {Enclosure2, {obj, []}}
 		 end
 	 end, Enclosures)
-      });
+      }, [], [?CORS_HEADER]);
 
 %% User profile
 handle_request2(#req{method = 'GET',
