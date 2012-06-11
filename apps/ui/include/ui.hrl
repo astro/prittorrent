@@ -11,3 +11,4 @@
 -define(MIME_ATOM, <<"application/atom+xml">>).
 -define(MIME_JSON, <<"application/json">>).
 -define(MIME_OPML, <<"text/x-opml">>).
+-define(MIME_JAVASCRIPT, <<"text/javascript">>).

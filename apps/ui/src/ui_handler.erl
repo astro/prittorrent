@@ -480,6 +480,22 @@ handle_request2(#req{method = 'GET',
 	 end, Enclosures)
       }, [], [?CORS_HEADER]);
 
+%% Widget
+%% TODO: caching headers, etags
+handle_request2(#req{method = 'GET',
+		     path = [<<"widget">>, <<"base.js">>]}) ->
+    Body = ui_widget:serve_base(),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_JAVASCRIPT}], [],
+     Body};
+
+handle_request2(#req{method = 'GET',
+		     path = [<<"widget">>, <<"podpress.js">>]}) ->
+    Body = ui_widget:serve_podpress(),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_JAVASCRIPT}], [],
+     Body};
+
 %% User profile
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>]
