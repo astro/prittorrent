@@ -60,7 +60,12 @@ update1(URL, Etag1, LastModified1) ->
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
 		    FeedXml1 = iolist_to_binary(feeds_parse:serialize(FeedEl)),
-		    ChannelEl = feeds_parse:get_channel(FeedEl),
+		    ChannelEl = case feeds_parse:get_channel(FeedEl) of
+				    undefined ->
+					exit(invalid_feed);
+				    ChannelEl1 ->
+					ChannelEl1
+				end,
 		    Title1 = feeds_parse:title(ChannelEl),
 		    Homepage1 = NormalizeURL(feeds_parse:link(ChannelEl)),
 		    Image1 = NormalizeURL(feeds_parse:image(ChannelEl)),
