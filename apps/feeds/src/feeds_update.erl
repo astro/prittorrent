@@ -120,6 +120,14 @@ update1(URL, Etag1, LastModified1) ->
 				     Title2, Homepage2, Image2,
 				     Items3),
 	    ok;
+	%% HTTP 304 Not Modified:
+	{error, {Etag2, LastModified2},
+	 {http, 304}} ->
+	    model_feeds:write_update(URL, {Etag2, LastModified2},
+				     not_modified, null,
+				     null, null, null,
+				     []),
+	    ok;
 	{error, {Etag2, LastModified2}, Reason} ->
 	    Error = case Reason of
 		undefined -> null;

@@ -67,6 +67,10 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 				 enforce_string(Xml),
 				 enforce_string(Title), enforce_string(Homepage),
 				 enforce_string(Image)];
+		   not_modified ->
+		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3 WHERE \"url\"=$1",
+		       Params = [FeedURL,
+				 enforce_string(Etag), enforce_string(LastModified)];
 		   _ when is_binary(Error) ->
 		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=$4 WHERE \"url\"=$1",
 		       Params = [FeedURL,
