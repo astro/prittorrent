@@ -12,11 +12,16 @@ to_exmpp_xml(S) when is_atom(S) ->
 
 to_exmpp_xml(S1) when is_list(S1) ->
     S2 = lists:flatten(S1),
-    {String, S3} =
+    {String1, S3} =
 	lists:splitwith(fun(C) ->
 				not is_tuple(C)
 			end, S2),
-    [exmpp_xml:cdata(String) |
+    String2 = lists:map(fun(A) when is_atom(A) ->
+				atom_to_list(A);
+			   (S) ->
+				S
+			end, String1),
+    [exmpp_xml:cdata(String2) |
      case S3 of
 	 [] ->
 	     [];
