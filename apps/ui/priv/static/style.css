@@ -697,3 +697,20 @@ noscript {
   margin-top: 0;
   line-height: 1em;
 }
+
+.error {
+  text-align: left;
+  margin: 1em auto;
+  padding: 0.1em 1em 0.1em 56px;
+  min-height: 41px;
+  background: url('/static/error.svg') top left no-repeat #ffbfbf;
+}
+.error h3 {
+  color: black;
+  margin: 0 0 0.5em;
+}
+.enclosureErrors dt {
+  font-size: 90%;
+  font-weight: bold;
+  margin-top: 0.5em;
+}

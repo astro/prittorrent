@@ -80,6 +80,19 @@ CREATE VIEW item_torrents AS
        WHERE LENGTH(info_hash)=20;
 
 
+CREATE VIEW feed_errors AS
+    SELECT feeds.url,
+           MIN(COALESCE(feeds.error, enclosure.error)) AS error
+      FROM feeds
+ LEFT JOIN (SELECT feed, error
+              FROM enclosures
+              JOIN enclosure_torrents USING (url)
+             WHERE error != ''
+           ) AS enclosure ON (feeds.url = enclosure.feed)
+     WHERE feeds.error IS NOT NULL
+        OR enclosure.error != ''
+  GROUP BY feeds.url;
+
 -- Login UI
 -- TODO: write reset functions
 CREATE TABLE user_tokens (

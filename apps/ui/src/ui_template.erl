@@ -929,8 +929,8 @@ export_directory_opml() ->
     
 
 %% Feeds, Recent Episodes
-render_user(#req{session_user = SessionUser} = Req, UserName) ->
-    IsSelf = SessionUser == UserName,
+render_user(Req, UserName) ->
+    CanEdit = can_edit(Req, UserName),
 
     {UserTitle, UserImage, UserHomepage} =
 	case model_users:get_details(UserName) of
@@ -940,7 +940,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 		throw({http, 404})
 	end,
     {ok, UserFeeds} =
-	model_feeds:user_feeds_details(UserName, IsSelf),
+	model_feeds:user_feeds_details(UserName, CanEdit),
     {ok, UserDownloads} =
 	model_enclosures:user_downloads(UserName, 20),
 
@@ -958,7 +958,7 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 	render_feedslist(UserName)
        ]},
       [{h2, "Feeds"} |
-       lists:map(fun({Slug, _Feed, Title, Homepage, Image, Public}) ->
+       lists:map(fun({Slug, _Feed, Title, Homepage, Image, Public, FeedError}) ->
 			 {article, [{class, "feed"}],
 
 			  [{'div',
@@ -989,14 +989,22 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
 				       []
 			       end
 			      ]}
-			    ]}
+			    ]},
+			   if
+			       is_binary(FeedError),
+			       size(FeedError) > 0 ->
+				   {p, [{class, "error"}],
+				    <<"Errors!">>};
+			       true ->
+				   []
+			   end
 			  ]}
 		 end, UserFeeds)
       ],
       [{h2, "Recent Torrents"},
        render_downloads(Opts, UserDownloads),
        if
-	   IsSelf ->
+	   CanEdit ->
 	       [?INCLUDE_JQUERY,
 		?SCRIPT_TAG(<<"/static/edit-user.js">>)];
 	   true ->
@@ -1005,11 +1013,13 @@ render_user(#req{session_user = SessionUser} = Req, UserName) ->
       ]
      ).
 
-render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
+render_user_feed(Req, UserName, Slug) ->
+    CanEdit = can_edit(Req, UserName),
+
     case model_feeds:user_feed_details(UserName, Slug) of
 	{error, not_found} ->
 	    throw({http, 404});
-	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage, _FeedPublic, FeedTorrentify} ->
+	{ok, FeedURL, FeedTitle, FeedHomepage, FeedImage, _FeedPublic, FeedTorrentify, FeedError} ->
 	    {ok, FeedDownloads} =
 		model_enclosures:feed_downloads(FeedURL, 100),
     
@@ -1048,11 +1058,38 @@ render_user_feed(#req{session_user = SessionUser} = Req, UserName, Slug) ->
 				      }]
 			     end
 			    ),
+		 if
+		     CanEdit,
+		     is_binary(FeedError),
+		     size(FeedError) > 0 ->
+			 {'div', [{class, "error"}],
+			  [{h3, <<"Feed error">>},
+			   explain_error(feed, FeedError)]};
+		     true ->
+			 []
+		 end,
+		 if
+		     CanEdit ->
+			 case model_feeds:enclosure_errors(FeedURL) of
+			     [] ->
+				 [];
+			     EnclosureErrors ->
+				 {'div', [{class, "error"}],
+				  [{h3, <<"Enclosure errors">>},
+				   {dl, [{class, "enclosureErrors"}],
+				    [[{dt, EnclosureURL},
+				      {dd, explain_error(enclosure, EnclosureError)}]
+				     || {EnclosureURL, EnclosureError} <- EnclosureErrors]}
+				  ]}
+			 end;
+		     true ->
+			 []
+		 end,
 		 render_feedslist(UserName, Slug)
 		]},
 	       render_downloads(Opts, FeedDownloads) |
 	       if
-		   SessionUser == UserName ->
+		   CanEdit ->
 		       [?INCLUDE_JQUERY,
 			?SCRIPT_TAG(<<"/static/edit-feed.js">>)];
 		   true ->
@@ -1306,7 +1343,7 @@ export_downloads(Type, Req, UserName, Slug) ->
     case model_feeds:user_feed_details(UserName, Slug) of
 	{error, not_found} ->
 	    throw({http, 404});
-	{ok, FeedURL, FeedTitle, _FeedHomepage, FeedImage, _FeedPublic, _FeedTorrentify} ->
+	{ok, FeedURL, FeedTitle, _FeedHomepage, FeedImage, _FeedPublic, _FeedTorrentify, _FeedError} ->
 	    {ok, FeedDownloads} =
 		model_enclosures:feed_downloads(FeedURL, 100),
     
@@ -1323,6 +1360,48 @@ export_downloads(Type, Req, UserName, Slug) ->
 %%
 %% Helpers
 %%
+
+can_edit(#req{session_user = SessionUser}, UserName) ->
+    if
+	UserName == SessionUser ->
+	    true;
+	true ->
+	    case application:get_env(ui, admins) of
+		{ok, Admins} when is_list(Admins) ->
+		    lists:member(SessionUser, Admins);
+		_ ->
+		    false
+	    end
+    end.
+
+
+explain_error(Scope, String) ->
+    case erl_scan:string(binary_to_list(String) ++ ".") of
+	{ok, Tokens, _} ->
+	    case erl_parse:parse_term(Tokens) of
+		{ok, Term} ->
+		    explain_error1(Scope, Term);
+		_ ->
+		    <<"Invalid error">>
+	    end;
+	_ ->
+	    <<"Invalid error">>
+    end.
+
+explain_error1(feed, {http, Status}) when is_integer(Status) ->
+    io_lib:format("HTTP ~B, expected: 200 Ok", [Status]);
+explain_error1(enclosure, {http, Status}) when is_integer(Status) ->
+    io_lib:format("HTTP ~B, expected: 206 Partial Content", [Status]);
+explain_error1(_, no_content_length) ->
+    <<"Web server didn't include Content-Length on HEAD">>;
+explain_error1(_, {nxdomain, _}) ->
+    <<"DNS error">>;
+explain_error1(_, Term) ->
+    {pre, io_lib:format("~p", [Term])}.
+
+
+
+
 
 size_to_human(Size) when not is_integer(Size) ->
     "∞";

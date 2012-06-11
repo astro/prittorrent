@@ -2,7 +2,7 @@
 
 -export([to_update/1, prepare_update/1, write_update/8,
 	 user_feeds_details/2, user_feed_details/2,
-	 feed_data/2, get_directory/0]).
+	 feed_data/2, get_directory/0, enclosure_errors/1]).
 
 -include("../include/model.hrl").
 
@@ -145,15 +145,16 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
     io:format("[~.1fms] write_update ~s - ~B items~n", [(T2 - T1) / 1000, FeedURL, length(Items)]).
 
 
-user_feeds_details(UserName, Private) ->
-    PublicCond = case Private of
-		     true ->
-			 "";
-		     _ ->
-			 " AND user_feeds.\"public\""
-		 end,
-    case ?Q("SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE) FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1" ++ PublicCond ++ " ORDER BY LOWER(feeds.\"title\") ASC",
-	    [UserName]) of
+user_feeds_details(UserName, CanEdit) ->
+    Q = case CanEdit of
+	    %% Owner view
+	    true ->
+		"SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE), feed_errors.\"error\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url LEFT JOIN feed_errors USING (url) WHERE user_feeds.\"user\"=$1 ORDER BY LOWER(feeds.\"title\") ASC";
+	    %% Public view
+	    false ->
+		"SELECT user_feeds.\"slug\", feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE), NULL FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"public\" ORDER BY LOWER(feeds.\"title\") ASC"
+	end,
+    case ?Q(Q, [UserName]) of
 	{ok, _, Rows} ->
 	    {ok, Rows};
 	{error, Reason} ->
@@ -161,10 +162,10 @@ user_feeds_details(UserName, Private) ->
     end.
 
 user_feed_details(UserName, Slug) ->
-    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE), feeds.\"torrentify\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
+    case ?Q("SELECT feeds.\"url\", COALESCE(user_feeds.\"title\", feeds.\"title\"), feeds.\"homepage\", feeds.\"image\", COALESCE(user_feeds.\"public\", FALSE), feeds.\"torrentify\", feeds.\"error\" FROM user_feeds INNER JOIN feeds ON user_feeds.feed=feeds.url WHERE user_feeds.\"user\"=$1 AND user_feeds.\"slug\"=$2",
 	    [UserName, Slug]) of
-	{ok, _, [{URL, Title, Homepage, Image, Public, Torrentify}]} ->
-	    {ok, URL, Title, Homepage, Image, Public, Torrentify};
+	{ok, _, [{URL, Title, Homepage, Image, Public, Torrentify, Error}]} ->
+	    {ok, URL, Title, Homepage, Image, Public, Torrentify, Error};
 	{ok, _, []} ->
 	    {error, not_found};
 	{error, Reason} ->
@@ -211,6 +212,12 @@ group_directory_feeds([{User1, Title1, Image1, _, _} | _] = Directory) ->
        || {_, _, _, Slug, FeedTitle} <- Directory1]
      } | group_directory_feeds(Directory2)].
 
+
+enclosure_errors(FeedURL) ->
+    {ok, _, Rows} =
+	?Q("SELECT enclosures.\"url\", enclosure_torrents.\"error\" FROM enclosures JOIN enclosure_torrents USING (url) WHERE enclosures.feed=$1 AND enclosure_torrents.\"error\" IS NOT NULL AND enclosure_torrents.\"error\" != ''",
+	   [FeedURL]),
+    Rows.
 
 %%
 %% Helpers

@@ -24,6 +24,7 @@
 	 {smtp_options, [{relay, "localhost"},
 			 {port, 2025},
 			 {hostname, "bitlove.org"}
-			]}
+			]},
+	 {admins, [<<"astro">>]}
 	]}
  ]}.
