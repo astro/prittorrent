@@ -787,7 +787,9 @@ count_request(Method, Path) ->
       1).
 
 %% Complete session data where needed
-validate_session(#req{sid = Sid} = Req) ->
+validate_session(#req{sid = Sid} = Req)
+  when is_binary(Sid);
+       size(Sid) > 0 ->
     SessionUser =
 	case model_session:validate(Sid) of
 	    {ok, User} ->
@@ -795,7 +797,10 @@ validate_session(#req{sid = Sid} = Req) ->
 	    {error, invalid_session} ->
 		undefined
 	end,
-    Req#req{session_user = SessionUser}.
+    Req#req{session_user = SessionUser};
+validate_session(Req) ->
+    Req#req{session_user = undefined}.
+
 
 %%
 %% Signup helpers
