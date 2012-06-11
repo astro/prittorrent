@@ -43,10 +43,26 @@ CREATE OR REPLACE FUNCTION set_peer(
          WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id"
            FOR UPDATE;
         IF "old" IS NULL THEN
-            INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
-                                 "uploaded", "downloaded", "left", "last_request")
-                VALUES ("p_info_hash", "p_peer_id", "p_host", "p_port",
-                        "p_uploaded", "p_downloaded", "p_left", now());
+            LOCK TABLE tracked IN SHARE ROW EXCLUSIVE MODE;
+
+            SELECT * INTO "old"
+              FROM tracked
+             WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
+
+	     IF "old" IS NULL THEN
+                -- No concurrent data change
+                INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
+                                     "uploaded", "downloaded", "left", "last_request")
+                    VALUES ("p_info_hash", "p_peer_id", "p_host", "p_port",
+                            "p_uploaded", "p_downloaded", "p_left",
+			    now());
+            ELSE
+                -- Data has appeared in the meantime, retry:
+                SELECT * FROM set_peer(
+                    p_info_hash, p_host, p_port, p_peer_id,
+		    p_uploaded, p_downloaded, p_left,
+                    up, down);
+            END IF;
         ELSE
             "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
             -- Estimate speeds, with sanity checks first:
