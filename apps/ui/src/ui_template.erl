@@ -1397,7 +1397,7 @@ explain_error1(_, no_content_length) ->
 explain_error1(_, {nxdomain, _}) ->
     <<"DNS error">>;
 explain_error1(_, Term) ->
-    {pre, io_lib:format("~p", [Term])}.
+    <<"Internal error">>.
 
 
 
