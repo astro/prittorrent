@@ -161,10 +161,14 @@ spawn_set_peer(InfoHash,
 				 Host, Port, PeerId,
 				 Event, Uploaded, Downloaded, Left,
 				 Reason]);
-		  _ ->
+		  ok ->
 		      T2 = util:get_now_us(),
 		      io:format("[~.1fms] set_peer~n", [(T2 - T1) / 1000]),
-		      ok
+		      ok;
+		  {error, not_tracked} ->
+		      T2 = util:get_now_us(),
+		      io:format("[~.1fms] set_peer not_tracked~n", [(T2 - T1) / 1000]),
+		      not_tracked
 	      end
       end).
 

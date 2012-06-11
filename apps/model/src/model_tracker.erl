@@ -36,14 +36,20 @@ get_peers(InfoHash, ReqPeerId, LeechersOnly) ->
 
 %% Add/Update
 set_peer(InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left) ->
-    %% FIXME: up/down not going out
-    {ok, _, [{_Up, _Down}]} = 
-	?Q("SELECT \"up\", \"down\" FROM set_peer($1, $2, $3, $4, $5, $6, $7)",
-	   [InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left]),
-    %%io:format("set_peer: ~p~n", [{_Up, _Down}]),
-
-    %% TODO: Report back deltas:
-    {ok}.
+    case ?Q("SELECT \"up\", \"down\" FROM set_peer($1, $2, $3, $4, $5, $6, $7)",
+	    [InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left]) of
+	%% FIXME: up/down not going out
+	{ok, _, [{_Up, _Down}]} ->
+	    %% TODO: Report back deltas:
+	    ok;
+	{error, {error, _, _, Message, _Details}} ->
+	    case (catch split_binary(Message, size(Message) - 24)) of
+		{_, <<"\"tracked_info_hash_fkey\"">>} ->
+		    {error, not_tracked};
+		_ ->
+		    {error, Message}
+	    end
+    end.
 
 %% Remove
 rm_peer(InfoHash, PeerId, Uploaded, Downloaded) ->
