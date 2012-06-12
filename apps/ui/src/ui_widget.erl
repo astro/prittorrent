@@ -185,9 +185,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		        a1.setAttribute('type', \"application/x-bittorrent\");
                         var title = info.seeders + \" Seeder, \" + info.leechers + \" Leecher\";
                         if (info.downloaded == 1)
-                            title += \"1 Download\";
+                            title += \", 1 Download\";
                         else if (info.downloaded > 1)
-                            title += info.downloaded + \" Downloads\";
+                            title += \", \" + info.downloaded + \" Downloads\";
 		        a1.setAttribute('title', title);
 		        p.appendChild(a1);
 
