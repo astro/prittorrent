@@ -2,7 +2,8 @@
 
 -export([get_now/0, get_now_us/0, measure/2,
 	 pmap/2, binary_to_hex/1, hex_to_binary/1,
-	 seed_random/0]).
+	 seed_random/0,
+	 iso8601/1, iso8601/2]).
 
 get_now() ->
     {MS, S, SS} = erlang:now(),
@@ -65,3 +66,47 @@ seed_random() ->
     {MS, S, SS} = erlang:now(),
     PS = lists:sum(pid_to_list(self())),
     random:seed(MS + PS, S, SS).
+
+%% ISO8601 Date Formatting
+
+
+iso8601({{Y, Mo, D}, {H, M, S}}) ->
+    list_to_binary(
+      io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ",
+		    [Y, Mo, D, H, M, trunc(S)])).
+
+iso8601(Local, local) ->
+    [Universal | _] = calendar:local_time_to_universal_time_dst(Local),
+    if
+	Universal < Local ->
+	    {0, {TzH, TzM, _}} =
+		calendar:time_difference(Universal, Local);
+	true ->
+	    {0, {TzH1, TzM}} =
+		calendar:time_difference(Local, Universal),
+	    TzH = -TzH1
+    end,
+    iso8601(Local, {TzH, TzM});
+
+iso8601(Universal, universal) ->
+    Local = calendar:universal_time_to_local_time(Universal),
+    if
+	Universal < Local ->
+	    {0, {TzH, TzM, _}} =
+		calendar:time_difference(Universal, Local);
+	true ->
+	    {0, {TzH1, TzM}} =
+		calendar:time_difference(Local, Universal),
+	    TzH = -TzH1
+    end,
+    iso8601(Local, {TzH, TzM});
+
+iso8601({{Y, Mo, D}, {H, M, S}}, {TzH, TzM}) ->
+    list_to_binary(
+      io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B~c~2..0B:~2..0B",
+		    [Y, Mo, D, H, M, trunc(S),
+		     if
+			 TzH < 0 -> $-;
+			 true -> $+
+		     end, abs(TzH), TzM])).
+

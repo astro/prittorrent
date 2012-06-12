@@ -470,7 +470,7 @@ handle_request2(#req{method = 'GET',
 					 {<<"permalink">>, <<(ui_link:base())/binary, (ui_link:link_item(User, Slug, Item))/binary>>},
 					 {<<"item.id">>, Item},
 					 {<<"item.title">>, Title},
-					 {<<"item.published">>, iso8601(Published)},
+					 {<<"item.published">>, util:iso8601(Published)},
 					 {<<"item.homepage">>, Homepage},
 					 {<<"item.payment">>, Payment},
 					 {<<"item.image">>, Image},
@@ -770,8 +770,8 @@ handle_request2(#req{method = 'GET',
 		model_graphs:get_gauge(leechers, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"seeders">>, {obj, convert_graphs_time(Seeders)}},
 			   {<<"leechers">>, {obj, convert_graphs_time(Leechers)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, util:iso8601(Start, local)},
+			   {<<"stop">>, util:iso8601(Stop, local)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"traffic.json">> ->
@@ -784,16 +784,16 @@ handle_request2(#req{method = 'GET',
 	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
 			   {<<"up">>, {obj, convert_graphs_time(Up)}},
 			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, util:iso8601(Start)},
+			   {<<"stop">>, util:iso8601(Stop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"downloads.json">> ->
 	    Downloads =
 		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}},
-			   {<<"start">>, iso8601(Start)},
-			   {<<"stop">>, iso8601(Stop)},
+			   {<<"start">>, util:iso8601(Start)},
+			   {<<"stop">>, util:iso8601(Stop)},
 			   {<<"interval">>, Interval}
 			  ]});
 	_ ->
@@ -981,21 +981,11 @@ hmac(Key, Text) ->
     Ctx1 = crypto:hmac_init(sha, Key),
     Ctx2 = crypto:hmac_update(Ctx1, Text),
     crypto:hmac_final(Ctx2).
-
-iso8601({{Y, Mo, D}, {H, M, S}}) ->
-    list_to_binary(
-      io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
-		    [Y, Mo, D, H, M, trunc(S)])).
-
-universal_to_local_time({Date, {H, M, S}}) ->
-    calendar:universal_time_to_local_time(
-      {Date, {H, M, trunc(S)}}).
     
 convert_graphs_time(Data) ->
     lists:map(
-      fun({Date, Value}) ->
-	      LocalDate = universal_to_local_time(Date),
-	      {iso8601(LocalDate), Value}
+      fun({{Date1, {H, M, S}}, Value}) ->
+	      {util:iso8601({Date1, {H, M, trunc(S)}}, universal), Value}
       end, Data).
 
 compress_body([{<<"gzip">>, _} | _], Body) ->
