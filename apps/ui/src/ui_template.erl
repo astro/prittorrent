@@ -1120,6 +1120,16 @@ render_user(Req, UserName) ->
        | render_feedslinks(UserName)],
       {header, [{class, "user"}],
        [render_meta(h2, UserTitle, UserImage, UserHomepage),
+	if
+	    CanEdit ->
+		{p,
+		 [<<"New: ">>,
+		  {a, [{href, "/help/podcaster/widget"}],
+		   <<"Get a widget for your torrents!">>}
+		 ]};
+	    true ->
+		[]
+	end,
 	render_feedslist(UserName)
        ]},
       [{h2, "Feeds"} |
