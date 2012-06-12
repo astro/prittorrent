@@ -46,8 +46,10 @@ function resolve(url, cb) {
     maySetTimeout();
 }
 
-var timeout;
+var timeout, sending = false;
 function maySetTimeout() {
+    if (sending)
+        return;
     var pending = Object.keys(urlCallbacks).length > 0;
 
     if (!timeout && pending) {
@@ -91,6 +93,8 @@ function doSend(urls, cb) {
     cl.open('GET', 'http://api.bitlove.org/by-enclosure.json?' + q);
     cl.onreadystatechange = function() {
 	if (this.readyState == this.DONE) {
+            sending = false;
+
 	    var response;
 	    if (this.status == 200 &&
 		this.responseText) {
@@ -108,6 +112,7 @@ function doSend(urls, cb) {
 	}
     };
     cl.send();
+    sending = true;
 }
 
 ">>.
