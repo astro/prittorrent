@@ -826,10 +826,53 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 		  [<<"Obtain torrent (and source) information by URL
     of the original podcast files. The endpoint allows multiple URLs
     to be processed at once. They query key must start with ">>,
-		   {code, <<"url">>}
+		   {code, <<"url">>},
+		   <<" and you should URL-escape the values for safety.">>
 		  ]},
 		 {pre,
-		  <<"curl \"http://api.bitlove.org/by-enclosure.json?url=http://chaosradio.ccc.de/archive/chaosradio_30.mp3&url=http://chaosradio.ccc.de/archive/chaosradio_31.mp3&url=http://chaosradio.ccc.de/archive/chaosradio_32.mp3&url2=http://chaosradio.ccc.de/archive/chaosradio_33.mp3&url3=http://chaosradio.ccc.de/archive/chaosradio_34.mp3\"">>},
+		  <<"$ curl \"http://api.bitlove.org/by-enclosure.json?url=http%3A%2F%2Fspaceboyz.net%2F~astro%2Fbitlove-show%2Fbl001-introduction.webm&url=http%3A%2F%2Fspaceboyz.net%2F~astro%2Fbitlove-show%2Fbl001-introduction.subs.mkv\"
+
+{ \"http://spaceboyz.net/~astro/bitlove-show/bl001-introduction.webm\": {
+    \"info_hash\": \"4cb67059ed6bd08362da625b3ae77f6f4a075705\",
+    \"size\": 19211729,
+    \"seeders\": 11,
+    \"leechers\": 0,
+    \"upspeed\": 0,
+    \"downspeed\": 0,
+    \"downloaded\": 284,
+    \"sources\": [{
+        \"torrent\": \"http://bitlove.org/astro/bitlove-show/bl001-introduction.webm.torrent\",
+        \"permalink\": \"http://bitlove.org/astro/bitlove-show#bl001\",
+        \"item.id\": \"bl001\",
+        \"item.title\": \"BL001 Introduction\",
+        \"item.published\": \"2012-05-04T19:30:00\",
+        \"item.homepage\": \"http://bitlove.org/astro/bitlove-show#bl001\",
+        \"item.payment\": \"http://flattr.com/thing/662636/Torrent-for-BL001-Introduction-on-Bitlove\",
+        \"item.image\": \"http://bitlove.org/static/logo.svg\",
+        \"feed.title\": \"The Bitlove Home Show\"
+    }]
+  },
+  \"http://spaceboyz.net/~astro/bitlove-show/bl001-introduction.subs.mkv\": {
+    \"info_hash\": \"d28e2a638c5a895f607cfb6a4967b91653a75070\",
+    \"size\": 19181967,
+    \"seeders\": 3,
+    \"leechers\": 0,
+    \"upspeed\": 0,
+    \"downspeed\": 0,
+    \"downloaded\": 133,
+    \"sources\": [{
+        \"torrent\": \"http://bitlove.org/astro/bitlove-show/bl001-introduction.subs.mkv.torrent\",
+        \"permalink\": \"http://bitlove.org/astro/bitlove-show#bl001\",
+        \"item.id\": \"bl001\",
+        \"item.title\": \"BL001 Introduction\",
+        \"item.published\": \"2012-05-04T19:30:00\",
+        \"item.homepage\": \"http://bitlove.org/astro/bitlove-show#bl001\",
+        \"item.payment\": \"http://flattr.com/thing/662636/Torrent-for-BL001-Introduction-on-Bitlove\",
+        \"item.image\": \"http://bitlove.org/static/logo.svg\",
+        \"feed.title\":\"The Bitlove Home Show\"
+    }]
+}}
+">>},
 		 {p,
 		  [<<"This API is ">>,
 		   {a, [{href, <<"http://enable-cors.org/">>}],

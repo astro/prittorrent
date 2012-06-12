@@ -725,4 +725,5 @@ pre {
   margin: 0.5em 0;
   padding: 0.5em 4em;
   background-color: #ccc;
+  overflow: auto;
 }
