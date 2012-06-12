@@ -742,7 +742,7 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 		]};
 	   [<<"feeds">>] ->
 	       {<<"Feeds">>,
-		[{h3, <<"Why do I get do see feedproxy.google.com?">>},
+		[{h3, <<"Why is feedproxy.google.com on display?">>},
 		 {p, <<"Please use your original feed URL for Bitlove. That way, we don't mess with your Google statistics. We also avoid a lot of needless HTTP redirections.">>},
 		 {h3, <<"Donation links">>},
 		 {p,
