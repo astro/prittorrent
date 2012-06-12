@@ -246,7 +246,14 @@ link1(Xml, [ChildName | ChildNames]) ->
     end.
 
 item_published(ItemEl) ->
-    item_published1(ItemEl, ["pubDate", "published", "updated"]).
+    Published =
+	item_published1(ItemEl, ["pubDate", "published", "updated"]),
+    try fix_timestamp(Published) of
+	<<Result/binary>> ->
+	    Result
+    catch exit:_Reason ->
+	    Published
+    end.
 
 item_published1(_ItemEl, []) ->
     undefined;
@@ -271,6 +278,78 @@ item_published1(ItemEl, [ChildName | ChildNames]) ->
 	_ ->
 	    R
     end.
+
+%% Some date parsing for item_published1/2
+-compile(export_all).
+fix_timestamp(S) ->
+    %% Tue, 12 Jun 2012 22:43:48 +0200
+    case run_re(S, "(\\d+) (\\S+) (\\d+) (\\d+):(\\d+):(\\d+)\\s*([0-9:+\\-]*)") of
+	{match, [Day, Mon, Year, Hour, Min, Sec, Tz]} ->
+	    Date = {bin_to_int(Year), month_to_int(Mon), bin_to_int(Day)},
+	    Time = {bin_to_int(Hour), bin_to_int(Min), bin_to_int(Sec)},
+	    case run_re(Tz, "([+\\-])(\\d{1,2}):?(\\d*)") of
+		{match, [Sig, TzH1, TzM1]} ->
+		    TzH =
+			case Sig of
+			    <<"+">> -> 1;
+			    <<"-">> -> -1
+			end *
+			bin_to_int(TzH1),
+		    TzM =
+			case TzM1 of
+			    <<>> ->
+				0;
+			    _ ->
+				bin_to_int(TzM1)
+			end;
+		nomatch ->
+		    TzH = 0,
+		    TzM = 0
+	    end,
+	    util:iso8601({Date, Time}, {TzH, TzM});
+	nomatch ->
+	    S
+    end.
+
+run_re(S, RE) ->
+    case get({?MODULE, cached_re, RE}) of
+	undefined ->
+	    {ok, CompiledRE} = re:compile(RE),
+	    put({?MODULE, cached_re, RE}, CompiledRE);
+	CompiledRE ->
+	    ok
+    end,
+
+    case re:run(S, CompiledRE) of
+	{match, [_All | Captures]} ->
+	    {match,
+	     lists:map(fun({CapStart, CapLength}) ->
+			       {_, S1} = split_binary(S, CapStart),
+			       {S2, _} = split_binary(S1, CapLength),
+			       S2
+		       end, Captures)};
+	nomatch ->
+	    nomatch
+    end.
+
+bin_to_int(B) ->
+    list_to_integer(
+      binary_to_list(B)).
+
+month_to_int(<<"Jan">>) -> 1;
+month_to_int(<<"Feb">>) -> 2;
+month_to_int(<<"Mar">>) -> 3;
+month_to_int(<<"Apr">>) -> 4;
+month_to_int(<<"May">>) -> 5;
+month_to_int(<<"Jun">>) -> 6;
+month_to_int(<<"Jul">>) -> 7;
+month_to_int(<<"Aug">>) -> 8;
+month_to_int(<<"Sep">>) -> 9;
+month_to_int(<<"Oct">>) -> 10;
+month_to_int(<<"Nov">>) -> 11;
+month_to_int(<<"Dec">>) -> 12.
+    
+
 
 item_link(ItemEl) ->
     ?MODULE:link(ItemEl).
