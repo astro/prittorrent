@@ -110,10 +110,7 @@ html(#render_opts{title = HtmlTitle,
 	      ]},
 	     {'div',
 	      [{p, <<"Contact:">>},
-	       {p, 
-		[{a, [{href, <<"mailto:mail@bitlove.org">>}],
-		  <<"mail@bitlove.org">>}
-		]}
+	       {p, contact_address()}
 	      ]},
 	     {'div',
 	      [{p,
@@ -151,6 +148,15 @@ render_link(URL, Text1) ->
 		Text1
 	end,
     {a, [{href, URL}], Text3}.
+
+contact_address() ->
+    {a, [{href, <<"mailto:mail@bitlove.org">>}],
+     <<"mail@bitlove.org">>}.
+
+contact_address(Text) ->
+    {a, [{href, <<"mailto:mail@bitlove.org">>}],
+     Text}.
+
 
 ends_with_only_slash(<<$/>>) ->
     true;
@@ -592,7 +598,7 @@ render_signup(Req) ->
        {h2, <<"Representing a broadcast institution?">>},
        {p,
 	[<<"Place your content on Bitlove to make your audience happy! Contact us at ">>,
-	 {a, [{href, <<"mailto:mail@bitlove.org">>}], <<"mail@bitlove.org">>}
+	 contact_address()
 	]}
       ]).
 
@@ -683,7 +689,156 @@ render_help(Req, []) ->
 	<<"Yes. Bitlove distributes only content which publishers explicitly ordered. If you get caught because of file-sharing activities, it's due to content, not technology.">>}
       ]);
 
-render_help(Req, [<<"podcaster">>]) ->
+render_help(Req, [<<"podcaster">> | Path]) ->
+    {Title, Content} =
+       case Path of
+	   [] ->
+	       {<<"Getting started">>,
+		[{h3, <<"What do I need to publish?">>},
+		 {img, [{class, "right"},
+			{src, <<"/static/help-podcaster-feed.png">>}], []},
+		 {dl,
+		  [{dt, <<"A Podcast Feed (RSS/ATOM)">>},
+		   {dd, <<"which tells us what's new, and what to torrentify.">>},
+		   {dt, <<"A Web Server">>},
+		   {dd, <<"that your users download from. Bitlove downloads from there too.">>},
+		   {dt, <<"A Homepage">>},
+		   {dd, <<" to point to, to serve your user picture from, to provide more information for users.">>}
+		  ]},
+		 {h3, <<"How do I sign up?">>},
+		 {p,
+		  [{a, [{href, "/signup"}], <<"You enter your desired username">>},
+		   <<" and your email address, in case we need to talk to you individually.">>
+		  ]},
+		 {img, [{src, "/static/activate-account.png"}], []},
+		 {p,
+		  [<<"Your account ">>,
+		   {b, <<"activation mail">>},
+		   <<" arrives. ">>,
+		   <<"Set your new password. Done. ">>,
+		   {b, <<"Welcome to Bitlove!">>}
+		  ]},
+		 {p,
+		  [<<"You now have a user profile page. When you are logged in, you can click the edit button to complete your information. ">>,
+		   {b, <<"Click the Add button">>},
+		   <<" to add a new feed.">>
+		  ]},
+		 {img, [{class, "right"},
+			{src, "/static/edit.png"}], []},
+		 {p,
+		  [<<"We want your consent on content distribution. ">>,
+		   <<"Only when you are happy with the way your feeds are represented, you ">>,
+		   {b, <<"click Edit">>},
+		   <<" and set your feed ">>,
+		   {b, <<"public.">>},
+		   <<" Now the feed's torrents are listed on your public user profile and in the directory pages.">>
+		  ]},
+		 {p,
+		  [{b, <<"Questions?">>},
+		   <<" Don't hesitate. Contact ">>,
+		   contact_address(),
+		   <<" today!">>
+		  ]}
+		]};
+	   [<<"feeds">>] ->
+	       {<<"Feeds">>,
+		[{h3, <<"Why do I get do see feedproxy.google.com?">>},
+		 {p, <<"Please use your original feed URL for Bitlove. That way, we don't mess with your Google statistics. We also avoid a lot of needless HTTP redirections.">>},
+		 {h3, <<"Donation links">>},
+		 {p,
+		  [<<"We use the ">>,
+		   {a, [{href, "http://developers.flattr.net/feed/"}],
+		    <<"payment link relation">>},
+		   <<" reference to display alongside your items. ">>,
+		   <<"You can use any payment processor you like. ">>,
+		   <<"Only recognized Flattr links are rendered as a button widget.">>
+		  ]}
+		]};
+	   [<<"widget">>] ->
+	       {<<"Widgets">>,
+		[{p,
+		  <<"We provide easy to use JavaScript snippets for browser-side integration. They use the API.">>},
+		 {h3, <<"Widget for Podpress">>},
+		 {img, [{src, "/static/podpress-widget.png"}], []},
+		 {p, <<"Include the following snippet in your site's template:">>},
+		 {pre, <<"<script src=\"http://bitlove.org/widget/podpress.js\" type=\"text/javascript\"></script>">>},
+		 {p,
+		  [<<"Make sure you put it after jQuery. ">>,
+		   <<"Contact ">>,
+		   contact_address(),
+		   <<" if you encounter any problems">>
+		  ]},
+		 {h3, <<"Widget for Powerpress">>},
+		 {img, [{src, "/static/powerpress-widget.png"}], []},
+		 {p, <<"Include the following snippet in your site's template:">>},
+		 {pre, <<"<script src=\"http://bitlove.org/widget/powerpress.js\" type=\"text/javascript\"></script>">>},
+		 {p,
+		  [<<"Please ">>,
+		   contact_address(<<"contact us">>),
+		   <<" if you encounter any problems">>
+		  ]},
+		 {h3, <<"What else?">>},
+		 {p,
+		  [<<"It's trivial to come up with a snippet. ">>,
+		   contact_address(<<"Tell us">>),
+		   <<" about your site and rainbows will happen.">>
+		  ]},
+		 {h3, <<"Roll your own">>},
+		 {p, <<"Start with the following snippet:">>},
+		 {pre,
+		  [<<"<script src=\"http://bitlove.org/widget/base.js\" type=\"text/javascript\"></script>
+
+<script type=\"text/javascript\">
+    /* myPodcastLinks is an Array of Strings that are links to your
+     * episode's (mp3, ogg, m4a, ...) files:
+     */
+    myPodcastLinks.forEach(function(url) {
+        /* Do an AJAX call to retrieve Bitlove information about this
+         * file:
+         */
+        window.torrentByEnclosure(url, function(info) {
+            if (info)
+                /* Display in Firebug/Inspector: */
+                console.log(\"torrent\", url, info);
+        });
+    });
+</script>">>
+		  ]},
+		 {p,
+		  [<<"Please ">>,
+		   contact_address(<<"contact us">>),
+		   <<" if you encounter any problems">>
+		  ]}
+		]};
+	   [<<"api">>] ->
+	       {<<"API">>,
+		[{h3, <<"Crawling the site">>},
+		 {p, 
+		  [<<"We try to put all publicly available data back
+    into feeds and OPML resources. That way you can reuse
+    standard software. You may ">>,
+		   {a, [{href, <<"https://github.com/astro/prittorrent/issues">>}],
+		    <<"create an issue">>},
+		   <<" if you need more functionality.">>
+		  ]},
+		 {h3, <<"Torrent data by enclosure URL">>},
+		 {p,
+		  [<<"Obtain torrent (and source) information by URL
+    of the original podcast files. The endpoint allows multiple URLs
+    to be processed at once. They query key must start with ">>,
+		   {code, <<"url">>}
+		  ]},
+		 {pre,
+		  <<"curl \"http://api.bitlove.org/by-enclosure.json?url=http://chaosradio.ccc.de/archive/chaosradio_30.mp3&url=http://chaosradio.ccc.de/archive/chaosradio_31.mp3&url=http://chaosradio.ccc.de/archive/chaosradio_32.mp3&url2=http://chaosradio.ccc.de/archive/chaosradio_33.mp3&url3=http://chaosradio.ccc.de/archive/chaosradio_34.mp3\"">>},
+		 {p,
+		  [<<"This API is ">>,
+		   {a, [{href, <<"http://enable-cors.org/">>}],
+		    <<"CORS-enabled">>},
+		   <<" and in actual use by the widgets.">>
+		  ]}
+		]}
+       end,
+
     page_1column(
       #render_opts{title = <<"Bitlove: Help">>,
 		   ui_req = Req},
@@ -696,58 +851,21 @@ render_help(Req, [<<"podcaster">>]) ->
 	  {li,
 	   {a, [{href, "/help/podcaster"}], <<"Podcasters">>}}
 	 ]}},
-       {h3, <<"What do I need to publish?">>},
-       {img, [{class, "right"},
-	      {src, <<"/static/help-podcaster-feed.png">>}], []},
-       {p, [{class, "about"}],
-	[<<"A ">>,
-	 {b, <<"Podcast Feed">>},
-	 <<" (RSS/ATOM), which tells us what's new, and what is there for torrentification. A ">>,
-	 {b, <<"web server">>},
-	 <<" that your users download from. Bitlove downloads from there too. And possibly a ">>,
-	 {b, <<"Homepage">>},
-	 <<" to point to, to serve your user picture from, to provide more information for users.">>
-	]},
-       {h3, <<"How do I sign up?">>},
-       {p, [{class, "about"}],
-	[{a, [{href, "/signup"}], <<"You enter your desired username">>},
-	 <<" and your email address, in case we need to talk to you individually.">>
-	]},
-       {img, [{class, "left"},
-	      {src, "/static/mail-bird.png"}], []},
-       {p, [{class, "about"}],
-	[<<"Your account ">>,
-	 {b, <<"activation mail">>},
-	 <<" arrives.">>
-	]},
-       {img, [{class, "right"},
-	      {src, "/static/activate-account.png"}], []},
-       {p, [{class, "about"}],
-	[<<"Set your new password. Done. ">>,
-	 {b, <<"Welcome to Bitlove!">>}
-	]},
-       {img, [{class, "left"},
-	      {src, "/static/edit.png"}], []},
-       {p, [{class, "about"}],
-	[<<"You now have a user profile page. When you are logged in, you can click the edit button to complete your information. ">>,
-	 {b, <<"Click the Add button">>},
-	 <<" to add a new feed.">>
-	]},
-       {p, [{class, "about"}],
-	[<<"We want your consent on content distribution. ">>,
-	 <<"Only when you are happy with the way your feeds are represented, you ">>,
-	 {b, <<"click Edit">>},
-	 <<" and set your feed ">>,
-	 {b, <<"public.">>},
-	 <<" Now the feed's torrents are listed on your public user profile and in the directory pages.">>
-	]},
-       {p, [{class, "about"}],
-	[{b, <<"Questions?">>},
-	 <<" Don't hesitate. Contact ">>,
-	 {a, [{href, <<"mailto:mail@bitlove.org">>}], <<"mail@bitlove.org">>},
-	 <<" today!">>
-	]}
+       {h2, Title},
+       {'div', [{class, "navtabs"}],
+	{ul,
+	 [{li,
+	   {a, [{href, "/help/podcaster"}], <<"Getting started">>}},
+	  {li,
+	   {a, [{href, "/help/podcaster/feeds"}], <<"Feeds">>}},
+	  {li,
+	   {a, [{href, "/help/podcaster/widget"}], <<"Widget">>}},
+	  {li,
+	   {a, [{href, "/help/podcaster/api"}], <<"API">>}}
+	 ]}}
+       | Content
       ]);
+
 
 render_help(_Req, _) ->
     throw({http, 404}).

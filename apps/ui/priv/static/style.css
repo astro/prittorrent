@@ -313,7 +313,7 @@ article:target {
 h3 {
   font-size: 120%;
   margin: 0;
-  color: #999;
+  color: #555;
   font-weight: bold;
   line-height: 1em;
   font-family: 'Georgia', serif;
@@ -716,4 +716,13 @@ noscript {
   font-size: 90%;
   font-weight: bold;
   margin-top: 0.5em;
+}
+
+pre {
+  font-family: monospace;
+  font-size: 85%;
+  color: #333;
+  margin: 0.5em 0;
+  padding: 0.5em 4em;
+  background-color: #ccc;
 }
