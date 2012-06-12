@@ -1,6 +1,6 @@
-function timeToSeconds(t) {
+function timeToMS(t) {
     var d = new Date(t);
-    return d.getTime() - d.getTimezoneOffset() * 60;
+    return d.getTime() - d.getTimezoneOffset() * 60 * 1000;
 }
 
 function humanSize(value) {
@@ -82,7 +82,7 @@ Graph.prototype.setData = function(response) {
 	var line = response[name];
 	var d = Object.keys(line).sort().map(function(k) {
 	    var v = line[k];
-	    return [timeToSeconds(k), v];
+	    return [timeToMS(k), v];
 	});
 
 	var label = name;
@@ -160,8 +160,8 @@ Graph.prototype.setData = function(response) {
 	    mode: "time",
 	    timeformat: interval >= 86400000 ? "%m-%d" : "%m-%d\n%H:%M",
 	    tickLength: 7,
-	    min: timeToSeconds(response.start),
-	    max: timeToSeconds(response.stop)
+	    min: timeToMS(response.start),
+	    max: timeToMS(response.stop)
 	},
 	yaxis: {
 	    tickFormatter: tickFormatter
