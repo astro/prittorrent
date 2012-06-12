@@ -1125,7 +1125,7 @@ render_user(Req, UserName) ->
 		{p,
 		 [<<"New: ">>,
 		  {a, [{href, "/help/podcaster/widget"}],
-		   <<"Get a widget for your torrents!">>}
+		   <<"Widgets for your blog!">>}
 		 ]};
 	    true ->
 		[]
