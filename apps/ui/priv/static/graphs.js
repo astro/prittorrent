@@ -1,3 +1,5 @@
+var TZ_OFFSET = "+02:00";
+
 function humanSize(value) {
     var units = ["", "K", "M", "G", "T"];
     var u = 0;
@@ -75,9 +77,9 @@ Graph.prototype.setData = function(response) {
 	    continue;
 
 	var line = response[name];
-	var d = Object.keys(line).sort().map(function(k) {
-	    var v = line[k];
-	    return [new Date(k).getTime(), v];
+	var d = Object.keys(line).sort().map(function(t) {
+	    var v = line[t];
+	    return [new Date(t + TZ_OFFSET).getTime(), v];
 	});
 
 	var label = name;
@@ -209,7 +211,6 @@ StatsHook.prototype.attach = function(sel, type) {
     toggle.click(this.toggleGraph.bind(this, type, toggle));
 };
 
-var TZ_OFFSET = "+02:00";
 StatsHook.prototype.getPublished = function() {
     return this.stats.parents('article').find('.published').
 	text().replace(/\n/, "T") + ":00" + TZ_OFFSET;
