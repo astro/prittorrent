@@ -183,6 +183,12 @@ document.addEventListener('DOMContentLoaded', function(){
 		        a1.textContent = \"Torrent\";
 		        a1.setAttribute('href', torrent);
 		        a1.setAttribute('type', \"application/x-bittorrent\");
+                        var title = info.seeders + \" Seeder, \" + info.leechers + \" Leecher\";
+                        if (info.downloaded == 1)
+                            title += \"1 Download\";
+                        else if (info.downloaded > 1)
+                            title += info.downloaded + \" Downloads\";
+		        a1.setAttribute('title', title);
 		        p.appendChild(a1);
 
 		        var link = info.sources[0].permalink;
