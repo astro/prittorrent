@@ -12,8 +12,19 @@ rebar get-deps compile generate
 TODO
 ----
 
-* <atom:link rel="self">
+* limit Published
 
+* enforce https for log in
+* clickable stats hint
+* UI: Detect browser language
+* Scaled images cache
+
+* <atom:link rel="self">
+* parse rss pubDate tz offset
+* Download buttons: display mime type/titles
+
+* refactor xml storage
+* stop seeding
 * model:
   * queueify scraped triggers
 
@@ -22,9 +33,7 @@ TODO
   * Flattr donate
 
 * Check U-A & replace RSS links with Miro subscribe URLs
-* UI: Detect browser language
 * lhttpc + zlib
-* parse rss pubDate tz offset
 
 * Edit user:
   * About field
@@ -38,11 +47,9 @@ TODO
 * update cowboy
 * feeds_parse: http://video.search.yahoo.com/mrss
 
-* enforce https for log in
 * more configurability
 
 * Fetch & display feed summaries
-* Download buttons: display mime type/titles
 
 * Feed summaries: X items, Y torrents
 
