@@ -879,7 +879,9 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 		    <<"CORS-enabled">>},
 		   <<" and in actual use by the widgets.">>
 		  ]}
-		]}
+		]};
+	   _ ->
+	       throw({http, 404})
        end,
 
     page_1column(
