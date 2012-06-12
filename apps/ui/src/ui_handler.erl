@@ -56,9 +56,9 @@ handle(Req, State) ->
 	    case Path of
 		[<<"by-enclosure.json">>] ->
 		    %% Count Widget API by Referer
-		    case cowboy_http_req:header(<<"Referer">>, Req) of
-			{Referer1, _} when is_binary(Referer1) ->
-			    Referer = Referer1;
+		    case cowboy_http_req:header('Referer', Req) of
+			{Referer, _} when is_binary(Referer) ->
+			    ok;
 			{_, _} ->
 			    Referer = <<"">>
 		    end,
