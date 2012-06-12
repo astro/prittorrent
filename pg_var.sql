@@ -12,6 +12,17 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELE
 
 CREATE INDEX feed_items_published ON feed_items ("published" DESC);
 
+-- Used for inserting items:
+CREATE OR REPLACE FUNCTION no_future(
+    TIMESTAMP WITH TIME ZONE
+) RETURNS TIMESTAMP WITH TIME ZONE
+AS $$
+    SELECT CASE
+               WHEN $1 > NOW() THEN NOW()
+               ELSE $1
+           END;
+$$ LANGUAGE SQL;
+
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
                          "item" TEXT NOT NULL,
                          "url" TEXT NOT NULL,

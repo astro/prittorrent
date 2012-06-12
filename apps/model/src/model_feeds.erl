@@ -95,7 +95,7 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 						       io:format("  e ~s~n", [Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
-				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"xml\", \"updated\") VALUES ($1, $2, $3, ($4::text)::timestamp, $5, $6, $7, $8, CURRENT_TIMESTAMP)",
+				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"xml\", \"updated\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, $8, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title, Item#feed_item.published, 
 					enforce_string(Item#feed_item.homepage),
