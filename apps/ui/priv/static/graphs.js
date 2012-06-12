@@ -209,9 +209,10 @@ StatsHook.prototype.attach = function(sel, type) {
     toggle.click(this.toggleGraph.bind(this, type, toggle));
 };
 
+var TZ_OFFSET = "+02:00";
 StatsHook.prototype.getPublished = function() {
     return this.stats.parents('article').find('.published').
-	text().replace(/\n/, "T");
+	text().replace(/\n/, "T") + ":00" + TZ_OFFSET;
 };
 
 StatsHook.prototype.toggleGraph = function(type, toggle) {
