@@ -59,11 +59,19 @@ handle1(Req, Host, Method, Path) ->
     %% TODO: numwant w/ checks
     %% TODO: key
 
-    handle2(Method, Path, InfoHash,
-	    host_to_binary(Host), binary_to_integer_or(Port, undefined), PeerId,
-	    Event,
-	    binary_to_integer_or(Uploaded, 0), binary_to_integer_or(Downloaded, 0),
-	    binary_to_integer_or(Left, 0), Compact).
+    case model_torrents:exists(InfoHash) of
+	true ->
+	    handle2(Method, Path, InfoHash,
+		    host_to_binary(Host), binary_to_integer_or(Port, undefined), PeerId,
+		    Event,
+		    binary_to_integer_or(Uploaded, 0), binary_to_integer_or(Downloaded, 0),
+		    binary_to_integer_or(Left, 0), Compact);
+	false ->
+	    io:format("Unknown info_hash: ~p~n", [InfoHash]),
+	    {ok, [{<<"failure">>, <<"Not tracked. Go away!">>},
+		  {<<"interval">>, 65535}
+		 ]}
+    end.
 
 handle2('GET', [<<"announce">>], <<InfoHash:20/binary>>, 
 	Host, Port, <<PeerId:20/binary>>, 

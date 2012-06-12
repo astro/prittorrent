@@ -1,6 +1,6 @@
 -module(model_torrents).
 
--export([add_torrent/4, get_torrent/1, get_info/1, calculate_names_sizes/0]).
+-export([add_torrent/4, get_torrent/1, get_info/1, exists/1, calculate_names_sizes/0]).
 
 -include("../include/model.hrl").
 
@@ -29,6 +29,17 @@ get_info(InfoHash) ->
 	_ ->
 	    {error, not_found}
     end.
+
+exists(<<InfoHash:20/binary>>) ->
+    case ?Q("SELECT TRUE FROM torrents WHERE \"info_hash\"=$1",
+	    [InfoHash]) of
+	{ok, _, [{true}]} ->
+	    true;
+	{ok, _, _} ->
+	    false
+    end;
+exists(_) ->
+    false.
 
 
 %% Maintenance
