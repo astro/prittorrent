@@ -53,7 +53,21 @@ handle(Req, State) ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
 
-	    count_request(Method, Path),
+	    case Path of
+		[<<"by-enclosure.json">>] ->
+		    %% Count Widget API by Referer
+		    case cowboy_http_req:header(<<"Referer">>, Req) of
+			{Referer1, _} when is_binary(Referer1) ->
+			    Referer = Referer1;
+			{_, _} ->
+			    Referer = <<"">>
+		    end,
+		    model_stats:add_counter(
+		      <<"by-enclosure.json">>, Referer, 1);
+		_ ->
+		    %% Count hit
+		    count_request(Method, Path)
+	    end,
 	    {ok, Req4, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
