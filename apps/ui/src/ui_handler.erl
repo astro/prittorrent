@@ -496,6 +496,13 @@ handle_request2(#req{method = 'GET',
      [{<<"Content-Type">>, ?MIME_JAVASCRIPT}], [],
      Body};
 
+handle_request2(#req{method = 'GET',
+		     path = [<<"widget">>, <<"powerpress.js">>]}) ->
+    Body = ui_widget:serve_powerpress(),
+    {ok, 200,
+     [{<<"Content-Type">>, ?MIME_JAVASCRIPT}], [],
+     Body};
+
 %% User profile
 handle_request2(#req{method = 'GET',
 		     path = [<<UserName/binary>>]

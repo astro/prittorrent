@@ -1,6 +1,6 @@
 -module(ui_widget).
 
--export([serve_base/0, serve_podpress/0]).
+-export([serve_base/0, serve_podpress/0, serve_powerpress/0]).
 
 serve_base() ->
     [
@@ -12,6 +12,13 @@ serve_base() ->
 serve_podpress() ->
     [
      wrap_fun(podpress_code()),
+     <<";\n">>
+    ].
+
+
+serve_powerpress() ->
+    [
+     wrap_fun(powerpress_code()),
      <<";\n">>
     ].
 
@@ -146,3 +153,53 @@ $(document).ready(function() {
     });
 });
 ">>].
+
+powerpress_code() ->
+    [
+     base_code(),
+     <<"
+
+document.addEventListener('DOMContentLoaded', function(){
+    var i, ps = document.getElementsByClassName('powerpress_links');
+    for(i = 0; i < ps.length; i++) {
+	var p = ps[i];
+	var j, as = p.getElementsByClassName('powerpress_link_d');
+	for(j = 0; j < as.length; j++) {
+	    var a = as[j];
+	    var url = a.getAttribute('href');
+
+	    if (/\.torrent$/.test(url))
+		return;
+
+	    (function(p) {
+	        resolve(url, function(info) {
+	            console.log(\"resolve\",url,info);
+	            var torrent = info && info.sources && info.sources[0] && info.sources[0].torrent;
+	            if (info && torrent) {
+		        var t1 = document.createTextNode(\" | \");
+		        p.appendChild(t1);
+
+		        var a1 = document.createElement('a');
+		        a1.textContent = \"Torrent\";
+		        a1.setAttribute('href', torrent);
+		        a1.setAttribute('type', \"application/x-bittorrent\");
+		        p.appendChild(a1);
+
+		        var link = info.sources[0].permalink;
+		        if (link) {
+		            var t2 = document.createTextNode(\" on \");
+		            p.appendChild(t2);
+
+		            var a2 = document.createElement('a');
+		            a2.textContent = \"Bitlove\";
+		            a2.setAttribute('href', link);
+		            p.appendChild(a2);
+		        }
+	            }
+	        });
+	    })(p);
+	}
+    }
+}, false);
+">>].
+    
