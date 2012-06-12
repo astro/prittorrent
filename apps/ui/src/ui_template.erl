@@ -789,6 +789,7 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 		  [<<"<script src=\"http://bitlove.org/widget/base.js\" type=\"text/javascript\"></script>
 
 <script type=\"text/javascript\">
+    /* <!-- */
     /* myPodcastLinks is an Array of Strings that are links to your
      * episode's (mp3, ogg, m4a, ...) files:
      */
@@ -802,6 +803,7 @@ render_help(Req, [<<"podcaster">> | Path]) ->
                 console.log(\"torrent\", url, info);
         });
     });
+    /* --> */
 </script>">>
 		  ]},
 		 {p,
