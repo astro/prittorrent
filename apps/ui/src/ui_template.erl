@@ -794,18 +794,17 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 
 <script type=\"text/javascript\">
     /* <!-- */
-    /* myPodcastLinks is an Array of Strings that are links to your
-     * episode's (mp3, ogg, m4a, ...) files:
-     */
-    myPodcastLinks.forEach(function(url) {
-        /* Do an AJAX call to retrieve Bitlove information about this
-         * file:
-         */
-        window.torrentByEnclosure(url, function(info) {
-            if (info)
-                /* Display in Firebug/Inspector: */
-                console.log(\"torrent\", url, info);
-        });
+    /**
+     * You need the url of the episode's enclosure (mp3,
+     * m4a, ... file) that Bitlove torrentified for you.
+     *
+     * This performs an AJAX call to retrieve torrent
+     * information about this file:
+     **/
+    torrentByEnclosure(url, function(info) {
+        if (info)
+            /* Display in Firebug/Inspector: */
+            console.log(\"torrent\", url, info);
     });
     /* --> */
 </script>">>
