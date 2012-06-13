@@ -101,10 +101,23 @@ json_ok(JSON, Cookies, Headers) ->
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
+    Method = case cowboy_http_req:method(Req) of
+		 {'HEAD', _} ->
+		     %% Implicitly support HEAD, cowboy omits the body
+		     %% for us
+		     'GET';
+		 {Method1, _} ->
+		     Method1
+	     end,
+    {Path, _} = cowboy_http_req:path(Req),
+
     %% Enforce proper vhost:
     {Host, _} = cowboy_http_req:header('Host', Req),
     case Host of
 	<<"bitlove.org">> ->
+	    ok;
+	<<"api.bitlove.org">>
+	  when Path == [<<"by-enclosure.json">>] ->
 	    ok;
 	<<"localhost">> ->
 	    ok;
@@ -117,15 +130,6 @@ handle_request1(Req) ->
 	    ignore
     end,
 
-    Method = case cowboy_http_req:method(Req) of
-		 {'HEAD', _} ->
-		     %% Implicitly support HEAD, cowboy omits the body
-		     %% for us
-		     'GET';
-		 {Method1, _} ->
-		     Method1
-	     end,
-    {Path, _} = cowboy_http_req:path(Req),
     {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
     {HexSid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
     Sid =
