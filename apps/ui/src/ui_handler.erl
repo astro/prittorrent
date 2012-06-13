@@ -109,7 +109,10 @@ handle_request1(Req) ->
 	<<"localhost">> ->
 	    ok;
 	<<_/binary>> ->
-	    throw({http, 301, [{<<"Location">>, ui_link:base()}]});
+	    {RawPath, _} = cowboy_http_req:raw_path(Req),
+	    throw({http, 301,
+		   [{<<"Location">>, <<(ui_link:base())/binary, RawPath/binary>>}]
+		  });
 	_ ->
 	    ignore
     end,
