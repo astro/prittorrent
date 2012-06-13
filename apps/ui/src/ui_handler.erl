@@ -74,6 +74,11 @@ handle(Req, State) ->
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
 	    {ok, Req2} = cowboy_http_req:reply(Status, ?HTML_HEADERS, ui_template:render_error(Status), Req),
 	    {ok, Req2, State};
+	{http, Status, Headers} ->
+	    T2 = util:get_now_us(),
+	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
+	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, [], Req),
+	    {ok, Req2, State};
 	E ->
 	    io:format("Error handling ~s ~p:~n~p~n", [Method, RawPath, E]),
 	    {ok, Req2} = cowboy_http_req:reply(500, ?HTML_HEADERS, ui_template:render_error(500), Req),
@@ -96,6 +101,19 @@ json_ok(JSON, Cookies, Headers) ->
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
 handle_request1(Req) ->
+    %% Enforce proper vhost:
+    {Host, _} = cowboy_http_req:header('Host', Req),
+    case Host of
+	<<"bitlove.org">> ->
+	    ok;
+	<<"localhost">> ->
+	    ok;
+	<<_/binary>> ->
+	    throw({http, 301, [{<<"Location">>, ui_link:base()}]});
+	_ ->
+	    ignore
+    end,
+
     Method = case cowboy_http_req:method(Req) of
 		 {'HEAD', _} ->
 		     %% Implicitly support HEAD, cowboy omits the body
