@@ -280,7 +280,9 @@ item_published1(ItemEl, [ChildName | ChildNames]) ->
     end.
 
 %% Some date parsing for item_published1/2
--compile(export_all).
+fix_timestamp(undefined) ->
+    util:iso8601(calendar:local_time(), local);
+
 fix_timestamp(S) ->
     %% Tue, 12 Jun 2012 22:43:48 +0200
     case run_re(S, "(\\d+) (\\S+) (\\d+) (\\d+):(\\d+):(\\d+)\\s*([0-9:+\\-]*)") of
