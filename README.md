@@ -12,8 +12,6 @@ rebar get-deps compile generate
 TODO
 ----
 
-* limit Published
-
 * enforce https for log in
 * clickable stats hint
 * UI: Detect browser language
