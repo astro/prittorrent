@@ -767,6 +767,11 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 		   contact_address(),
 		   <<" if you encounter any problems">>
 		  ]},
+		 {p,
+		  [<<"The button is this image: ">>,
+		   {a, [{href, <<"/static/bitlove-button.png">>}],
+		    {img, [{src, <<"/static/bitlove-button.png">>}], []}}
+		  ]},
 		 {h3, <<"Widget for Powerpress">>},
 		 {img, [{src, "/static/powerpress-widget.png"}], []},
 		 {p, <<"Include the following snippet in your site's template:">>},
