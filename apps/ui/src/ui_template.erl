@@ -204,7 +204,7 @@ render_item(Opts, #feed_item{user = User,
 			     slug = Slug,
 			     id = ItemId,
 			     feed_title = FeedTitle,
-			     published = {PublishedDate, {PublishedHour, PublishedMin, _}},
+			     published = Published,
 			     title = Title,
 			     image = Image,
 			     homepage = Homepage,
@@ -222,8 +222,7 @@ render_item(Opts, #feed_item{user = User,
       end,
       {'div', [{class, <<"right">>}],
        [
-	%% Avoid conversion with floating seconds
-	case (catch erlang:universaltime_to_localtime({PublishedDate, {PublishedHour, PublishedMin, 0}})) of
+	case Published of
 	    %% No interest in seconds at all
 	    {{Y, Mo, D}, {H, M, _S}} ->
 		DateStr = io_lib:format("~B-~2..0B-~2..0B",
@@ -1345,7 +1344,7 @@ render_downloads_feed(rss, Image, Link,
 				   slug = Slug1,
 				   title = ItemTitle,
 				   id = ItemId,
-				   published = {{Y, Mo, D}, {H, M, S}},
+				   published = Published,
 				   image = ItemImage,
 				   payment = ItemPayment,
 				   downloads = Downloads
@@ -1358,8 +1357,7 @@ render_downloads_feed(rss, Image, Link,
 			      {link, ItemLink},
 			      {guid, [{isPermaLink, "true"}],
 			       ItemLink},
-			      {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
-							[Y, Mo, D, H, M, trunc(S)])},
+			      {published, util:iso8601(Published, universal)},
 			      if
 				  is_binary(ItemImage),
 				  size(ItemImage) > 0 ->
@@ -1417,7 +1415,7 @@ render_downloads_feed(atom, Image, Link,
 				  slug = Slug1,
 				  title = ItemTitle,
 				  id = ItemId,
-				  published = {{Y, Mo, D}, {H, M, S}},
+				  published = Published,
 				  image = ItemImage,
 				  payment = ItemPayment,
 				  downloads = Downloads
@@ -1436,8 +1434,7 @@ render_downloads_feed(atom, Image, Link,
 				     {type, "text/html"}
 				    ], ItemLink},
 			     {id, ItemLink},
-			     {published, io_lib:format("~B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B",
-						       [Y, Mo, D, H, M, trunc(S)])},
+			     {published, util:iso8601(Published, universal)},
 			     if
 				 is_binary(ItemImage),
 				 size(ItemImage) > 0 ->
