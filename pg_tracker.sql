@@ -60,8 +60,7 @@ CREATE OR REPLACE FUNCTION set_peer(
                 -- Data has appeared in the meantime, retry:
                 SELECT * FROM set_peer(
                     p_info_hash, p_host, p_port, p_peer_id,
-		    p_uploaded, p_downloaded, p_left,
-                    up, down);
+		    p_uploaded, p_downloaded, p_left);
             END IF;
         ELSE
             "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
