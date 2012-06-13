@@ -12,19 +12,21 @@ rebar get-deps compile generate
 TODO
 ----
 
+* Model:
+  * refactor xml storage
+  * enclosure.type
+  * {users,feeds,feed_items}.summary
+  * queueify scraped triggers
+  
 * enforce https for log in
 * clickable stats hint
 * UI: Detect browser language
 * Scaled images cache
 
 * <atom:link rel="self">
-* parse rss pubDate tz offset
 * Download buttons: display mime type/titles
 
-* refactor xml storage
 * stop seeding
-* model:
-  * queueify scraped triggers
 
 * style:
   * Fonts
