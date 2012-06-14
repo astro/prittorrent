@@ -13,7 +13,6 @@ TODO
 ----
 
 * Model:
-  * refactor xml storage
   * enclosure.type
   * {users,feeds,feed_items}.summary
   * queueify scraped triggers
