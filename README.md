@@ -15,6 +15,7 @@ TODO
 * Model:
   * enclosure.type
   * {users,feeds,feed_items}.summary
+  * lang
   * queueify scraped triggers
   
 * enforce https for log in
@@ -23,6 +24,7 @@ TODO
 * Scaled images cache
 
 * <atom:link rel="self">
+* <atom:link rel="alternate">
 * Download buttons: display mime type/titles
 
 * stop seeding
