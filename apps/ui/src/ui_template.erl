@@ -921,8 +921,8 @@ render_help(_Req, _) ->
     throw({http, 404}).
 
 render_front(Req) ->
-    {ok, RecentDownloads} =
-	model_enclosures:recent_downloads(4),
+    {ok, PopularDownloads} =
+	model_enclosures:popular_downloads(4, 1),
     
     Opts = #render_opts{title = <<"Bitlove: Peer-to-Peer Love for Your Podcast Downloads">>,
 			publisher = true,
@@ -971,7 +971,7 @@ render_front(Req) ->
 	 ]}
        }
       ],
-      {'div', render_downloads(Opts, RecentDownloads)}
+      {'div', render_downloads(Opts, PopularDownloads)}
      ).
 
 render_new(Req) ->

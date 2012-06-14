@@ -61,7 +61,6 @@ popular_downloads(Limit, peers) ->
     query_downloads("get_popular_downloads($1)", [Limit]);
 
 popular_downloads(Limit, Period) when is_integer(Period) ->
-    io:format("popular_downloads ~p ~p~n", [Limit, Period]),
     query_downloads("get_most_downloaded($1, $2)", [Limit, Period]);
 popular_downloads(Limit, all) ->
     %% get_popular_downloads() will select "downloaded"
