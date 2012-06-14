@@ -180,9 +180,9 @@ feed_data(FeedURL, MaxEnclosures) ->
 	    [FeedURL]) of
 	{ok, _, [{FeedXml}]} ->
 	    {ok, _, EnclosureMap} =
-		?Q("SELECT enclosures.url, torrents.name FROM enclosures JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE enclosures.feed=$1 ORDER BY url ASC LIMIT $2",
+		?Q("SELECT enclosures.url, torrents.name FROM enclosures JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE enclosures.feed=$1 LIMIT $2",
 		   [FeedURL, MaxEnclosures]),
-	    {ok, FeedXml, gb_trees:from_orddict(EnclosureMap)};
+	    {ok, FeedXml, dict:from_list(EnclosureMap)};
 	{ok, _, []} ->
 	    {error, not_found}
     end.

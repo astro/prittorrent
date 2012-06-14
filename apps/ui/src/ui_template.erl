@@ -1295,8 +1295,8 @@ export_feed(_Req, UserName, Slug) ->
 	    FeedEl2 = feeds_parse:replace_item_enclosures(
 			FeedEl1,
 			fun(URL) ->
-				case gb_trees:lookup(URL, EnclosureMap) of
-				    {value, Name} when is_binary(Name) ->
+				case dict:find(URL, EnclosureMap) of
+				    {ok, Name} when is_binary(Name) ->
 					<<(ui_link:base())/binary,
 					  (ui_link:torrent(UserName, Slug, Name))/binary>>;
 				    _ ->
