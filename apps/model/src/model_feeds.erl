@@ -95,22 +95,22 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 						       io:format("  e ~s~n", [Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
-				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"xml\", \"updated\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, $8, CURRENT_TIMESTAMP)",
+				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"updated\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title, Item#feed_item.published, 
 					enforce_string(Item#feed_item.homepage),
 					enforce_string(Item#feed_item.payment),
-					enforce_string(Item#feed_item.image),
-					Item#feed_item.xml]);
+					enforce_string(Item#feed_item.image)
+				       ]);
 			     {ok, _, [{1}]} ->
 				 {ok, 1} =
-				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"image\"=$6, \"xml\"=$7, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
+				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"image\"=$6, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title,
 					enforce_string(Item#feed_item.homepage), 
 					enforce_string(Item#feed_item.payment), 
-					enforce_string(Item#feed_item.image), 
-					Item#feed_item.xml])
+					enforce_string(Item#feed_item.image)
+				       ])
 			 end,
 			 %% Update enclosures
 			 {ok, _, ToDeleteRows} =
@@ -179,17 +179,10 @@ feed_data(FeedURL, MaxEnclosures) ->
     case ?Q("SELECT \"xml\" FROM feeds WHERE \"url\"=$1",
 	    [FeedURL]) of
 	{ok, _, [{FeedXml}]} ->
-	    {ok, _, Rows} =
-		?Q("SELECT enclosures.url, torrents.name, feed_items.xml FROM feed_items JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item) JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE feed_items.feed=$1 ORDER BY feed_items.published DESC, feed_items.id ASC LIMIT $2",
+	    {ok, _, EnclosureMap} =
+		?Q("SELECT enclosures.url, torrents.name FROM enclosures JOIN enclosure_torrents USING (url) JOIN torrents USING (info_hash) WHERE enclosures.feed=$1 ORDER BY url ASC LIMIT $2",
 		   [FeedURL, MaxEnclosures]),
-	    EnclosureMap =
-		[{URL, Name}
-		 || {URL, Name, _Xml} <- Rows],
-	    ItemXmls =
-		list_drop_subsequent_dups(
-		  [Xml
-		   || {_URL, _Name, Xml} <- Rows]),
-	    {ok, FeedXml, ItemXmls, EnclosureMap};
+	    {ok, FeedXml, gb_trees:from_orddict(EnclosureMap)};
 	{ok, _, []} ->
 	    {error, not_found}
     end.
@@ -228,13 +221,6 @@ enforce_string(S) when is_binary(S);
     S;
 enforce_string(_) ->
     <<"">>.
-
-list_drop_subsequent_dups([]) ->
-    [];
-list_drop_subsequent_dups([E, E | L]) ->
-    list_drop_subsequent_dups([E | L]);
-list_drop_subsequent_dups([E | L]) ->
-    [E | list_drop_subsequent_dups(L)].
 
 list_uniq([]) ->
     [];

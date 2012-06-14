@@ -53,10 +53,10 @@ update1(URL, Etag1, LastModified1) ->
 		   end,
     R1 =
 	try feeds_fetch:fetch(URL, Etag1, LastModified1) of
-	    {ok, {Etag, LastModified}, RootEl} ->
+	    {ok, {Etag, LastModified}, FeedEl} ->
 		try
-		    {ok, FeedEl, Items1} =
-			feeds_parse:pick_items(RootEl),
+		    {ok, Items1} =
+			feeds_parse:pick_items(FeedEl),
 		    io:format("Picked ~b items from feed ~s~n",
 			      [length(Items1), URL]),
 		    FeedXml1 = iolist_to_binary(feeds_parse:serialize(FeedEl)),
@@ -147,14 +147,12 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Homepage = NormalizeURL(feeds_parse:item_link(Xml)),
     Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
     Image = NormalizeURL(feeds_parse:item_image(Xml)),
-    XmlSerialized = iolist_to_binary(feeds_parse:serialize(Xml)),
     Enclosures = lists:map(NormalizeURL,
 			   feeds_parse:item_enclosures(Xml)),
     if
 	is_binary(Id),
 	is_binary(Title),
-	is_binary(Published),
-	is_binary(XmlSerialized) ->
+	is_binary(Published) ->
 	    #feed_item{feed = Feed,
 		       id = Id,
 		       title = Title,
@@ -162,7 +160,6 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
 		       homepage = Homepage,
 		       payment = Payment,
 		       image = Image,
-		       xml = XmlSerialized,
 		       enclosures = Enclosures};
 	true ->
 	    %% Drop this

@@ -3,7 +3,7 @@
 -export([serialize/1,
 	 get_type/1, get_channel/1,
 	 title/1, link/1, image/1,
-	 pick_items/1, merge_items/2,
+	 pick_items/1,
 	 item_id/1, item_title/1, item_enclosures/1,
 	 item_published/1, item_link/1, item_payment/1, item_image/1,
 	 replace_item_enclosures/2]).
@@ -101,62 +101,30 @@ pick_items(#xmlel{} = RootEl) ->
     case exmpp_xml:get_name_as_list(RootEl) of
 	%% Handle ATOM
 	"feed" ->
-	    {Entries, FeedChildren} =
-		lists:partition(
+	    Entries =
+		lists:filter(
 		  fun(#xmlel{name="entry"}) ->
 			  true;
 		     (_) ->
 			  false
 		  end, RootEl#xmlel.children),
-	    {ok,
-	     RootEl#xmlel{children = FeedChildren},
-	     lists:reverse(Entries)};
+	    {ok, Entries};
 
 	%% Assume RSS
 	_ ->
-	    {Items, RootChildren} =
-		lists:foldl(
-		  fun(#xmlel{name="channel"}=Channel,
-		      {Items, RootChildren}) ->
-			  {Items1, ChannelChildren} =
-			      lists:partition(
-				fun(#xmlel{name="item"}) ->
-					true;
-				   (_) ->
-					false
-				end, Channel#xmlel.children),
-			  {Items1 ++ Items,
-			   [Channel#xmlel{children = ChannelChildren}
-			    | RootChildren]};
-		     (Child,
-		      {Items, RootChildren}) ->
-			  {Items,
-			   [Child
-			    | RootChildren]}
-		  end, {[], []}, RootEl#xmlel.children),
-	    {ok,
-	     RootEl#xmlel{children = lists:reverse(RootChildren)},
-	     lists:reverse(Items)}
-    end.
-
-%% Opposite of pick_items/1
-merge_items(FeedEl, ItemEls) ->
-    ChannelEl1 = get_channel(FeedEl),
-    ChannelEl2 = exmpp_xml:append_children(ChannelEl1, ItemEls),
-    if
-	%% ATOM
-	ChannelEl1 =:= FeedEl ->
-	    ChannelEl2;
-	%% RSS
-	true ->
-	    exmpp_xml:set_children(
-	      FeedEl,
-	      lists:map(fun(Child) when Child =:= ChannelEl1 ->
-				ChannelEl2;
-			   (Child) ->
-				Child
-			end,
-			exmpp_xml:get_child_elements(FeedEl)))
+	    Items =
+		lists:map(
+		  fun(#xmlel{name="channel"}=Channel) ->
+			  lists:filter(
+			    fun(#xmlel{name="item"}) ->
+				    true;
+			       (_) ->
+				    false
+			    end, Channel#xmlel.children);
+		     (_) ->
+			  []
+		  end, RootEl#xmlel.children),
+	    {ok, lists:append(Items)}
     end.
 
 
@@ -407,45 +375,46 @@ item_enclosures(ItemEl) ->
 			    URLs
 		    end, [], exmpp_xml:get_child_elements(ItemEl))).
 
+replace_item_enclosures(#xmlel{name = "link"} = LinkEl1, MapFun) ->
+    case {exmpp_xml:get_attribute_as_binary(
+	    LinkEl1, <<"rel">>, undefined),
+	  exmpp_xml:get_attribute_as_binary(
+	    LinkEl1, <<"href">>, undefined)} of
+	{<<"enclosure">>, Href} ->
+	    case MapFun(Href) of
+		NewHref when is_binary (NewHref) ->
+		    LinkEl2 =
+			exmpp_xml:set_attribute(
+			  LinkEl1 , <<"href">>, NewHref),
+		    LinkEl3 =
+			exmpp_xml:set_attribute(
+			  LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
+		    LinkEl3;
+		_ ->
+		    %% Drop <link/>
+		    exmpp_xml:cdata(<<"">>)
+	    end;
+	{_, _} ->
+	    LinkEl1
+    end;
+
+replace_item_enclosures(#xmlel{name = "enclosure"} = EnclosureEl1, MapFun) ->
+    URL = exmpp_xml:get_attribute_as_binary(
+	    EnclosureEl1, <<"url">>, undefined),
+    NewURL = MapFun(URL),
+    EnclosureEl2 =
+	exmpp_xml:set_attribute(
+	  EnclosureEl1, <<"url">>, NewURL),
+    EnclosureEl3 =
+	exmpp_xml:set_attribute(
+	  EnclosureEl2, <<"type">>, <<"application/x-bittorrent">>),
+    EnclosureEl3;
+    
 replace_item_enclosures(#xmlel{children = ItemChildren1} = ItemEl, MapFun) ->
     ItemChildren2 =
-	lists:map(
-	  fun(#xmlel{name="link"} = LinkEl) ->
-		  case {exmpp_xml:get_attribute_as_binary(
-			  LinkEl, <<"rel">>, undefined),
-			exmpp_xml:get_attribute_as_binary(
-			  LinkEl, <<"href">>, undefined)} of
-		      {<<"enclosure">>, Href} ->
-			  case MapFun(Href) of
-			      NewHref when is_binary (NewHref) ->
-				  LinkEl2 =
-				      exmpp_xml:set_attribute(
-					LinkEl , <<"href">>, NewHref),
-				  LinkEl3 =
-				      exmpp_xml:set_attribute(
-					LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
-				  LinkEl3;
-			      _ ->
-				  %% Drop <link/>
-				  exmpp_xml:cdata(<<"">>)
-			  end;
-		      {_, _} ->
-			  LinkEl
-		  end;
-	     (#xmlel{name="enclosure"} = EnclosureEl) ->
-		  URL = exmpp_xml:get_attribute_as_binary(
-			  EnclosureEl, <<"url">>, undefined),
-		  NewURL = MapFun(URL),
-		  EnclosureEl2 =
-		      exmpp_xml:set_attribute(
-			EnclosureEl, <<"url">>, NewURL),
-		  EnclosureEl3 =
-		      exmpp_xml:set_attribute(
-			EnclosureEl2, <<"type">>, <<"application/x-bittorrent">>),
-		  EnclosureEl3;
-	     (Child) ->
-		  Child
-	  end,
-	  ItemChildren1),
+	[replace_item_enclosures(ItemChild, MapFun)
+	 || ItemChild <- ItemChildren1],
+    ItemEl#xmlel{children = ItemChildren2};
 
-    ItemEl#xmlel{children = ItemChildren2}.
+replace_item_enclosures(Child, _) ->
+    Child.

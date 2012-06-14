@@ -1285,37 +1285,27 @@ render_user_feed(Req, UserName, Slug) ->
 export_feed(_Req, UserName, Slug) ->
     case model_users:get_feed(UserName, Slug) of
 	{ok, FeedURL} ->
-	    {ok, FeedXml, ItemXmls, EnclosuresMap} =
-		model_feeds:feed_data(FeedURL, 23),
-	    [FeedEl | _] =
+	    {ok, FeedXml, EnclosureMap} =
+		model_feeds:feed_data(FeedURL, 1000),
+	    [FeedEl1 | _] =
 		exmpp_xml:parse_document(FeedXml,
 					 [{names_as_atom, false},
-					  {engine, expat}]),
-	    Type = feeds_parse:get_type(FeedEl),
-	    ItemEls =
-		lists:map(
-		  fun(Xml) ->
-			  [ItemEl | _] =
-			      exmpp_xml:parse_document(
-				Xml,
-				[{names_as_atom, false},
-				 {engine, expat}]),
-			  feeds_parse:replace_item_enclosures(
-			    ItemEl,
-			    fun(URL) ->
-				    case proplists:get_value(URL, EnclosuresMap) of
-					<<Name/binary>> ->
-					    <<(ui_link:base())/binary,
-					      (ui_link:torrent(UserName, Slug, Name))/binary>>;
-					_ ->
-					    error_logger:warning_msg(
-					      "Cannot map enclosure ~s~n", [URL]),
-					    URL
-				    end
-			    end)
-		  end, ItemXmls), 
-	    CompleteFeedEl = feeds_parse:merge_items(FeedEl, ItemEls),
-	    Body = feeds_parse:serialize(CompleteFeedEl),
+					  {engine, libxml2}]),
+	    Type = feeds_parse:get_type(FeedEl1),
+	    FeedEl2 = feeds_parse:replace_item_enclosures(
+			FeedEl1,
+			fun(URL) ->
+				case gb_trees:lookup(URL, EnclosureMap) of
+				    {value, Name} when is_binary(Name) ->
+					<<(ui_link:base())/binary,
+					  (ui_link:torrent(UserName, Slug, Name))/binary>>;
+				    _ ->
+					error_logger:warning_msg(
+					  "Cannot map enclosure ~s~n", [URL]),
+					URL
+				end
+			end),
+	    Body = feeds_parse:serialize(FeedEl2),
 	    {ok, Type,
 	     [<<"<?xml version='1.0' encoding='UTF-8'?>\n">>,
 	      Body]};

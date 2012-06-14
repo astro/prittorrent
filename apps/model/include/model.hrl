@@ -36,7 +36,6 @@
 	  homepage :: binary(),
 	  payment :: binary(),
 	  image :: binary(),
-	  xml :: binary(),
 	  enclosures :: [binary()],
 	  downloads :: [#download{}]
 	 }).

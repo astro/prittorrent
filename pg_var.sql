@@ -7,7 +7,6 @@ CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELE
                          "payment" TEXT,
                          "image" TEXT,
                          "updated" TIMESTAMP,
-                         "xml" TEXT,
                          PRIMARY KEY ("feed", "id"));
 
 CREATE INDEX feed_items_published ON feed_items ("published" DESC);
