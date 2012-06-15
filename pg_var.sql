@@ -25,6 +25,8 @@ $$ LANGUAGE SQL;
 CREATE TABLE enclosures ("feed" TEXT NOT NULL,
                          "item" TEXT NOT NULL,
                          "url" TEXT NOT NULL,
+                         "type" TEXT,
+                         "title" TEXT,
                          PRIMARY KEY ("feed", "item", "url"),
                          FOREIGN KEY ("feed", "item")
                              REFERENCES "feed_items" ("feed", "id")

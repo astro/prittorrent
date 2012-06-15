@@ -13,10 +13,10 @@ TODO
 ----
 
 * Model:
-  * enclosure.type
-  * {users,feeds,feed_items}.summary
   * lang
-  
+  * {users,feeds,feed_items}.summary
+  * enclosure.type by hasher
+
 * enforce https for log in
 * clickable stats hint
 * UI: Detect browser language

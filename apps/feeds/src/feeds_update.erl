@@ -147,8 +147,11 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Homepage = NormalizeURL(feeds_parse:item_link(Xml)),
     Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
     Image = NormalizeURL(feeds_parse:item_image(Xml)),
-    Enclosures = lists:map(NormalizeURL,
-			   feeds_parse:item_enclosures(Xml)),
+    Enclosures = lists:map(
+		   fun({Enclosure, EnclosureType, EnclosureTitle}) ->
+			   {NormalizeURL(Enclosure), EnclosureType, EnclosureTitle}
+		   end,
+		   feeds_parse:item_enclosures(Xml)),
     if
 	is_binary(Id),
 	is_binary(Title),

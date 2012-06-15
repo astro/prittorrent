@@ -91,8 +91,8 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 				[FeedURL, Item#feed_item.id]) of
 			     {ok, _, [{0}]} ->
 				 io:format("New feed item:~n~p~n", [Item#feed_item.title]),
-				 lists:foreach(fun(Enclosure) ->
-						       io:format("  e ~s~n", [Enclosure])
+				 lists:foreach(fun({Enclosure, EnclosureType, _}) ->
+						       io:format("  e (~s) ~s~n", [EnclosureType, Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
 				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"updated\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, CURRENT_TIMESTAMP)",
@@ -119,18 +119,25 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 			 %% Hrm, ToDelete is not worth the sets overhead 99.9% of the time
 			 ToDelete =
 			     lists:foldl(
-			       fun(Enclosure, ToDelete) ->
+			       fun({Enclosure, EnclosureType, EnclosureTitle}, ToDelete) ->
 				       case sets:is_element(Enclosure, ToDelete) of
 					   true ->
+					       Q("UPDATE \"enclosures\" SET \"type\"=$4, \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+						 [FeedURL, Item#feed_item.id, Enclosure,
+						  enforce_string(EnclosureType), enforce_string(EnclosureTitle)]),
 					       sets:del_element(Enclosure, ToDelete);
 					   false ->
-					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\") VALUES ($1, $2, $3)",
-						 [FeedURL, Item#feed_item.id, Enclosure]),
+					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\") VALUES ($1, $2, $3, $4, $5)",
+						 [FeedURL, Item#feed_item.id, Enclosure,
+						  enforce_string(EnclosureType), enforce_string(EnclosureTitle)]),
 					       ToDelete
 				       end
 			       end,
 			       sets:from_list([Enclosure || {Enclosure} <- ToDeleteRows]),
-			       list_uniq(Item#feed_item.enclosures)),
+			       list_uniq_by(Item#feed_item.enclosures,
+					    fun({E1, _, _}, {E2, _, _}) ->
+						    E1 == E2
+					    end)),
 			 lists:foreach(
 			   fun(Enclosure) ->
 				   ?Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
@@ -222,10 +229,10 @@ enforce_string(S) when is_binary(S);
 enforce_string(_) ->
     <<"">>.
 
-list_uniq([]) ->
+list_uniq_by([], _) ->
     [];
-list_uniq([E | L]) ->
+list_uniq_by([E | L], F) ->
     [E |
-     list_uniq([E1
-		|| E1 <- L,
-		   E1 =/= E])].
+     list_uniq_by([E1
+		   || E1 <- L,
+		      F(E1, E)], F)].

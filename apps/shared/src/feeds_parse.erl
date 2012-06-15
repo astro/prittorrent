@@ -344,17 +344,23 @@ item_payment(ItemEl) ->
 item_image(ItemEl) ->
     image(ItemEl).
 
--spec(item_enclosures/1 :: (xmlel()) -> [binary()]).
+-spec(item_enclosures/1 :: (xmlel())
+			   -> [{binary(),
+				(binary() | undefined),
+				(binary() | undefined)
+			       }]).
 item_enclosures(ItemEl) ->
     lists:reverse(
 	lists:foldl(fun(#xmlel{name="enclosure"}=El, URLs) ->
+			    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
+			    Type = exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined),
 			    case exmpp_xml:get_attribute_as_binary(El, <<"url">>, undefined) of
 				URL when is_binary(URL) ->
-				    [URL | URLs];
+				    [{URL, Title, Type} | URLs];
 				_ ->
 				    case exmpp_xml:get_cdata(El) of
 					URL when is_binary(URL), size(URL) > 6 ->
-					    [URL | URLs];
+					    [{URL, Title, Type} | URLs];
 					_ ->
 					    URLs
 				    end
@@ -364,7 +370,9 @@ item_enclosures(ItemEl) ->
 				<<"enclosure">> ->
 				    case exmpp_xml:get_attribute_as_binary(El, <<"href">>, undefined) of
 					URL when is_binary(URL), size(URL) > 6 ->
-					    [URL | URLs];
+					    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
+					    Type = exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined),
+					    [{URL, Type, Title} | URLs];
 					_ ->
 					    URLs
 				    end;
