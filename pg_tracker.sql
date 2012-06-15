@@ -89,8 +89,20 @@ $$ LANGUAGE plpgsql;
 
 -- periodic "tracked" cleaner
 CREATE OR REPLACE FUNCTION clear_peers(maxage INTERVAL) RETURNS void AS $$
+    DECLARE
+        "t_info_hash" BYTEA;
+        "t_peer_id" BYTEA;
     BEGIN
-        DELETE FROM tracked WHERE "last_request" <= CURRENT_TIMESTAMP - maxage;
+        FOR t_info_hash, t_peer_id IN
+            SELECT info_hash, peer_id
+              FROM tracked
+             WHERE "last_request" <= CURRENT_TIMESTAMP - maxage
+        LOOP
+            DELETE FROM tracked
+                  WHERE info_hash=t_info_hash
+                    AND peer_id=t_peer_id;
+            PERFORM update_scraped(t_info_hash);
+        END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 

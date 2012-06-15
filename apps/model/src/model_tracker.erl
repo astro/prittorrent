@@ -66,4 +66,6 @@ rm_peer(InfoHash, PeerId, Uploaded, Downloaded) ->
 	    ignore;
 	{ok, _} ->
 	    ignore
-    end.
+    end,
+
+    model_scrape_queue:update_scraped(InfoHash).
