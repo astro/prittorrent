@@ -156,17 +156,3 @@ CREATE OR REPLACE FUNCTION update_scraped(
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION tracked_update_scraped() RETURNS trigger AS $$
-    BEGIN
-        IF TG_OP = 'DELETE' THEN
-            PERFORM update_scraped(OLD.info_hash);
-        ELSE
-            PERFORM update_scraped(NEW.info_hash);
-        END IF;
-        RETURN NEW;
-    END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER tracked_update_scraped AFTER INSERT OR UPDATE OR DELETE ON tracked
-       FOR EACH ROW EXECUTE PROCEDURE tracked_update_scraped();
-

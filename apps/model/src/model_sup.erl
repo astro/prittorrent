@@ -39,7 +39,9 @@ transaction(PoolId, Fun) ->
 init([Pools]) ->
     ChildSpecs =
 	[{model_stats_cache, {model_stats_cache, start_link, []},
-	  permanent, 2000, worker, [model_stats_cache, model_stats]} |
+	  permanent, 2000, worker, [model_stats_cache, model_stats]},
+	 {model_scrape_queue, {model_scrape_queue, start_link, []},
+	  permanent, 2000, worker, [model_scrape_queue]} |
 	 [{Id, {poolboy, start_link, [[{name, {local, Id}},
 				       {worker_module, model_worker}]
 				      ++ Options]},

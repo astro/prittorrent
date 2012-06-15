@@ -40,6 +40,8 @@ set_peer(InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left) ->
 	    [InfoHash, Host, Port, PeerId, Uploaded, Downloaded, Left]) of
 	%% FIXME: up/down not going out
 	{ok, _, [{_Up, _Down}]} ->
+	    %% Success, schedule a scraped update:
+	    model_scrape_queue:update_scraped(InfoHash),
 	    %% TODO: Report back deltas:
 	    ok;
 	{error, {error, _, _, Message, _Details}} ->

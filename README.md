@@ -16,7 +16,6 @@ TODO
   * enclosure.type
   * {users,feeds,feed_items}.summary
   * lang
-  * queueify scraped triggers
   
 * enforce https for log in
 * clickable stats hint
