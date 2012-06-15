@@ -229,6 +229,16 @@ p.feed {
 .published .today {
   font-weight: 700;
 }
+.flattr {
+  font-size: 50%;
+}
+.flattr a {
+  color: #595;
+  margin: 0 0.4em 0.1em 0.5em;
+  padding: 0 2px;
+}
+
+
 section {
   width: 100%;
 }
