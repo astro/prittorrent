@@ -106,11 +106,21 @@ html(#render_opts{title = HtmlTitle,
 	      [{p, <<"Twitter:">>},
 	       {p,
 		{a, [{href, <<"http://twitter.com/bitlove_org">>}],
-		 <<"@bitlove_org">>}}
+		 <<"@bitlove_org">>}},
+	       {p, <<"Contact:">>},
+	       {p, contact_address()}
 	      ]},
 	     {'div',
-	      [{p, <<"Contact:">>},
-	       {p, contact_address()}
+	      [{p, <<"Help:">>},
+	       {p,
+		{a, [{href, <<"/help/podcaster">>}],
+		 <<"Getting started">>}},
+	       {p,
+		{a, [{href, <<"/help/podcaster/widgets">>}],
+		 <<"Widget">>}},
+	       {p,
+		{a, [{href, <<"/help/podcaster/api">>}],
+		 <<"API">>}}
 	      ]},
 	     {'div',
 	      [{p,
@@ -118,7 +128,12 @@ html(#render_opts{title = HtmlTitle,
 		 {a, [{href, <<"https://github.com/astro/prittorrent">>}], <<"Open Source">>}
 		]},
 	       {p,
-		<<"Bitlove.org is IPv6-ready!">>}
+		<<"Bitlove.org is IPv6-ready!">>},
+	       {p,
+		[<<"Hire a ">>,
+		 {a, [{href, <<"mailto:astro@spaceboyz.net">>}],
+		  <<"backend hacker">>}
+		]}
 	      ]}
 	    ]},
 	   ?SCRIPT_FLATTR,
@@ -674,6 +689,7 @@ render_help(Req, []) ->
 	  {li,
 	   {a, [{href, "/help/podcaster"}], <<"Podcasters">>}}
 	 ]}},
+       {h2, <<"Help for Users">>},
        {h3, <<"How do I download .torrent files?">>},
        {p,
 	[<<"BitTorrent is a system in which downloaders support each other by sharing pieces of data. To participate, you need to run one of ">>,
@@ -893,7 +909,7 @@ render_help(Req, [<<"podcaster">> | Path]) ->
       #render_opts{title = <<"Bitlove: Help">>,
 		   ui_req = Req},
       [],
-      [{h2, <<"Help for Podcasters">>},
+      [{h2, <<"Help">>},
        {'div', [{class, "navtabs"}],
 	{ul,
 	 [{li,
@@ -901,7 +917,7 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 	  {li,
 	   {a, [{href, "/help/podcaster"}], <<"Podcasters">>}}
 	 ]}},
-       {h2, Title},
+       {h2, <<"Help for Podcasters">>},
        {'div', [{class, "navtabs"}],
 	{ul,
 	 [{li,
@@ -909,10 +925,11 @@ render_help(Req, [<<"podcaster">> | Path]) ->
 	  {li,
 	   {a, [{href, "/help/podcaster/feeds"}], <<"Feeds">>}},
 	  {li,
-	   {a, [{href, "/help/podcaster/widget"}], <<"Widget">>}},
+	   {a, [{href, "/help/podcaster/widget"}], <<"Widgets">>}},
 	  {li,
 	   {a, [{href, "/help/podcaster/api"}], <<"API">>}}
-	 ]}}
+	 ]}},
+       {h2, Title}
        | Content
       ]);
 
@@ -1123,16 +1140,6 @@ render_user(Req, UserName) ->
        | render_feedslinks(UserName)],
       {header, [{class, "user"}],
        [render_meta(h2, UserTitle, UserImage, UserHomepage),
-	if
-	    CanEdit ->
-		{p,
-		 [<<"New: ">>,
-		  {a, [{href, "/help/podcaster/widget"}],
-		   <<"Widgets for your blog!">>}
-		 ]};
-	    true ->
-		[]
-	end,
 	render_feedslist(UserName)
        ]},
       [{h2, "Feeds"} |
