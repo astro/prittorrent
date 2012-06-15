@@ -177,7 +177,7 @@ CREATE TRIGGER counters_update_downloaded_stats AFTER INSERT OR UPDATE ON counte
 
 
 
--- Run periodically to update scaped.downloaded{30,7,1}
+-- Run periodically to update downloaded_stats.downloaded{30,7,1}
 CREATE OR REPLACE FUNCTION update_all_downloaded_stats() RETURNS void AS $$
     DECLARE
         t_info_hash BYTEA;
