@@ -37,6 +37,14 @@ resource_size(URL) when is_binary(URL) ->
 resource_size(URL) ->
     case lhttpc:request(URL, head, [], ?TIMEOUT) of
 	{ok, {{200, _}, Headers, _}} ->
+	    %% HACK: dirty here. find a better place:
+	    case extract_header("content-type", Headers) of
+		[_ | _] = Type ->
+		    model_feeds:hint_enclosure_type(URL, Type);
+		_ ->
+		    ignore
+	    end,
+
 	    case extract_header("content-length", Headers) of
 		undefined ->
 		    undefined;

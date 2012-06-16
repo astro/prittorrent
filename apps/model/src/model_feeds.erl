@@ -1,6 +1,7 @@
 -module(model_feeds).
 
 -export([to_update/1, prepare_update/1, write_update/10,
+	 hint_enclosure_type/2,
 	 user_feeds_details/2, user_feed_details/2,
 	 feed_data/2, get_directory/0, enclosure_errors/1]).
 
@@ -165,6 +166,12 @@ write_update(FeedURL, {Etag, LastModified},
     
     T2 = util:get_now_us(),
     io:format("[~.1fms] write_update ~s - ~B items~n", [(T2 - T1) / 1000, FeedURL, length(Items)]).
+
+
+%% Currently used by storage from the hasher
+hint_enclosure_type(Enclosure, Type) ->
+    ?Q("UPDATE \"enclosures\" SET \"type\"=COALESCE(\"type\", $2) WHERE \"url\"=$1",
+       [Enclosure, Type]).
 
 
 user_feeds_details(UserName, CanEdit) ->
