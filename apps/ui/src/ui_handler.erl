@@ -809,16 +809,16 @@ handle_request2(#req{method = 'GET',
 	    json_ok({obj, [{<<"down">>, {obj, convert_graphs_time(Down)}},
 			   {<<"up">>, {obj, convert_graphs_time(Up)}},
 			   {<<"up_seeder">>, {obj, convert_graphs_time(UpSeeder)}},
-			   {<<"start">>, util:iso8601(Start)},
-			   {<<"stop">>, util:iso8601(Stop)},
+			   {<<"start">>, util:iso8601(Start, local)},
+			   {<<"stop">>, util:iso8601(Stop, local)},
 			   {<<"interval">>, Interval}
 			  ]});
 	<<"downloads.json">> ->
 	    Downloads =
 		model_graphs:get_counter(complete, InfoHash, Start, Stop, Interval),
 	    json_ok({obj, [{<<"downloads">>, {obj, convert_graphs_time(Downloads)}},
-			   {<<"start">>, util:iso8601(Start)},
-			   {<<"stop">>, util:iso8601(Stop)},
+			   {<<"start">>, util:iso8601(Start, local)},
+			   {<<"stop">>, util:iso8601(Stop, local)},
 			   {<<"interval">>, Interval}
 			  ]});
 	_ ->
@@ -1006,7 +1006,8 @@ hmac(Key, Text) ->
     Ctx1 = crypto:hmac_init(sha, Key),
     Ctx2 = crypto:hmac_update(Ctx1, Text),
     crypto:hmac_final(Ctx2).
-    
+
+%% We get time in UTC by the calculation in model_graphs
 convert_graphs_time(Data) ->
     lists:map(
       fun({{Date1, {H, M, S}}, Value}) ->
