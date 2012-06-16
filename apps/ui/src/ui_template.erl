@@ -343,6 +343,7 @@ render_enclosure(#download{user = UserName,
 			   slug = Slug,
 			   name = Name,
 			   size = Size,
+			   type = Type,
 			   seeders = Seeders,
 			   leechers = Leechers,
 			   downspeed = Downspeed,
@@ -350,7 +351,13 @@ render_enclosure(#download{user = UserName,
     {ul, [{class, "download"}],
      [{li, [{class, "torrent"}],
        {a, [{href, ui_link:torrent(UserName, Slug, Name)},
-	    {rel, "enclosure"}],
+	    {rel, "enclosure"} |
+	    case Type of
+		<<_:1/binary, _/binary>> ->
+		    [{'data-type', Type}];
+		_ ->
+		    []
+	    end],
 	[if
 	     ShowName ->
 		 [Name, $ ];
@@ -391,6 +398,7 @@ render_enclosure(#download{user = UserName,
 render_downloads(Opts, Downloads) ->
     lists:map(
       fun(#feed_item{id = ItemId,
+		     lang = ItemLang,
 		     downloads = ItemDownloads} = Item) ->
 	      %% Prepare whether to display just "Download" or filenames
 	      RenderEnclosure =
@@ -406,6 +414,12 @@ render_downloads(Opts, Downloads) ->
 		  end,
 
 	      {article, [{class, "item"} |
+			 case ItemLang of
+			     <<_:1/binary, _/binary>> ->
+				 [{'xml:lang', ItemLang}];
+			     _ ->
+				 []
+			 end ++
 			 if
 			     Opts#render_opts.item_id_unique ->
 				 [{id, ItemId}];

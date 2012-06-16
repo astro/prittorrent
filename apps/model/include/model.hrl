@@ -10,12 +10,16 @@
 	  info_hash :: binary(),
 	  name :: binary(),
 	  size :: integer(),
+	  type :: binary(),
 	  %% Item data:
 	  feed_title :: (binary() | null),
 	  title :: binary(),
+	  lang :: (binary() | null),
+	  summary :: (binary() | null),
 	  published :: calendar:datetime(),
 	  homepage :: binary(),
 	  payment :: binary(),
+	  %% Enclosure info:
 	  image :: binary(),
 	  %% Scrape data:
 	  seeders :: integer(),

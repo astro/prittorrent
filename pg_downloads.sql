@@ -29,7 +29,10 @@ CREATE TYPE download AS (
     "info_hash" BYTEA,
     "name" TEXT,
     "size" BIGINT,
+    "type" TEXT,
     "title" TEXT,
+    "lang" TEXT,
+    "summary" TEXT,
     "published" TIMESTAMP,
     "homepage" TEXT,
     "payment" TEXT,
@@ -48,8 +51,8 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
                    enclosures.item, enclosures.url AS enclosure,
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size,
-                   feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
@@ -78,8 +81,8 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
     SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
            enclosures.item, enclosures.url AS enclosure,
            COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-           torrents.info_hash, torrents.name, torrents.size,
-           feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+           torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+           feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
            COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
            COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
@@ -110,8 +113,8 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
                    enclosures.item, enclosures.url AS enclosure,
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size,
-                   feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
@@ -141,12 +144,12 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
                    enclosures.item, enclosures.url AS enclosure,
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size,
-                   feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM (SELECT feed, id, title, published, homepage, payment, image
+              FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
                     ORDER BY published DESC
                     LIMIT (3 * $1)
@@ -171,12 +174,12 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
                    enclosures.item, enclosures.url AS enclosure,
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size,
-                   feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM (SELECT feed, id, title, published, homepage, payment, image
+              FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
                     WHERE feed=$2
                     ORDER BY published DESC
@@ -201,12 +204,12 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
                    enclosures.item, enclosures.url AS enclosure,
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size,
-                   feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM (SELECT feed, id, title, published, homepage, payment, image
+              FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
                     WHERE feed IN (SELECT feed FROM user_feeds WHERE "user"=$2)
                     ORDER BY published DESC
@@ -231,8 +234,8 @@ CREATE OR REPLACE FUNCTION get_enclosure_downloads(
     SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
            enclosures.item, enclosures.url AS enclosure,
            COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-           torrents.info_hash, torrents.name, torrents.size,
-           feed_items.title, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
+           torrents.info_hash, torrents.name, torrents.size, enclosures.type,
+           feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
            COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
            COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
