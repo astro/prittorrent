@@ -6,6 +6,7 @@
 
 -define(TIMEOUT, 30 * 1000).
 -define(PART_SIZE, 32768).
+-define(MAX_REDIRECTS, 3).
 
 -record(storage, {urls :: [{binary(), integer()}]}).
 
@@ -35,6 +36,12 @@ size(#storage{urls = URLs}) ->
 resource_size(URL) when is_binary(URL) ->
     resource_size(binary_to_list(URL));
 resource_size(URL) ->
+    resource_size(URL, 0).
+
+resource_size(_URL, Redirects) when Redirects > ?MAX_REDIRECTS ->
+    exit(too_many_redirects);
+
+resource_size(URL, Redirects) ->
     case lhttpc:request(URL, head, [], ?TIMEOUT) of
 	{ok, {{200, _}, Headers, _}} ->
 	    %% HACK: dirty here. find a better place:
@@ -58,9 +65,8 @@ resource_size(URL) ->
 		undefined ->
 		    exit({http, Status});
 		Location ->
-		    %% FIXME: infinite redirects?
 		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
-		    resource_size(Location)
+		    resource_size(Location, Redirects + 1)
 	    end;
 	{ok, {{Status, _}, _, _}} ->
 	    error_logger:warning_msg("HTTP ~B~n~s~n", [Status, URL]),
@@ -96,6 +102,12 @@ fold(#storage{urls = URLs} = Storage,
 fold_resource(URL, Offset, Length, F, AccIn) when is_binary(URL) ->
     fold_resource(binary_to_list(URL), Offset, Length, F, AccIn);
 fold_resource(URL, Offset, Length, F, AccIn) ->
+    fold_resource(URL, Offset, Length, F, AccIn, 0).
+
+fold_resource(_URL, _Offset, _Length, _F, _AccIn, Redirects)
+  when Redirects > ?MAX_REDIRECTS ->
+    exit(too_many_redirects);
+fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
     %% Compose request
     ReqHeaders =
         if
@@ -138,9 +150,8 @@ fold_resource(URL, Offset, Length, F, AccIn) ->
 		    exit({http, Status});
 		Location ->
 		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
-		    %% FIXME: infinite redirects?
 		    %% FIXME: this breaks Offset & Length for multi-file torrents
-		    fold_resource(Location, Offset, Length, F, AccIn)
+		    fold_resource(Location, Offset, Length, F, AccIn, Redirects + 1)
 	    end;
 	{ok, {{Status, _}, _Headers, Pid}} ->
 	    %% Finalize this response:
