@@ -67,17 +67,30 @@ update1(URL, Etag1, LastModified1) ->
 					ChannelEl1
 				end,
 		    Title1 = feeds_parse:title(ChannelEl),
+		    Lang1 = feeds_parse:lang(ChannelEl),
+		    Summary1 = feeds_parse:summary(ChannelEl),
 		    Homepage1 = NormalizeURL(feeds_parse:link(ChannelEl)),
 		    Image1 = NormalizeURL(feeds_parse:image(ChannelEl)),
 		    Items2 =
 			lists:foldl(
 			  fun(ItemXml, Items2) ->
 				  try xml_to_feed_item(URL, NormalizeURL, ItemXml) of
-				      #feed_item{image = <<_:8, _/binary>>
-						} = Item ->
-					  [Item | Items2];
-				      #feed_item{} = Item ->
-					  [Item#feed_item{image = Image1} | Items2];
+				      #feed_item{} = Item1 ->
+					  %% Fill in image
+					  Item2 = case Item1 of
+						      #feed_item{image = <<_:8, _/binary>>} ->
+							  Item1;
+						      _ ->
+							  Item1#feed_item{image = Image1}
+						  end,
+					  %% Fill in lang
+					  Item3 = case Item2 of
+						      #feed_item{lang = <<_:8, _/binary>>} ->
+							  Item2;
+						      _ ->
+							  Item2#feed_item{lang = Lang1}
+						  end,
+					  [Item3 | Items2];
 				      _ ->
 					  %%io:format("Malformed item: ~s~n", [exmpp_xml:document_to_binary(ItemXml)]),
 					  Items2
@@ -95,7 +108,7 @@ update1(URL, Etag1, LastModified1) ->
 		    end,
 		    {ok, {Etag, LastModified},
 		     FeedXml1,
-		     Title1, Homepage1, Image1,
+		     Title1, Lang1, Summary1, Homepage1, Image1,
 		     lists:reverse(Items2)}
 		catch exit:Reason1 ->
 			{error, {Etag, LastModified}, Reason1}
@@ -113,11 +126,11 @@ update1(URL, Etag1, LastModified1) ->
     case R1 of
 	{ok, {Etag2, LastModified2},
 	 FeedXml,
-	 Title2, Homepage2, Image2,
+	 Title2, Lang2, Summary2, Homepage2, Image2,
 	 Items3} ->
 	    model_feeds:write_update(URL, {Etag2, LastModified2},
 				     null, FeedXml,
-				     Title2, Homepage2, Image2,
+				     Title2, Lang2, Summary2, Homepage2, Image2,
 				     Items3),
 	    ok;
 	%% HTTP 304 Not Modified:
@@ -125,7 +138,7 @@ update1(URL, Etag1, LastModified1) ->
 	 {http, 304}} ->
 	    model_feeds:write_update(URL, {Etag2, LastModified2},
 				     not_modified, null,
-				     null, null, null,
+				     null, null, null, null, null,
 				     []),
 	    ok;
 	{error, {Etag2, LastModified2}, Reason} ->
@@ -135,7 +148,7 @@ update1(URL, Etag1, LastModified1) ->
 	    end,
 	    model_feeds:write_update(URL, {Etag2, LastModified2},
 				     Error, null,
-				     null, null, null,
+				     null, null, null, null, null,
 				     []),
 	    {error, Reason}
     end.
@@ -143,6 +156,8 @@ update1(URL, Etag1, LastModified1) ->
 xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Id = feeds_parse:item_id(Xml),
     Title = feeds_parse:item_title(Xml),
+    Lang = feeds_parse:item_lang(Xml),
+    Summary = feeds_parse:item_summary(Xml),
     Published = feeds_parse:item_published(Xml),
     Homepage = NormalizeURL(feeds_parse:item_link(Xml)),
     Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
@@ -159,6 +174,8 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
 	    #feed_item{feed = Feed,
 		       id = Id,
 		       title = Title,
+		       lang = Lang,
+		       summary = Summary,
 		       published = Published,
 		       homepage = Homepage,
 		       payment = Payment,

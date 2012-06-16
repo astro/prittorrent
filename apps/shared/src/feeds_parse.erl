@@ -2,9 +2,9 @@
 
 -export([serialize/1,
 	 get_type/1, get_channel/1,
-	 title/1, link/1, image/1,
+	 title/1, lang/1, summary/1, link/1, image/1,
 	 pick_items/1,
-	 item_id/1, item_title/1, item_enclosures/1,
+	 item_id/1, item_title/1, item_lang/1, item_summary/1, item_enclosures/1,
 	 item_published/1, item_link/1, item_payment/1, item_image/1,
 	 replace_item_enclosures/2]).
 
@@ -47,6 +47,71 @@ title(Xml) ->
 			end, undefined, exmpp_xml:get_child_elements(Xml))
     end.
 
+lang(Xml) ->
+    case exmpp_xml:get_name_as_list(Xml) of
+	"language" ->
+	    normalize_language(exmpp_xml:get_cdata(Xml));
+	_ ->
+	    case normalize_language(
+		   exmpp_xml:get_attribute_as_binary(Xml, <<"lang">>, undefined)) of
+		Lang when is_binary(Lang) ->
+		    Lang;
+		_ ->
+		    lists:foldl(fun(Child, undefined) ->
+					lang(Child);
+				   (_, Lang) ->
+					Lang
+				end, undefined, exmpp_xml:get_child_elements(Xml))
+	    end
+    end.
+
+normalize_language(Lang1) when is_binary(Lang1) ->
+    Lang2 = list_to_binary(
+	      string:to_lower(
+		binary_to_list(Lang1))),
+    normalize_language1(Lang2);
+normalize_language(_) ->
+    undefined.
+
+normalize_language1(<<Lang:2/binary>>) ->
+    Lang;
+normalize_language1(<<Lang:2/binary, "-", _/binary>>) ->
+    Lang;
+normalize_language1(<<"english">>) ->
+    <<"en">>;
+normalize_language1(<<"german">>) ->
+    <<"de">>;
+normalize_language1(<<"deutsch">>) ->
+    <<"de">>;
+normalize_language1(<<"russian">>) ->
+    <<"ru">>;
+normalize_language1(<<"espa", _/binary>>) ->
+    <<"es">>;
+normalize_language1(<<"spanish">>) ->
+    <<"es">>;
+normalize_language1(<<"ital", _/binary>>) ->
+    <<"it">>;
+normalize_language1(<<"fran", _/binary>>) ->
+    <<"fr">>;
+normalize_language1(<<"french">>) ->
+    <<"fr">>;
+normalize_language1(_) ->
+    undefined.
+
+
+%% We name it `summary', but we really want just the briefest description.
+summary(Xml) ->
+    case exmpp_xml:get_elements(Xml, "summary") of
+	[SummaryEl | _] ->
+	    exmpp_xml:get_cdata(SummaryEl);
+	_ ->
+	    case exmpp_xml:get_element(Xml, "subtitle") of
+		[SubtitleEl | _] ->
+		    exmpp_xml:get_cdata(SubtitleEl);
+		_ ->
+		    undefined
+	    end
+    end.
 
 -spec(image/1 :: (xmlel()) -> binary() | undefined).
 image(Xml) ->
@@ -131,6 +196,12 @@ pick_items(#xmlel{} = RootEl) ->
 item_title(ItemEl) ->
     %% Works the same as for the feed in RSS & ATOM
     title(ItemEl).
+
+item_lang(ItemEl) ->
+    lang(ItemEl).
+
+item_summary(ItemEl) ->
+    summary(ItemEl).
 
 item_id(ItemEl) ->
     item_id1(ItemEl, ["id", "guid", "link"]).

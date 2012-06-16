@@ -32,6 +32,8 @@
 	  id :: binary(),
 	  feed_title :: (binary() | null),
 	  title :: (binary() | null),
+	  lang :: (binary() | null),
+	  summary :: (binary() | null),
 	  published :: calendar:datetime(),
 	  homepage :: binary(),
 	  payment :: binary(),

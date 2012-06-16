@@ -1,6 +1,6 @@
 -module(model_feeds).
 
--export([to_update/1, prepare_update/1, write_update/8,
+-export([to_update/1, prepare_update/1, write_update/10,
 	 user_feeds_details/2, user_feed_details/2,
 	 feed_data/2, get_directory/0, enclosure_errors/1]).
 
@@ -37,36 +37,47 @@ prepare_update(FeedURL) ->
 	    {ok, undefined, undefined}
     end.
 
--spec(write_update/8 :: (string(),
-			 {binary() | null, binary() | null},
-			 binary() | null,
-			 binary() | null,
-			 binary() | null,
-			 binary() | null,
-			 binary() | null,
-			 [#feed_item{}])
-			-> ok).
+-spec(write_update/10 :: (string(),
+			  {binary() | null, binary() | null},
+			  binary() | null,
+			  binary() | null,
+			  binary() | null,
+			  binary() | null,
+			  binary() | null,
+			  binary() | null,
+			  binary() | null,
+			  [#feed_item{}])
+			 -> ok).
 write_update(FeedURL, {Etag, LastModified},
-	     Error, Xml, Title, Homepage, Image, Items) when is_list(Etag) ->
+	     Error, Xml,
+	     Title, Lang, Summary, Homepage, Image, Items)
+  when is_list(Etag) ->
     write_update(FeedURL, {list_to_binary(Etag), LastModified},
-		 Error, Xml, Title, Homepage, Image, Items);
+		 Error, Xml,
+		 Title, Lang, Summary, Homepage, Image, Items);
 write_update(FeedURL, {Etag, LastModified},
-	     Error, Xml, Title, Homepage, Image, Items) when is_list(LastModified) ->
+	     Error, Xml,
+	     Title, Lang, Summary, Homepage, Image, Items)
+  when is_list(LastModified) ->
     write_update(FeedURL, {Etag, list_to_binary(LastModified)},
-		 Error, Xml, Title, Homepage, Image, Items);
+		 Error, Xml,
+		 Title, Lang, Summary, Homepage, Image, Items);
 %% TODO: don't drop xml on error!
-write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, Items) ->
+write_update(FeedURL, {Etag, LastModified},
+	     Error, Xml,
+	     Title, Lang, Summary, Homepage, Image, Items) ->
     T1 = util:get_now_us(),
     ?T(fun(Q) ->
 	       %% Update feed entry
 	       case Error of
 		   null ->
-		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=null, \"xml\"=$4, \"title\"=$5, \"homepage\"=$6, \"image\"=$7 WHERE \"url\"=$1",
+		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3, \"error\"=null, \"xml\"=$4, \"title\"=$5, \"lang\"=$6, \"summary\"=$7, \"homepage\"=$8, \"image\"=$9 WHERE \"url\"=$1",
 		       Params = [FeedURL,
 				 enforce_string(Etag), enforce_string(LastModified), 
 				 enforce_string(Xml),
-				 enforce_string(Title), enforce_string(Homepage),
-				 enforce_string(Image)];
+				 enforce_string(Title),
+				 enforce_string(Lang), enforce_string(Summary),
+				 enforce_string(Homepage), enforce_string(Image)];
 		   not_modified ->
 		       Stmt = "UPDATE \"feeds\" SET \"last_update\"=CURRENT_TIMESTAMP, \"etag\"=$2, \"last_modified\"=$3 WHERE \"url\"=$1",
 		       Params = [FeedURL,
@@ -95,21 +106,25 @@ write_update(FeedURL, {Etag, LastModified}, Error, Xml, Title, Homepage, Image, 
 						       io:format("  e (~s) ~s~n", [EnclosureType, Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
-				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"updated\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, CURRENT_TIMESTAMP)",
+				     Q("INSERT INTO \"feed_items\" (\"feed\", \"id\", \"title\", \"published\", \"homepage\", \"payment\", \"image\", \"updated\", \"lang\", \"summary\") VALUES ($1, $2, $3, no_future(($4 :: TEXT) :: TIMESTAMP WITH TIME ZONE), $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title, Item#feed_item.published, 
 					enforce_string(Item#feed_item.homepage),
 					enforce_string(Item#feed_item.payment),
-					enforce_string(Item#feed_item.image)
+					enforce_string(Item#feed_item.image),
+					enforce_string(Item#feed_item.lang),
+					enforce_string(Item#feed_item.summary)
 				       ]);
 			     {ok, _, [{1}]} ->
 				 {ok, 1} =
-				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"image\"=$6, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
+				     Q("UPDATE \"feed_items\" SET \"title\"=$3, \"homepage\"=$4, \"payment\"=$5, \"image\"=$6, \"lang\"=$7, \"summary\"=$8, \"updated\"=CURRENT_TIMESTAMP WHERE \"feed\"=$1 AND \"id\"=$2",
 				       [FeedURL, Item#feed_item.id,
 					Item#feed_item.title,
 					enforce_string(Item#feed_item.homepage), 
 					enforce_string(Item#feed_item.payment), 
-					enforce_string(Item#feed_item.image)
+					enforce_string(Item#feed_item.image),
+					enforce_string(Item#feed_item.lang),
+					enforce_string(Item#feed_item.summary)
 				       ])
 			 end,
 			 %% Update enclosures

@@ -2,6 +2,8 @@
 CREATE TABLE feed_items ("feed" TEXT NOT NULL REFERENCES "feeds" ("url") ON DELETE CASCADE,
                          "id" TEXT NOT NULL,
                          "title" TEXT,
+                         "lang" TEXT,
+                         "summary" TEXT,
                          "homepage" TEXT,
                          "published" TIMESTAMP NOT NULL,
                          "payment" TEXT,
