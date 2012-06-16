@@ -137,7 +137,7 @@ write_update(FeedURL, {Etag, LastModified},
 			       fun({Enclosure, EnclosureType, EnclosureTitle}, ToDelete) ->
 				       case sets:is_element(Enclosure, ToDelete) of
 					   true ->
-					       Q("UPDATE \"enclosures\" SET \"type\"=$4, \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
 						 [FeedURL, Item#feed_item.id, Enclosure,
 						  enforce_string(EnclosureType), enforce_string(EnclosureTitle)]),
 					       sets:del_element(Enclosure, ToDelete);

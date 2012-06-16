@@ -427,11 +427,11 @@ item_enclosures(ItemEl) ->
 			    Type = exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined),
 			    case exmpp_xml:get_attribute_as_binary(El, <<"url">>, undefined) of
 				URL when is_binary(URL) ->
-				    [{URL, Title, Type} | URLs];
+				    [{URL, Type, Title} | URLs];
 				_ ->
 				    case exmpp_xml:get_cdata(El) of
 					URL when is_binary(URL), size(URL) > 6 ->
-					    [{URL, Title, Type} | URLs];
+					    [{URL, Type, Title} | URLs];
 					_ ->
 					    URLs
 				    end
