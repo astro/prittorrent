@@ -65,7 +65,14 @@ start(_StartType, _StartArgs) ->
     {Transport, TransportOpts} =
 	case lists:keymember(certfile, 1, SSLOpts) of
 	    true ->
-		{cowboy_ssl_transport, SSLOpts};
+		Ciphers = [CipherSuite
+			   || {_Kex, Cipher, Hash} = CipherSuite <- ssl:cipher_suites(),
+			      Cipher =/= des_cbc,
+			      Cipher =/= rc4_128,
+			      Hash =/= md5
+			  ],
+		{cowboy_ssl_transport, [{ciphers, Ciphers} |
+					SSLOpts]};
 	    false ->
 		{cowboy_tcp_transport, []}
 	end,
