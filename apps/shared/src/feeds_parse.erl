@@ -77,6 +77,8 @@ normalize_language1(<<Lang:2/binary>>) ->
     Lang;
 normalize_language1(<<Lang:2/binary, "-", _/binary>>) ->
     Lang;
+normalize_language1(<<Lang:2/binary, "_", _/binary>>) ->
+    Lang;
 normalize_language1(<<"english">>) ->
     <<"en">>;
 normalize_language1(<<"german">>) ->
