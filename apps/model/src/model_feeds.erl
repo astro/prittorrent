@@ -257,4 +257,4 @@ list_uniq_by([E | L], F) ->
     [E |
      list_uniq_by([E1
 		   || E1 <- L,
-		      F(E1, E)], F)].
+		      not F(E1, E)], F)].
