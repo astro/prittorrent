@@ -175,7 +175,7 @@ write_update(FeedURL, {Etag, LastModified},
 
 %% Currently used by storage from the hasher
 hint_enclosure_type(Enclosure, Type) ->
-    ?Q("UPDATE \"enclosures\" SET \"type\"=COALESCE(\"type\", $2) WHERE \"url\"=$1",
+    ?Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($2, \"type\") WHERE \"url\"=$1",
        [Enclosure, Type]).
 
 
