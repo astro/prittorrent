@@ -139,7 +139,8 @@ html(#render_opts{title = HtmlTitle,
 	   ?SCRIPT_FLATTR,
 	   ?INCLUDE_JQUERY,
 	   ?SCRIPT_TAG(<<"/static/jquery.flot.js">>),
-	   ?SCRIPT_TAG(<<"/static/graphs.js">>)
+	   ?SCRIPT_TAG(<<"/static/graphs.js">>),
+	   ?SCRIPT_TAG(<<"/static/filter.js">>)
 	  ]}
 	]}
       )].

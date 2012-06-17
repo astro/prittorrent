@@ -300,7 +300,7 @@ article:first-child {
 .feedslist {
   font-size: 60%;
   color: #555;
-  text-align: right;
+  text-align: center;
   margin: 1em 0.5em 0;
 }
 .feedslist dt, .feedslist dd {
@@ -736,4 +736,66 @@ pre {
   padding: 0.5em 4em;
   background-color: #ccc;
   overflow: auto;
+}
+
+.filter {
+  position: relative;
+  text-align: right;
+  margin: 0.5em 0 0 auto;
+}
+.filterbutton {
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+  font-size: 90%;
+  border: 1px solid #063;
+  border-radius: 2px;
+  background-color: #f3fff7;
+  padding: 0.2em 0.5em;
+  line-height: 1.5em;
+}
+.filterbutton:hover {
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+}
+
+.filterdialog {
+  position: absolute;
+  top: 1.5em;
+  right: 0;
+  box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+  border: 1px solid #093;
+  color: #333;
+  background-color: white;
+  width: 20em;
+  text-align: left;
+}
+.filterdialog .type, .filterdialog .lang {
+  display: inline-block;
+  width: 50%;
+  margin: 0;
+  padding: 0.5em 1em;
+}
+.filterdialog h2 {
+  font-family: sans-serif;
+  font-size: 120%;
+  color: #555;
+  text-align: left;
+  padding: 0;
+}
+.filterdialog p {
+  margin: 0;
+}
+.filterdialog ul {
+  padding: 0;
+  margin: 0.5em 0;
+  list-style-type: none;
+}
+.filterdialog .all {
+  font-size: 90%;
+}
+.filterdialog .counter {
+  font-size: 70%;
+  color: #aaa;
 }
