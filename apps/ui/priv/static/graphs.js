@@ -117,17 +117,17 @@ Graph.prototype.setData = function(response) {
 			      };
 		switch(name) {
 		    case 'down':
-			series.label = "Downloaded by peers";
+			series.label = "Leeched by peers";
 			series.color = '#1f4faf';
 			series.bars.fillColor = '#3fafef';
 			break;
 		    case 'up':
-			series.label = "Uploaded by peers";
+			series.label = "Seeded by peers";
 			series.color = '#4faf1f';
 			series.bars.fillColor = '#afef3f';
 			break;
 		    case 'up_seeder':
-			series.label = "Uploaded by Bitlove";
+			series.label = "Webseeded by Bitlove";
 			series.color = '#afaf1f';
 			series.bars.fillColor = '#efef3f';
 			break;
