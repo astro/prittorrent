@@ -141,7 +141,8 @@ write_update(FeedURL, {Etag, LastModified},
 					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
 						 [FeedURL, Item#feed_item.id, Enclosure,
 						  if
-						      is_binary(EnclosureType) ->
+						      is_binary(EnclosureType),
+						      size(EnclosureType) > 0 ->
 							  EnclosureType;
 						      true ->
 							  null
