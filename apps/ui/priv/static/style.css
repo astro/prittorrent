@@ -743,26 +743,92 @@ pre {
   text-align: right;
   margin: 0.5em 0 0 auto;
 }
+/* Again stolen from
+ * https://github.com/samcollins/css-social-buttons/blob/master/css/zocial.css
+ */
 .filterbutton {
+  border: 1px solid #777;
+  border-color: rgba(0,0,0,0.2);
+  border-bottom-color: #333;
+  border-bottom-color: rgba(0,0,0,0.4);
+  color: #fff;
+  -moz-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.4), inset 0 0 0.1em rgba(255,255,255,0.9);
+  -webkit-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.4), inset 0 0 0.1em rgba(255,255,255,0.9);
+  box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.4), inset 0 0 0.1em rgba(255,255,255,0.9);
   cursor: pointer;
-  color: #333;
-  font-weight: bold;
-  font-size: 90%;
-  border: 1px solid #063;
-  border-radius: 2px;
-  background-color: #f3fff7;
-  padding: 0.2em 0.5em;
-  line-height: 1.5em;
+  display: inline-block;
+  font: bold 80%/1.85 "Lucida Grande", Tahoma, sans-serif;
+  padding: 0 0 0 0.95em;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+  white-space: nowrap;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  position: relative;
+
+  -moz-border-radius: .3em;
+  -webkit-border-radius: .3em;
+  border-radius: .3em;
+
+
+  border: 1px solid #aaa;
+  border-color: rgba(0,0,0,0.3);
+  border-bottom-color: #777;
+  border-bottom-color: rgba(0,0,0,0.5);
+  -moz-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  -webkit-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+background-color: #efefeb; color: #312c2a;
 }
 .filterbutton:hover {
   color: black;
-  background-color: white;
-  border: 1px solid black;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.5)), color-stop(49%, rgba(255,255,255,0.2)), color-stop(51%, rgba(0,0,0,0.05)), to(rgba(0,0,0,0.15)));
+  background-image: -moz-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -o-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -ms-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+}
+.filterbutton:active {
+  outline: none; /* outline is visible on :focus */
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0)), color-stop(30%, rgba(255,255,255,0)), color-stop(50%, rgba(0,0,0,0)), to(rgba(0,0,0,0.1)));
+  background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -webkit-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -o-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -ms-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+}
+.filterbutton:after {
+  content: "\25BE";
+  border-left: 0.075em solid rgba(0,0,0,0.1);
+  float: right;
+  font: 120%/1.6 zocial;
+  font-style: normal;
+  font-weight: normal;
+  margin: 0 0 0 0.5em;
+  padding: 0 0.5em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+
+  -moz-box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+  -webkit-box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+  box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+
+  -webkit-font-smoothing: antialiased;
+}
+.filterbutton.toggled:after {
+  content: '\25B4';
 }
 
 .filterdialog {
   position: absolute;
-  top: 1.5em;
+  top: 1.65em;
   right: 0;
   box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
   border: 1px solid #093;

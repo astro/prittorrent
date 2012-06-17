@@ -186,7 +186,7 @@ FilterDialog.prototype = {
 
 var container = $('<div class="filter"></div>');
 $('.feedslist').after(container);
-var filterButton = $('<a class="filterbutton">Filter ▼</a>');
+var filterButton = $('<a class="filterbutton">Filter</a>');
 container.append(filterButton);
 
 var filterDialog;
@@ -196,11 +196,11 @@ filterButton.click(function(ev) {
     if (!filterDialog) {
 	filterDialog = new FilterDialog();
 	container.append(filterDialog.el);
-	filterButton.text("Filter ▲");
+	filterButton.addClass('toggled');
     } else {
 	filterDialog.hide();
 	filterDialog = null;
-	filterButton.text("Filter ▼");
+	filterButton.removeClass('toggled');
     }
 });
 
