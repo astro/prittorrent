@@ -12,10 +12,9 @@ rebar get-deps compile generate
 TODO
 ----
 
-* Model:
-  * lang
-  * {users,feeds,feed_items}.summary
-  * enclosure.type by hasher
+* New {feeds,downloads}.{lang,summary,type} in:
+  * Downloads Feeds
+  * HTML
 
 * enforce https for log in
 * clickable stats hint
