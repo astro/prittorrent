@@ -18,6 +18,7 @@
 		      publisher = false,
 		      homepage = false,
 		      flattr = false,
+		      filterable = false,
 		      item_id_unique = false,
 		      ui_req}).
 
@@ -33,7 +34,8 @@
 	?SCRIPT_TAG(<<"https://api.flattr.com/js/0.6/load.js?mode=auto&popout=0&button=compact">>)).
 
 html(#render_opts{title = HtmlTitle,
-		  ui_req = #req{session_user = SessionUser}
+		  ui_req = #req{session_user = SessionUser},
+		  filterable = Filterable
 		 }, HeadEls, Contents) ->
     [<<"<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE html>\n">>,
      html:to_iolist(
@@ -140,7 +142,12 @@ html(#render_opts{title = HtmlTitle,
 	   ?INCLUDE_JQUERY,
 	   ?SCRIPT_TAG(<<"/static/jquery.flot.js">>),
 	   ?SCRIPT_TAG(<<"/static/graphs.js">>),
-	   ?SCRIPT_TAG(<<"/static/filter.js">>)
+	   case Filterable of
+	       true ->
+		   ?SCRIPT_TAG(<<"/static/filter.js">>);
+	       _ ->
+		   []
+	   end
 	  ]}
 	]}
       )].
@@ -1013,6 +1020,7 @@ render_new(Req) ->
     Opts = #render_opts{title = <<"Bitlove: New torrents">>,
 			publisher = true,
 			flattr = true,
+			filterable = true,
 			ui_req = Req},
     page_1column(
       Opts,
@@ -1043,6 +1051,7 @@ render_top(Req, Period) ->
     Opts = #render_opts{title = [<<"Bitlove: ">>, Title],
 			publisher = true,
 			flattr = true,
+			filterable = true,
 			ui_req = Req},
     page_1column(
       Opts,
