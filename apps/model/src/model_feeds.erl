@@ -140,7 +140,12 @@ write_update(FeedURL, {Etag, LastModified},
 					   true ->
 					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
 						 [FeedURL, Item#feed_item.id, Enclosure,
-						  enforce_string(EnclosureType), enforce_string(EnclosureTitle)]),
+						  if
+						      is_binary(EnclosureType) ->
+							  EnclosureType;
+						      true ->
+							  null
+						  end, enforce_string(EnclosureTitle)]),
 					       sets:del_element(Enclosure, ToDelete);
 					   false ->
 					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\") VALUES ($1, $2, $3, $4, $5)",
