@@ -24,10 +24,10 @@ FilterableItem.prototype = {
 	    this.hide();
     },
     show: function() {
-	this.el.slideDown(500);
+	this.el.removeClass('filteredout');
     },
     hide: function() {
-	this.el.slideUp(300);
+	this.el.addClass('filteredout');
     }
 };
 

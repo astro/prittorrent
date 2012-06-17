@@ -830,12 +830,13 @@ background-color: #efefeb; color: #312c2a;
   position: absolute;
   top: 1.65em;
   right: 0;
-  box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 2px 16px #888;
   border: 1px solid #093;
   color: #333;
   background-color: white;
   width: 20em;
   text-align: left;
+  z-index: 1;
 }
 .filterdialog .type, .filterdialog .lang {
   display: inline-block;
@@ -860,8 +861,25 @@ background-color: #efefeb; color: #312c2a;
 }
 .filterdialog .all {
   font-size: 90%;
+  margin-left: 0.5em;
 }
 .filterdialog .counter {
   font-size: 70%;
   color: #aaa;
+}
+.item {
+  opacity: 1;
+  transition: opacity 0.2s ease-out;
+  -webkit-transition: opacity 0.2s ease-out;
+  -moz-transition: opacity 0.2s ease-out;
+  -ms-transition: opacity 0.2s ease-out;
+  -o-transition: opacity 0.2s ease-out;
+}
+.item.filteredout {
+  opacity: 0.1;
+  transition: opacity 0.5s ease-out;
+  -webkit-transition: opacity 0.5s ease-out;
+  -moz-transition: opacity 0.5s ease-out;
+  -ms-transition: opacity 0.5s ease-out;
+  -o-transition: opacity 0.5s ease-out;
 }
