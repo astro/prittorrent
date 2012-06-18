@@ -171,8 +171,6 @@ FilterDialog.prototype = {
     },
     update: function() {
 	['type', 'lang'].forEach(function(column) {
-	    /* Reset filter mask */
-	    Filter.mask[column] = {};
 	    /* Rebuild mask */
 	    this.el.find('.' + column + ' input[type=checkbox]').each(function() {
 		var input = $(this);
