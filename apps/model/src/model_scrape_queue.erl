@@ -68,7 +68,7 @@ terminate(Reason, #state{queue = Queue1} = State) ->
 	{empty, _} ->
 	    ok;
 	{{value, InfoHash}, Queue2} ->
-	    do_work(InfoHash),
+	    catch do_work(InfoHash),
 	    terminate(Reason, State#state{queue = Queue2})
     end.
 
