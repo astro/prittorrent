@@ -1624,8 +1624,7 @@ size_to_human(Size) ->
 
 size_to_human(Size, [Unit | _])
   when Size < 10 ->
-    [io_lib:format("~.1f", [Size]),
-     io_lib:format(" ~cB", [Unit])];
+    [io_lib:format("~.1f ~cB", [Size, Unit])];
 size_to_human(Size, [Unit | Units])
   when Size < 1024;
        length(Units) < 1 ->
