@@ -1079,10 +1079,12 @@ render_directory_item({User, Title, Image, Feeds}) ->
 	  {a, [{href, ui_link:link_user(User)}], Title}}
 	},
 	{ul, [{class, "feeds"}],
-	 [{li,
+	 [{li, [{'xml:lang', Lang},
+		{'data-types', tl(lists:concat([[$,, Type]
+						|| Type <- Types]))}],
 	   {a, [{href, ui_link:link_user_feed(User, Slug)}],
 	    FeedTitle}
-	  } || {Slug, FeedTitle} <- Feeds]
+	  } || {Slug, FeedTitle, Lang, Types} <- Feeds]
 	}
        ]}
      ]}.
@@ -1128,7 +1130,7 @@ export_directory_opml() ->
 			 {htmlUrl, <<(ui_link:base())/binary, (ui_link:link_user_feed(User, Slug))/binary>>},
 			 {xmlUrl, <<(ui_link:base())/binary, (ui_link:link_user_feed_xml(User, Slug))/binary>>}
 			], []}
-	      || {Slug, FeedTitle} <- Feeds
+	      || {Slug, FeedTitle, _Lang, _Types} <- Feeds
 	     ]}
 	    || {User, Title, _Image, Feeds} <- Directory
 	   ]}

@@ -35,6 +35,59 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
                              ON DELETE CASCADE);
 CREATE INDEX enclosures_url ON enclosures ("url");
 
+-- Materialized distinct content types per feed
+CREATE TABLE feed_types (
+    "feed" TEXT NOT NULL,
+    "type" TEXT,
+    PRIMARY KEY ("feed", "type")
+);
+CREATE OR REPLACE FUNCTION update_feed_type(
+    "f_feed" TEXT,
+    "f_type" TEXT
+) RETURNS void AS $$
+    BEGIN
+        PERFORM TRUE
+          FROM enclosures
+         WHERE "feed"=f_feed AND "type"=f_type;
+
+        IF NOT FOUND THEN
+            DELETE FROM enclosures
+                  WHERE "feed"=f_feed AND "type"=f_type;
+        ELSE
+            BEGIN
+                INSERT INTO feed_types ("feed", "type")
+                VALUES (f_feed, f_type);
+            EXCEPTION
+                WHEN integrity_constraint_violation
+                THEN -- ignore
+            END;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION enclosures_update_feed_type(
+) RETURNS trigger AS $$
+    BEGIN
+        PERFORM update_feed_type(NEW.feed, NEW.type);
+        RETURN NEW;
+    END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER enclosures_update_feed_type
+    AFTER INSERT OR UPDATE ON enclosures
+    FOR EACH ROW
+    EXECUTE PROCEDURE enclosures_update_feed_type();
+
+CREATE OR REPLACE FUNCTION enclosures_update_feed_type_delete(
+) RETURNS trigger AS $$
+    BEGIN
+        PERFORM update_feed_type(OLD.feed, OLD.type);
+        RETURN OLD;
+    END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER enclosures_update_feed_type_delete
+    AFTER INSERT OR UPDATE ON enclosures
+    FOR EACH ROW
+    EXECUTE PROCEDURE enclosures_update_feed_type_delete();
 
 
 CREATE INDEX enclosure_torrents_info_hash

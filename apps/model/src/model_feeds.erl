@@ -224,20 +224,20 @@ feed_data(FeedURL, MaxEnclosures) ->
 
 get_directory() ->
     {ok, _, Rows} =
-	?Q("SELECT \"user\", \"title\", \"image\", \"slug\", \"feed_title\" FROM directory", []),
+	?Q("SELECT \"user\", \"title\", \"image\", \"slug\", \"feed_title\", \"lang\", \"types\" FROM directory", []),
     group_directory_feeds(Rows).
 
 group_directory_feeds([]) ->
     [];
-group_directory_feeds([{User1, Title1, Image1, _, _} | _] = Directory) ->
+group_directory_feeds([{User1, Title1, Image1, _, _, _, _} | _] = Directory) ->
     {Directory1, Directory2} =
 	lists:splitwith(
-	  fun({User2, _, _, _, _}) ->
+	  fun({User2, _, _, _, _, _, _}) ->
 		     User1 == User2
 	  end, Directory),
     [{User1, Title1, Image1,
-      [{Slug, FeedTitle}
-       || {_, _, _, Slug, FeedTitle} <- Directory1]
+      [{Slug, FeedTitle, Lang, Types}
+       || {_, _, _, Slug, FeedTitle, Lang, Types} <- Directory1]
      } | group_directory_feeds(Directory2)].
 
 

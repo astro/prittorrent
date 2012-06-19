@@ -96,9 +96,15 @@ CREATE OR REPLACE VIEW directory AS
            COALESCE(users.title, users.name) As title,
            users.image,
            user_feeds.slug,
-           COALESCE(user_feeds.title, feeds.title) AS feed_title
+           COALESCE(user_feeds.title, feeds.title) AS feed_title,
+           feeds.lang,
+           feed_types.types
       FROM users
       JOIN user_feeds ON (users.name=user_feeds."user")
       JOIN feeds ON (user_feeds.feed=feeds.url)
+      JOIN (SELECT "feed", array_agg("type") AS types
+              FROM feed_types
+          GROUP BY "feed"
+           ) AS feed_types ON (user_feeds.feed=feed_types.feed)
      WHERE user_feeds."public"=true
   ORDER BY users.name ASC, user_feeds.slug ASC;
