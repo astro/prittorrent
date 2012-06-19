@@ -840,6 +840,7 @@ background-color: #efefeb; color: #312c2a;
 }
 .filterdialog .type, .filterdialog .lang {
   display: inline-block;
+  vertical-align: top;
   width: 50%;
   margin: 0;
   padding: 0.5em 1em;
