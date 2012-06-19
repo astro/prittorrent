@@ -11,23 +11,24 @@ to_exmpp_xml(S) when is_atom(S) ->
     exmpp_xml:cdata(S);
 
 to_exmpp_xml(S1) when is_list(S1) ->
-    S2 = lists:flatten(S1),
-    {String1, S3} =
+    {String, S2} =
 	lists:splitwith(fun(C) ->
-				not is_tuple(C)
-			end, S2),
-    String2 = lists:map(fun(A) when is_atom(A) ->
-				atom_to_list(A);
-			   (S) ->
-				S
-			end, String1),
-    [exmpp_xml:cdata(String2) |
-     case S3 of
-	 [] ->
-	     [];
-	 [El | S4] ->
-	     [to_exmpp_xml(El) | to_exmpp_xml(S4)]
-     end];
+				is_integer(C)
+			end, S1),
+    case String of
+	[] ->
+	    [];
+	_ ->
+	    [exmpp_xml:cdata(String)]
+    end ++
+	case S2 of
+	    [] ->
+		[];
+	    [L | S3] when is_list(L) ->
+		to_exmpp_xml(L) ++ to_exmpp_xml(S3);
+	    [El | S3] ->
+		[to_exmpp_xml(El) | to_exmpp_xml(S3)]
+	end;
 
 to_exmpp_xml(S) when is_binary(S) ->
     exmpp_xml:cdata(S);
