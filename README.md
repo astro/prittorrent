@@ -12,6 +12,8 @@ rebar get-deps compile generate
 TODO
 ----
 
+* URL longener?
+* Filter for directory
 * Fix empty downloads.type
 * filter.js:
   * Fix button style breakage in Mozilla
@@ -62,7 +64,6 @@ TODO
   - Avoid dup connections to 1 HTTP server (IP)
   - Fair queueing
   - Caching
-* URL longener?
 * OEmbed
 * Widgets
 
