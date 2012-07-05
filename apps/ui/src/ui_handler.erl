@@ -19,22 +19,22 @@
 init({_, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
-handle(Req, State) ->
+handle(Req1, State) ->
     T1 = util:get_now_us(),
-    {Method, _} = cowboy_http_req:method(Req),
-    {Path, _} = cowboy_http_req:path(Req),
-    {RawPath, _} = cowboy_http_req:raw_path(Req),
-    {Encodings, _} = cowboy_http_req:parse_header('Accept-Encoding', Req),
-    case (catch handle_request1(Req)) of
+    {Method, Req2} = cowboy_http_req:method(Req1),
+    {Path, Req3} = cowboy_http_req:path(Req2),
+    {RawPath, Req4} = cowboy_http_req:raw_path(Req3),
+    {Encodings, Req5} = cowboy_http_req:parse_header('Accept-Encoding', Req4),
+    case (catch handle_request1(Req5)) of
 	{ok, Status, Headers1, Cookies, Body1} ->
-	    Req3 = lists:foldl(
-		     fun({CookieName, CookieValue}, Req2) ->
-			     {ok, Req3} =
+	    Req6 = lists:foldl(
+		     fun({CookieName, CookieValue}, Req) ->
+			     {ok, NewReq} =
 				 cowboy_http_req:set_resp_cookie(
 				   CookieName, CookieValue,
-				   ?COOKIE_OPTS, Req2),
-			     Req3
-		     end, Req, Cookies),
+				   ?COOKIE_OPTS, Req),
+			     NewReq
+		     end, Req5, Cookies),
 	    {Headers2, Body3} =
 		if
 		    Method =:= 'GET' ->
@@ -49,14 +49,14 @@ handle(Req, State) ->
 		    true ->
 			{Headers1, Body1}
 		end,
-	    {ok, Req4} = cowboy_http_req:reply(Status, Headers2, Body3, Req3),
+	    {ok, Req7} = cowboy_http_req:reply(Status, Headers2, Body3, Req6),
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ~p ui_handler ~s ~p~n", [(T2 - T1) / 1000, self(), Method, RawPath]),
 
 	    case Path of
 		[<<"by-enclosure.json">>] ->
 		    %% Count Widget API by Referer
-		    case cowboy_http_req:header('Referer', Req) of
+		    case cowboy_http_req:header('Referer', Req7) of
 			{Referer, _} when is_binary(Referer) ->
 			    ok;
 			{_, _} ->
@@ -68,21 +68,21 @@ handle(Req, State) ->
 		    %% Count hit
 		    count_request(Method, Path)
 	    end,
-	    {ok, Req4, State};
+	    {ok, Req7, State};
 	{http, Status} ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
-	    {ok, Req2} = cowboy_http_req:reply(Status, ?HTML_HEADERS, ui_template:render_error(Status), Req),
-	    {ok, Req2, State};
+	    {ok, Req6} = cowboy_http_req:reply(Status, ?HTML_HEADERS, ui_template:render_error(Status), Req5),
+	    {ok, Req6, State};
 	{http, Status, Headers} ->
 	    T2 = util:get_now_us(),
 	    io:format("[~.1fms] ui_handler ~B ~s ~p~n", [(T2 - T1) / 1000, Status, Method, RawPath]),
-	    {ok, Req2} = cowboy_http_req:reply(Status, Headers, [], Req),
-	    {ok, Req2, State};
+	    {ok, Req6} = cowboy_http_req:reply(Status, Headers, [], Req5),
+	    {ok, Req6, State};
 	E ->
 	    io:format("Error handling ~s ~p:~n~p~n", [Method, RawPath, E]),
-	    {ok, Req2} = cowboy_http_req:reply(500, ?HTML_HEADERS, ui_template:render_error(500), Req),
-	    {ok, Req2, State}
+	    {ok, Req6} = cowboy_http_req:reply(500, ?HTML_HEADERS, ui_template:render_error(500), Req5),
+	    {ok, Req6, State}
     end.		    
 
 terminate(_Req, _State) ->
@@ -100,19 +100,20 @@ json_ok(JSON, Cookies, Headers) ->
     {ok, 200, [{<<"Content-Type">>, ?MIME_JSON} | Headers], Cookies, Body}.
 
 %% Attention: last point where Req is a cowboy_http_req, not a #req{}
-handle_request1(Req) ->
-    Method = case cowboy_http_req:method(Req) of
-		 {'HEAD', _} ->
-		     %% Implicitly support HEAD, cowboy omits the body
-		     %% for us
-		     'GET';
-		 {Method1, _} ->
-		     Method1
-	     end,
-    {Path, _} = cowboy_http_req:path(Req),
+handle_request1(Req1) ->
+    {Method, Req3} =
+	case cowboy_http_req:method(Req1) of
+	    {'HEAD', Req2} ->
+		%% Implicitly support HEAD, cowboy omits the body
+		%% for us
+		{'GET', Req2};
+	    {Method1, Req2} ->
+		{Method1, Req2}
+	end,
+    {Path, Req4} = cowboy_http_req:path(Req3),
 
     %% Enforce proper vhost:
-    {Host, _} = cowboy_http_req:header('Host', Req),
+    {Host, Req5} = cowboy_http_req:header('Host', Req4),
     case Host of
 	<<"bitlove.org">> ->
 	    ok;
@@ -122,7 +123,7 @@ handle_request1(Req) ->
 	<<"localhost">> ->
 	    ok;
 	<<_/binary>> ->
-	    {RawPath, _} = cowboy_http_req:raw_path(Req),
+	    {RawPath, _} = cowboy_http_req:raw_path(Req5),
 	    throw({http, 301,
 		   [{<<"Location">>, <<(ui_link:base())/binary, RawPath/binary>>}]
 		  });
@@ -130,8 +131,8 @@ handle_request1(Req) ->
 	    ignore
     end,
 
-    {Languages, _} = cowboy_http_req:parse_header('Accept-Language', Req),
-    {HexSid, _} = cowboy_http_req:cookie(<<"sid">>, Req),
+    {Languages, Req6} = cowboy_http_req:parse_header('Accept-Language', Req5),
+    {HexSid, Req7} = cowboy_http_req:cookie(<<"sid">>, Req6),
     Sid =
 	case (catch util:hex_to_binary(HexSid)) of
 	    <<Sid1/binary>> when size(Sid1) > 0 ->
@@ -139,15 +140,15 @@ handle_request1(Req) ->
 	    _ ->
 		undefined
 	end,
-    {Qs, _} = cowboy_http_req:qs_vals(Req),
-    Body = if
-	       Method =:= 'POST';
-	       Method =:= 'PUT' ->
-		   {Body1, _Req2} = cowboy_http_req:body_qs(Req),
-		   Body1;
-	       true ->
-		   []
-	   end,
+    {Qs, Req8} = cowboy_http_req:qs_vals(Req7),
+    {Body, _Req9} = 
+	if
+	    Method =:= 'POST';
+	    Method =:= 'PUT' ->
+		cowboy_http_req:body_qs(Req8);
+	    true ->
+		{[], Req8}
+	end,
 
     handle_request2(#req{method = Method,
 			 path = Path,
