@@ -51,7 +51,7 @@ handle(Req, State) ->
 		end,
 	    {ok, Req4} = cowboy_http_req:reply(Status, Headers2, Body3, Req3),
 	    T2 = util:get_now_us(),
-	    io:format("[~.1fms] ui_handler ~s ~p~n", [(T2 - T1) / 1000, Method, RawPath]),
+	    io:format("[~.1fms] ~p ui_handler ~s ~p~n", [(T2 - T1) / 1000, self(), Method, RawPath]),
 
 	    case Path of
 		[<<"by-enclosure.json">>] ->
