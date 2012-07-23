@@ -45,7 +45,7 @@ CREATE TYPE download AS (
 );
 
 CREATE OR REPLACE FUNCTION get_popular_downloads(
-    INT
+    INT, INT
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -59,7 +59,7 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
               FROM (SELECT info_hash, seeders, leechers, upspeed, downspeed
                       FROM scraped
                      ORDER BY (seeders + leechers) DESC
-                     LIMIT (2 * $1)
+                     LIMIT $1 OFFSET $2
                    ) AS scraped
               JOIN torrents USING (info_hash)
               JOIN downloaded_stats USING (info_hash)
@@ -70,13 +70,12 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
               JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
              WHERE user_feeds."public"
            ) AS s
-    ORDER BY (seeders + leechers) DESC, downloaded DESC
-    LIMIT $1;
+    ORDER BY (seeders + leechers) DESC, downloaded DESC;
 $$ LANGUAGE SQL;
  
 
 CREATE OR REPLACE FUNCTION get_most_downloaded(
-    INT, INT
+    INT, INT, INT
 ) RETURNS SETOF download AS $$
     SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
            enclosures.item, enclosures.url AS enclosure,
@@ -88,12 +87,12 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
       FROM (SELECT info_hash, downloaded
               FROM downloaded_stats
-          ORDER BY (CASE WHEN $2 <= 1 THEN downloaded1
-                         WHEN $2 <= 7 THEN downloaded7
-                         WHEN $2 <= 30 THEN downloaded30
+          ORDER BY (CASE WHEN $3 <= 1 THEN downloaded1
+                         WHEN $3 <= 7 THEN downloaded7
+                         WHEN $3 <= 30 THEN downloaded30
                          ELSE downloaded
                     END) DESC
-             LIMIT $1
+             LIMIT $1 OFFSET $2
            ) AS downloaded_stats
       JOIN torrents USING (info_hash)
       JOIN enclosure_torrents USING (info_hash)
@@ -107,7 +106,7 @@ $$ LANGUAGE SQL;
 
  
 CREATE OR REPLACE FUNCTION get_popular_downloads(
-    INT
+    INT, INT
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -121,7 +120,7 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
               FROM (SELECT info_hash, seeders, leechers, upspeed, downspeed
                       FROM scraped
                      ORDER BY (seeders + leechers) DESC
-                     LIMIT (2 * $1)
+                     LIMIT $1 OFFSET $2
                    ) AS scraped
               JOIN torrents USING (info_hash)
               JOIN downloaded_stats USING (info_hash)
@@ -132,13 +131,12 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
               JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
              WHERE user_feeds."public"
            ) AS s
-    ORDER BY (seeders + leechers) DESC, downloaded DESC
-    LIMIT $1;
+    ORDER BY (seeders + leechers) DESC, downloaded DESC;
 $$ LANGUAGE SQL;
  
 
 CREATE OR REPLACE FUNCTION get_recent_downloads(
-    INT
+    INT, INT
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -152,7 +150,7 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
                     ORDER BY published DESC
-                    LIMIT (3 * $1)
+                    LIMIT $1 OFFSET $2
                    ) AS feed_items
              JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
              JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
@@ -163,12 +161,11 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
             WHERE user_feeds."public"
       ) AS s
-    ORDER BY published DESC
-    LIMIT $1;
+    ORDER BY published DESC;
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION get_recent_downloads(
-    INT, TEXT
+    INT, INT, TEXT
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -181,9 +178,9 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
-                    WHERE feed=$2
+                    WHERE feed=$3
                     ORDER BY published DESC
-                    LIMIT $1
+                    LIMIT $1 OFFSET $2
                    ) AS feed_items
              JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
              JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
@@ -193,12 +190,11 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
         LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
       ) AS s
-    ORDER BY published DESC
-    LIMIT $1;
+    ORDER BY published DESC;
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION get_user_recent_downloads(
-    INT, TEXT
+    INT, INT, TEXT
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -211,9 +207,9 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
-                    WHERE feed IN (SELECT feed FROM user_feeds WHERE "user"=$2)
+                    WHERE feed IN (SELECT feed FROM user_feeds WHERE "user"=$3)
                     ORDER BY published DESC
-                    LIMIT (3 * $1)
+                    LIMIT $1 OFFSET $2
                    ) AS feed_items
              JOIN enclosures ON (feed_items.feed=enclosures.feed AND feed_items.id=enclosures.item)
              JOIN enclosure_torrents ON (enclosures.url=enclosure_torrents.url)
@@ -224,8 +220,7 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
             WHERE user_feeds."public"
       ) AS s
-    ORDER BY published DESC
-    LIMIT $1;
+    ORDER BY published DESC;
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION get_enclosure_downloads(
