@@ -87,7 +87,9 @@ CREATE TRIGGER search_feed_items_trigger BEFORE INSERT OR UPDATE
     ON feed_items FOR EACH ROW EXECUTE PROCEDURE search_feed_items_trigger();
 
 
-CREATE OR REPLACE FUNCTION search_feed_items(needle TEXT) RETURNS SETOF download AS $$
+CREATE OR REPLACE FUNCTION search_feed_items(
+    "limit" INT, "offset" INT, needle TEXT
+) RETURNS SETOF download AS $$
     DECLARE
         "query" TSQUERY := plainto_tsquery(needle);
     BEGIN
@@ -100,15 +102,18 @@ CREATE OR REPLACE FUNCTION search_feed_items(needle TEXT) RETURNS SETOF download
                    COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
                    COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM feed_items
-	      JOIN feeds ON (feed_items.feed=feeds.url)
+              FROM (SELECT * FROM feed_items
+                     WHERE "search" @@ "query"
+                  ORDER BY ts_rank(feed_items."search", "query") DESC
+                     LIMIT "limit" OFFSET "offset"
+                   ) AS feed_items
+     JOIN feeds ON (feed_items.feed=feeds.url)
               JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
               JOIN enclosures ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
               JOIN enclosure_torrents ON (enclosure_torrents.url=enclosures.url)
               JOIN torrents USING (info_hash)
          LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
          LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
-             WHERE feed_items."search" @@ "query" AND user_feeds."public"
-          ORDER BY ts_rank(feed_items."search", "query") DESC;
+             WHERE user_feeds."public";
     END;
 $$ LANGUAGE plpgsql;
