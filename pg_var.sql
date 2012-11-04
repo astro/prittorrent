@@ -104,6 +104,8 @@ CREATE OR REPLACE VIEW enclosures_to_hash AS
           LEFT JOIN feeds
                  ON (feeds.url=enclosures.feed)
               WHERE feeds.torrentify AND
+                    enclosures.url NOT LIKE '%.torrent' AND
+                    enclosures.type != 'application/x-bittorrent' AND
                     (enclosure_torrents.info_hash IS NULL OR
                      LENGTH(enclosure_torrents.info_hash)=0)
            ORDER BY last_update NULLS FIRST;
