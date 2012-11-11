@@ -2,7 +2,7 @@
 
 -- search feeds
 ALTER TABLE feeds ADD COLUMN search tsvector;
-CREATE INDEX search_feeds ON feeds USING gist(search);
+CREATE INDEX search_feeds ON feeds USING gin(search);
 
 CREATE OR REPLACE FUNCTION search_feeds_trigger() RETURNS trigger AS $$
 DECLARE
@@ -104,7 +104,7 @@ CREATE OR REPLACE FUNCTION search_feed_items(
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT * FROM feed_items
                      WHERE "search" @@ "query"
-                  ORDER BY ts_rank(feed_items."search", "query") DESC
+                  ORDER BY "published" DESC
                      LIMIT "limit" OFFSET "offset"
                    ) AS feed_items
      JOIN feeds ON (feed_items.feed=feeds.url)
