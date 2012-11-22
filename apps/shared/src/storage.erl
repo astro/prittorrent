@@ -4,6 +4,7 @@
 
 -export([make/1, size/1, fold/5, resource_size/1]).
 
+-define(USER_AGENT, "PritTorrent/1.0").
 -define(TIMEOUT, 30 * 1000).
 -define(PART_SIZE, 32768).
 -define(MAX_REDIRECTS, 3).
@@ -42,7 +43,7 @@ resource_size(_URL, Redirects) when Redirects > ?MAX_REDIRECTS ->
     exit(too_many_redirects);
 
 resource_size(URL, Redirects) ->
-    case lhttpc:request(URL, head, [], ?TIMEOUT) of
+    case lhttpc:request(URL, head, [{"User-Agent", ?USER_AGENT}], [], ?TIMEOUT) of
 	{ok, {{200, _}, Headers, _}} ->
 	    %% HACK: dirty here. find a better place:
 	    case extract_header("content-type", Headers) of
@@ -121,7 +122,7 @@ fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
             true ->
                 []
         end ++
-        [{"User-Agent", "PritTorrent/0.1"}],
+        [{"User-Agent", ?USER_AGENT}],
     ReqOptions =
 	[{partial_download,
 	  [
