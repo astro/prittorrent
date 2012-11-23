@@ -1,6 +1,6 @@
 -module(model_enclosures).
 
--export([to_hash/0, set_torrent/3,
+-export([to_hash/0, to_recheck/0, set_torrent/3,
 	 get_info_hash_by_name/3, get_torrent_by_name/3,
 	 purge/3,
 	 recent_downloads/1, popular_downloads/2,
@@ -22,6 +22,17 @@ to_hash() ->
 	{ok, _, [{null}]} ->
 	    nothing
     end.
+
+to_recheck() ->
+    case ?Q("SELECT e_url, e_length, e_tag, e_last_modified FROM enclosure_to_recheck()", []) of
+	{ok, _, [{URL, Length, ETag, LastModified}]}
+	  when is_binary(URL),
+	       size(URL) > 0 ->
+	    {ok, URL, Length, ETag, LastModified};
+	{ok, _, [{null, null, null, null}]} ->
+	    nothing
+    end.
+    
 
 set_torrent(URL, Error, InfoHash) ->
     ?T(fun(Q) ->
