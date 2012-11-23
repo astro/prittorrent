@@ -104,7 +104,7 @@ CREATE OR REPLACE FUNCTION search_feed_items(
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT * FROM feed_items
                      WHERE "search" @@ "query"
-                  ORDER BY "published" DESC
+                  ORDER BY ts_rank(feed_items."search", "query") DESC, "published" DESC
                      LIMIT "limit" OFFSET "offset"
                    ) AS feed_items
      JOIN feeds ON (feed_items.feed=feeds.url)
