@@ -4,7 +4,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, recheck/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -18,6 +18,22 @@
 
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+pick_any_worker() ->
+    Pids = [Pid
+	    || {{worker, _}, Pid, _, _} <- supervisor:which_children(?MODULE)],
+    random:seed(erlang:now()),
+    lists:nth(random:uniform(length(Pids)), Pids).
+
+recheck(URL) ->
+    pick_any_worker() ! {recheck, URL, self()},
+    receive
+	recheck_done ->
+	    ok
+    after 600000 ->
+	    exit(timeout)
+    end.
+
 
 %% ===================================================================
 %% Supervisor callbacks

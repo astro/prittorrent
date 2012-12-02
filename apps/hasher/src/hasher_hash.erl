@@ -1,17 +1,26 @@
 -module(hasher_hash).
 
--export([make_torrent/1]).
+-export([update_torrent/2, make_torrent/1]).
 
 -define(DEFAULT_PIECE_LENGTH, trunc(math:pow(2, 20))).
 
+update_torrent(URL, OldTorrent) ->
+    OldInfo = benc:parse(OldTorrent),
+    OldURLList = lists:keysearch(<<"url-list">>, 1, OldInfo),
+    case lists:member(URL, OldURLList) of
+	true ->
+	    io:format("update_torrent ~s didn't add a new URL~n", [URL]),
+	    OldTorrent;
+	false ->
+	    io:format("update_torrent: new url ~s~n", [URL]),
+	    NewInfo = lists:keystore(<<"url-list">>, 1, OldInfo, [URL | OldURLList]),
+	    benc:to_binary(NewInfo)
+    end.
 
-make_torrent(URL) when is_binary(URL) ->
-    make_torrent([URL]);
-
-make_torrent(URLs) ->
-    {ok, Size, Pieces} = hash_torrent(URLs),
-    io:format("hash_torrent ~p - Size: ~p, Pieces: ~p~n", [URLs, Size, length(Pieces)]),
-    Name = extract_name_from_urls(URLs),
+make_torrent(URL) ->
+    {ok, Size, Pieces, ETag, LastModified} = hash_torrent(URL),
+    io:format("hash_torrent ~p - Size: ~p, Pieces: ~p~n", [URL, Size, length(Pieces)]),
+    Name = extract_name_from_url(URL),
     InfoValue =
 	[{<<"name">>, Name},
 	 {<<"piece length">>, ?DEFAULT_PIECE_LENGTH},
@@ -27,32 +36,11 @@ make_torrent(URLs) ->
 	end,
     Torrent =
 	[{<<"announce">>, AnnounceURL},
-	 {<<"url-list">>, URLs},
+	 {<<"url-list">>, [URL]},
 	 {<<"info">>, InfoValue}
 	],
     InfoHash = benc:hash(InfoValue),
-    {ok, InfoHash, Name, Size, benc:to_binary(Torrent)}.
-
-extract_name_from_urls(URLs) when is_list(URLs) ->
-    Name = lists:foldl(
-	     fun(URL, undefined) ->
-		     case extract_name_from_url(URL) of
-			 Name
-			   when is_binary(Name),
-				size(Name) > 0 ->
-			     Name;
-			 _ ->
-			     undefined
-		     end;
-		(_, R) ->
-		     R
-	     end, undefined, URLs),
-    case Name of
-	undefined ->
-	    exit(no_suitable_name_found);
-	_ ->
-	    Name
-    end.
+    {ok, InfoHash, Name, Size, benc:to_binary(Torrent), ETag, LastModified}.
 
 extract_name_from_url(URL) ->
     {Parts, _, _} =
@@ -69,21 +57,27 @@ extract_name_from_url(URL) ->
 		end, undefined, Parts).
 
 
--spec(hash_torrent/1 :: ([binary()]) -> [binary()]).
+-spec(hash_torrent/1 :: (binary()) -> {ok, integer(), binary(), binary(), binary()}).
 
-hash_torrent(URL) when is_binary(URL) ->
-    hash_torrent([URL]);
+hash_torrent(URL) ->
+    case storage:resource_info(URL) of
+	{ok, _, Size, ETag, LastModified}
+	  when is_integer(Size) ->
+	    Storage = {storage, [{URL, Size}]},
+	    Pieces =
+		map_pieces(
+		  Size, fun(Offset, Length) ->
+				io:format("Hash ~s: ~B%~n", [URL, trunc(100 * (Offset + Length) / Size)]),
+				hash_piece(Storage, Offset, Length)
+			end),
+	    {ok, Size, Pieces, ETag, LastModified};
 
-hash_torrent(URLs) ->
-    Storage = storage:make(URLs),
-    Size = storage:size(Storage),
-    Pieces =
-	map_pieces(
-	  Size, fun(Offset, Length) ->
-			io:format("Hash ~s: ~B%~n", [hd(URLs), trunc(100 * (Offset + Length) / Size)]),
-			hash_piece(Storage, Offset, Length)
-		end),
-    {ok, Size, Pieces}.
+	{ok, _, _, _, _} ->
+	    exit(no_content_length);
+
+	{error, E} ->
+	    {error, E}
+    end.
 
 map_pieces(TotalLength, F) ->
     map_pieces(TotalLength, 0, F).

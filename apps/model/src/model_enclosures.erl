@@ -1,6 +1,6 @@
 -module(model_enclosures).
 
--export([to_hash/0, to_recheck/0, set_torrent/3,
+-export([to_hash/0, to_recheck/0, set_torrent/6,
 	 get_info_hash_by_name/3, get_torrent_by_name/3,
 	 purge/3,
 	 recent_downloads/1, popular_downloads/2,
@@ -24,7 +24,7 @@ to_hash() ->
     end.
 
 to_recheck() ->
-    case ?Q("SELECT e_url, e_length, e_tag, e_last_modified FROM enclosure_to_recheck()", []) of
+    case ?Q("SELECT e_url, e_length, e_etag, e_last_modified FROM enclosure_to_recheck()", []) of
 	{ok, _, [{URL, Length, ETag, LastModified}]}
 	  when is_binary(URL),
 	       size(URL) > 0 ->
@@ -34,13 +34,13 @@ to_recheck() ->
     end.
     
 
-set_torrent(URL, Error, InfoHash) ->
+set_torrent(URL, Error, InfoHash, Length, ETag, LastModified) ->
     ?T(fun(Q) ->
 	       case Q("SELECT count(\"url\") FROM enclosure_torrents WHERE \"url\"=$1", [URL]) of
 		   {ok, _, [{0}]} ->
-		       Q("INSERT INTO enclosure_torrents (\"url\", \"last_update\", \"info_hash\", \"error\") VALUES ($1, CURRENT_TIMESTAMP, $2, $3)", [URL, InfoHash, Error]);
+		       Q("INSERT INTO enclosure_torrents (\"url\", \"last_update\", \"length\", \"etag\", \"last_modified\", \"info_hash\", \"error\") VALUES ($1, CURRENT_TIMESTAMP, $2, $3, $4, $5, $6)", [URL, Length, ETag, LastModified, InfoHash, Error]);
 		   {ok, _, [{1}]} ->
-		       Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP, \"info_hash\"=$2, \"error\"=$3 WHERE \"url\"=$1", [URL, InfoHash, Error])
+		       Q("UPDATE enclosure_torrents SET \"last_update\"=CURRENT_TIMESTAMP, \"length\"=$2, \"etag\"=$3, \"last_modified\"=$4, \"info_hash\"=$5, \"error\"=$6 WHERE \"url\"=$1", [URL, Length, ETag, LastModified, InfoHash, Error])
 	       end
        end).
 

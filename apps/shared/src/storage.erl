@@ -2,7 +2,7 @@
 
 %% TODO: relative redirects
 
--export([make/1, size/1, fold/5, resource_size/1]).
+-export([make/1, size/1, fold/5, resource_info/1]).
 
 -define(USER_AGENT, "PritTorrent/1.0").
 -define(TIMEOUT, 30 * 1000).
@@ -20,8 +20,8 @@ set_urls(Storage, URLs1) ->
 		 {_, Size} when is_integer(Size) ->
 		     URL;
 		 _ when is_binary(URL) ->
-		     case resource_size(URL) of
-			 {ok, Size} ->
+		     case resource_info(URL) of
+			 {ok, _, Size, _, _} ->
 			     {URL, Size};
 			 undefined ->
 			     exit(no_content_length)
@@ -34,48 +34,43 @@ size(#storage{urls = URLs}) ->
 			Total + Size
 		end, 0, URLs).
 
-resource_size(URL) when is_binary(URL) ->
-    resource_size(binary_to_list(URL));
-resource_size(URL) ->
-    resource_size(URL, 0).
+resource_info(URL) ->
+    resource_info(URL, 0).
 
-resource_size(_URL, Redirects) when Redirects > ?MAX_REDIRECTS ->
-    exit(too_many_redirects);
-
-resource_size(URL, Redirects) ->
+resource_info(URL, Redirects) when is_binary(URL) ->
+    resource_info(binary_to_list(URL), Redirects);
+resource_info(_, Redirects) when Redirects > ?MAX_REDIRECTS ->
+    {error, too_many_redirects};
+resource_info(URL, Redirects) ->
     case lhttpc:request(URL, head, [{"User-Agent", ?USER_AGENT}], [], ?TIMEOUT) of
 	{ok, {{200, _}, Headers, _}} ->
-	    %% HACK: dirty here. find a better place:
-	    case extract_header("content-type", Headers) of
-		[_ | _] = Type ->
-		    model_feeds:hint_enclosure_type(URL, Type);
-		_ ->
-		    ignore
-	    end,
-
-	    case extract_header("content-length", Headers) of
-		undefined ->
-		    undefined;
-		SizeS ->
-		    Size = list_to_integer(SizeS),
-		    {ok, Size}
-	    end;
+	    ContentType = extract_header("content-type", Headers),
+	    ContentLength1 = extract_header("content-length", Headers),
+	    ContentLength2 = if
+				 is_list(ContentLength1) ->
+				     list_to_integer(ContentLength1);
+				 true ->
+				     undefined
+			     end,
+				 
+	    ETag = extract_header("etag", Headers),
+	    LastModified = extract_header("last-modified", Headers),
+	    {ok, ContentType, ContentLength2, ETag, LastModified};
 	{ok, {{Status, _}, Headers, _}}
 	 when Status >= 300, Status < 400 ->
 	    case extract_header("location", Headers) of
 		undefined ->
-		    exit({http, Status});
+		    {error, {http, Status}};
 		Location ->
 		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
-		    resource_size(Location, Redirects + 1)
+		    resource_info(Location, Redirects + 1)
 	    end;
 	{ok, {{Status, _}, _, _}} ->
-	    error_logger:warning_msg("HTTP ~B~n~s~n", [Status, URL]),
-	    exit({http, Status});
+	    {error, {http, Status}};
 	{error, Reason} ->
-	    error_logger:warning_msg("~s~n~p~n", [URL, Reason]),
-	    exit(Reason)
+	    {error, Reason}
     end.
+    
 
 fold(_, _, Length, _, AccOut) when Length =< 0 ->
     AccOut;

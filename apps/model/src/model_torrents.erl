@@ -1,6 +1,6 @@
 -module(model_torrents).
 
--export([add_torrent/4, get_torrent/1, get_info/1, exists/1, calculate_names_sizes/0]).
+-export([add_torrent/5, get_torrent/1, get_info/1, exists/1, calculate_names_sizes/0]).
 
 -include("../include/model.hrl").
 
@@ -8,9 +8,17 @@
 -define(Q(Stmt, Params), model_sup:equery(?POOL, Stmt, Params)).
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
-add_torrent(InfoHash, Name, Size, Torrent) ->
-    ?Q("INSERT INTO torrents (\"info_hash\", \"name\", \"size\", \"torrent\") VALUES ($1, $2, $3, $4)",
-       [InfoHash, Name, Size, Torrent]).
+add_torrent(InfoHash, Name, Size, Torrent, Updater) ->
+    case ?Q("INSERT INTO torrents (\"info_hash\", \"name\", \"size\", \"torrent\") VALUES ($1, $2, $3, $4)",
+	    [InfoHash, Name, Size, Torrent]) of
+	{error, {error, _, _, <<"duplicate key", _/binary>>, _}} ->
+	    ?T(fun() ->
+		       {ok, _, [{Torrent1}]} =
+			   ?Q("SELECT torrent FROM torrents WHERE info_hash=$1", [InfoHash]),
+		       Torrent2 = Updater(Torrent1),
+		       ?Q("UPDATE torrents SET torrent=$2 WHERE info_hash=$1", [InfoHash, Torrent2])
+	       end)
+    end.
 
 get_torrent(InfoHash) ->
     case ?Q("SELECT \"name\", \"torrent\" FROM torrents WHERE \"info_hash\"=$1",
