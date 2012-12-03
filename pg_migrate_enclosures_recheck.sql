@@ -29,7 +29,7 @@ CREATE OR REPLACE FUNCTION enclosure_to_recheck(
           FROM enclosure_torrents
          WHERE next_recheck IS NULL
             OR next_recheck <= NOW()
-         ORDER BY next_recheck ASC NULLS FIRST
+         ORDER BY next_recheck ASC NULLS FIRST, last_update DESC
          LIMIT 1;
 
         IF FOUND THEN
