@@ -17,7 +17,9 @@ add_torrent(InfoHash, Name, Size, Torrent, Updater) ->
 			   ?Q("SELECT torrent FROM torrents WHERE info_hash=$1", [InfoHash]),
 		       Torrent2 = Updater(Torrent1),
 		       ?Q("UPDATE torrents SET torrent=$2 WHERE info_hash=$1", [InfoHash, Torrent2])
-	       end)
+	       end);
+	{ok, 1} ->
+	    ok
     end.
 
 get_torrent(InfoHash) ->
