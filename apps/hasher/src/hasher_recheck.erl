@@ -19,9 +19,13 @@ loop() ->
 	    io:format("Recheck ~s~n", [URL]),
 	    case storage:resource_info(URL) of
 		{ok, _Type, ContentLength, ContentETag, ContentLastModified}
-		  when Length == ContentLength,
-		       ETag == ContentETag,
-		       LastModified == ContentLastModified ->
+		  when (Length == ContentLength andalso
+			ETag == ContentETag andalso
+			LastModified == ContentLastModified);
+		       (Length == ContentLength andalso
+			ETag == null andalso
+			LastModified == null
+		       ) ->
 		    nothing_changed;
 
 		{ok, _Type, ContentLength, ContentETag, ContentLastModified} ->
