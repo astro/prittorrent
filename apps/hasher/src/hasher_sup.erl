@@ -26,12 +26,13 @@ pick_any_worker() ->
     lists:nth(random:uniform(length(Pids)), Pids).
 
 recheck(URL) ->
-    pick_any_worker() ! {recheck, URL, self()},
+    Pid = pick_any_worker(),
+    link(Pid),
+    Pid ! {recheck, URL, self()},
     receive
 	recheck_done ->
+	    unlink(Pid),
 	    ok
-    after 600000 ->
-	    exit(timeout)
     end.
 
 
