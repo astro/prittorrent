@@ -34,6 +34,10 @@ to_recheck() ->
     end.
     
 
+set_torrent(URL, Error, InfoHash, Length, undefined, LastModified) ->
+    set_torrent(URL, Error, InfoHash, Length, null, LastModified);
+set_torrent(URL, Error, InfoHash, Length, ETag, undefined) ->
+    set_torrent(URL, Error, InfoHash, Length, ETag, null);
 set_torrent(URL, Error, InfoHash, Length, ETag, LastModified) ->
     ?T(fun(Q) ->
 	       case Q("SELECT count(\"url\") FROM enclosure_torrents WHERE \"url\"=$1", [URL]) of

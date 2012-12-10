@@ -39,8 +39,8 @@ loop() ->
 		{ok, _Type, ContentLength, ContentETag, ContentLastModified} ->
 		    io:format("Need recheck: ~s~n", [URL]),
 		    io:format("\tLength: ~p /= ~p~n", [Length, ContentLength]),
-		    io:format("\tETag: ~p /= ~p~n", [ETag, ContentETag]),
-		    io:format("\tLast-Modified: ~p /= ~p~n", [LastModified, ContentLastModified]),
+		    io:format("\tETag: ~p /= ~p~n", [ETagList, ContentETag]),
+		    io:format("\tLast-Modified: ~p /= ~p~n", [LastModifiedList, ContentLastModified]),
 		    hasher_sup:recheck(URL);
 
 		{error, E} ->
