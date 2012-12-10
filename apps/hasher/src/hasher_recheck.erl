@@ -28,11 +28,12 @@ loop() ->
 	    case storage:resource_info(URL) of
 		{ok, _Type, ContentLength, ContentETag, ContentLastModified}
 		  when (Length == ContentLength andalso
-			ETagList == ContentETag andalso
-			LastModifiedList == ContentLastModified);
-		       (Length == ContentLength andalso
-			ETag == null andalso
-			LastModified == null
+                        (ContentETag == ETagList orelse
+			 ContentETag == undefined orelse
+			 ETagList == null) andalso
+                        (ContentLastModified == LastModifiedList orelse
+			 ContentLastModified == undefined orelse
+			 LastModifiedList == null)
 		       ) ->
 		    nothing_changed;
 
