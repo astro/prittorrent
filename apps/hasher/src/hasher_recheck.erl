@@ -17,11 +17,19 @@ loop() ->
 	    end;
 	{ok, URL, Length, ETag, LastModified} ->
 	    io:format("Recheck ~s~n", [URL]),
+	    ETagList = if
+			   is_binary(ETag) -> binary_to_list(ETag);
+			   true -> ETag
+		       end,
+	    LastModifiedList = if
+				   is_binary(LastModified) -> binary_to_list(LastModified);
+				   true -> LastModified
+			       end,
 	    case storage:resource_info(URL) of
 		{ok, _Type, ContentLength, ContentETag, ContentLastModified}
 		  when (Length == ContentLength andalso
-			ETag == ContentETag andalso
-			LastModified == ContentLastModified);
+			ETagList == ContentETag andalso
+			LastModifiedList == ContentLastModified);
 		       (Length == ContentLength andalso
 			ETag == null andalso
 			LastModified == null
