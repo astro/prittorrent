@@ -7,7 +7,7 @@
 -define(USER_AGENT, "PritTorrent/1.0").
 -define(TIMEOUT, 30 * 1000).
 -define(PART_SIZE, 32768).
--define(MAX_REDIRECTS, 3).
+-define(MAX_REDIRECTS, 9).
 
 -record(storage, {urls :: [{binary(), integer()}]}).
 
@@ -133,7 +133,18 @@ fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
 	%% Partial Content
 	{ok, {{206, _}, _Headers, Pid}} ->
 	    %% Strrream:
-	    fold_resource1(Pid, F, AccIn);
+	    {Transferred, AccOut} = fold_resource1(Pid, F, AccIn),
+	    if
+		Transferred == Length ->
+		    %% Ok
+		    AccOut;
+		Transferred < Length ->
+		    %% Continue, using Redirects as limiter
+		    fold_resource(URL, Offset + Transferred, Length - Transferred, F, AccOut, Redirects - 1);
+		Transferred > Length ->
+		    %% Data corruption :-(
+		    exit(excess_data)
+	    end;
 	{ok, {{Status, _}, Headers, Pid}}
 	  when Status >= 300, Status < 400 ->
 	    %% Finalize this response:
@@ -158,22 +169,22 @@ fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
 	    exit(Reason)
     end.
 
-fold_resource1(undefined, _, AccIn) ->
+fold_resource1(undefined, _, A) ->
     %% No body, no fold.
-    AccIn;
-fold_resource1(Pid, F, AccIn) ->
+    A;
+fold_resource1(Pid, F, {Size, AccIn} = A) ->
     case (catch lhttpc:get_body_part(Pid, ?TIMEOUT)) of
 	{ok, Data} when is_binary(Data) ->
 	    AccOut = F(AccIn, Data),
-	    fold_resource1(Pid, F, AccOut);
+	    fold_resource1(Pid, F, {Size + byte_size(Data), AccOut});
 	{ok, {http_eob, _Trailers}} ->
-	    AccIn;
+	    A;
 	{'EXIT', Reason} ->
 	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
-	    AccIn;
+	    A;
 	{error, Reason} ->
 	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
-	    AccIn
+	    A
     end.
 
 extract_header(Name1, Headers) ->
