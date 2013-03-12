@@ -119,5 +119,16 @@ http_fold1(Pid, F, AccIn) ->
 
 get_etag_last_modified_from_headers(Headers) ->
     {ok,
-     proplists:get_value("ETag", Headers, undefined),
-     proplists:get_value("Last-Modified", Headers, undefined)}.
+     get_header("etag", Headers),
+     get_header("last-modified", Headers)}.
+
+%% expects lower-case Name
+get_header(_Name, []) ->
+    undefined;
+get_header(Name, [{HName, HValue} | Headers]) ->
+    case string:to_lower(HName) == Name of
+	true ->
+	    HValue;
+	false ->
+	    get_header(Name, Headers)
+    end.
