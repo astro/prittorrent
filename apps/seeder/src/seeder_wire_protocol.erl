@@ -353,6 +353,11 @@ request_pieces(#state{request_queue = RequestQueue1,
 					 fun collect_data/2, {Requests, <<>>})) of
 		    {'EXIT', Reason} ->
 			error_logger:error_msg("storage request failed:~n~p~n", [Reason]),
+			%% Just throttle:
+			receive
+			after 5000 ->
+				go_retry
+			end,
 			%% Throwing an error means nothing has been processed
 			Requests;
 		    tcp_closed ->
