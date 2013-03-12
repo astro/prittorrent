@@ -327,7 +327,7 @@ fix_timestamp(undefined) ->
 fix_timestamp(S) ->
     %% Tue, 12 Jun 2012 22:43:48 +0200
     case run_re(S, "(\\d+) (\\S+) (\\d+) (\\d+):(\\d+):(\\d+)\\s*([0-9:+\\-]*)") of
-	{match, [Day, Mon, Year, Hour, Min, Sec, Tz]} ->
+	{match, [Day, <<Mon:3/binary, _/binary>>, Year, Hour, Min, Sec, Tz]} ->
 	    Date = {bin_to_int(Year), month_to_int(Mon), bin_to_int(Day)},
 	    Time = {bin_to_int(Hour), bin_to_int(Min), bin_to_int(Sec)},
 	    case run_re(Tz, "([+\\-])(\\d{1,2}):?(\\d*)") of
