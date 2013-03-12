@@ -136,7 +136,7 @@ handle_info(timeout, State) ->
     error_logger:warning_msg("Activity timeout in ~p~n", [self()]),
     {stop, normal, State};
 
-handle_info({shoot, Pid}, State) ->
+handle_info({shoot, _Pid}, State) ->
     {noreply, State, ?ACTIVITY_TIMEOUT};
 
 handle_info(_Info, State) ->
