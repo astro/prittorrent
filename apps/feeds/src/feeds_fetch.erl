@@ -12,13 +12,13 @@
 fetch(Url, Etag1, LastModified1) ->
     Headers =
 	if
-	    is_binary(Etag1) ->
+	    is_binary(Etag1), size(Etag1) > 0 ->
 		[{"If-None-Match", binary_to_list(Etag1)}];
 	    true ->
 		[]
 	end ++
 	if
-	    is_binary(LastModified1) ->
+	    is_binary(LastModified1), size(LastModified1) > 0 ->
 		[{"If-Modified-Since", binary_to_list(LastModified1)}];
 	    true ->
 		[]
