@@ -8,6 +8,10 @@ CREATE TABLE gauges (
        "value" BIGINT DEFAULT 1
 );
 CREATE INDEX gauges_kind_info_hash_time ON gauges ("kind","info_hash","time");
+CREATE INDEX gauges_kind_info_hash_time3600 ON gauges ("kind","info_hash",align_timestamp("time", 3600));
+CREATE INDEX gauges_kind_info_hash_time21600 ON gauges ("kind","info_hash",align_timestamp("time", 21600));
+CREATE INDEX gauges_kind_info_hash_time86400 ON gauges ("kind","info_hash",align_timestamp("time", 86400));
+CREATE INDEX gauges_kind_info_hash_time604800 ON gauges ("kind","info_hash",align_timestamp("time", 604800));
 
 CREATE OR REPLACE FUNCTION set_gauge(
        "e_kind" TEXT,
@@ -73,6 +77,10 @@ CREATE TABLE counters (
 );
 
 CREATE INDEX counters_kind_info_hash_time ON counters ("kind","info_hash","time");
+CREATE INDEX counters_kind_info_hash_time3600 ON counters ("kind","info_hash",align_timestamp("time", 3600));
+CREATE INDEX counters_kind_info_hash_time21600 ON counters ("kind","info_hash",align_timestamp("time", 21600));
+CREATE INDEX counters_kind_info_hash_time86400 ON counters ("kind","info_hash",align_timestamp("time", 86400));
+CREATE INDEX counters_kind_info_hash_time604800 ON counters ("kind","info_hash",align_timestamp("time", 604800));
 
 CREATE OR REPLACE FUNCTION add_counter(
        "e_kind" TEXT,
@@ -104,6 +112,13 @@ CREATE OR REPLACE FUNCTION add_counter(
     END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION align_timestamp (
+    "ts" TIMESTAMP,
+    "interval" INT
+) RETURNS TIMESTAMP WITH TIME ZONE AS $$
+    SELECT TO_TIMESTAMP(FLOOR(EXTRACT(EPOCH FROM $1) / $2) * $2);
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 CREATE TABLE downloaded_stats (
