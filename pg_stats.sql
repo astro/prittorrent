@@ -82,6 +82,11 @@ CREATE INDEX counters_kind_info_hash_time21600 ON counters ("kind","info_hash",a
 CREATE INDEX counters_kind_info_hash_time86400 ON counters ("kind","info_hash",align_timestamp("time", 86400));
 CREATE INDEX counters_kind_info_hash_time604800 ON counters ("kind","info_hash",align_timestamp("time", 604800));
 
+CREATE INDEX counters_get
+          ON counters ("info_hash", "time")
+       -- Must be mentioned explicitly to use this index
+       WHERE info_hash LIKE 'GET /%.torrent';
+
 CREATE OR REPLACE FUNCTION add_counter(
        "e_kind" TEXT,
        "e_info_hash" BYTEA,
