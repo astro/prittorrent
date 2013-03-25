@@ -133,7 +133,7 @@ fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
 	%% Partial Content
 	{ok, {{206, _}, _Headers, Pid}} ->
 	    %% Strrream:
-	    {Transferred, AccOut} = fold_resource1(Pid, F, AccIn),
+	    {Transferred, AccOut} = fold_resource1(Pid, F, {0, AccIn}),
 	    if
 		Transferred == Length ->
 		    %% Ok
@@ -150,7 +150,7 @@ fold_resource(URL, Offset, Length, F, AccIn, Redirects) ->
 	    %% Finalize this response:
 	    fold_resource1(Pid, fun(_, _) ->
 					ok
-				end, undefined),
+				end, {0, undefined}),
 
 	    case extract_header("location", Headers) of
 		undefined ->
