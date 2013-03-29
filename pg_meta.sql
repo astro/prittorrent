@@ -90,19 +90,18 @@ CREATE TABLE torrents ("info_hash" BYTEA PRIMARY KEY,
                        "torrent" BYTEA);
 
 CREATE OR REPLACE VIEW active_users AS
-    SELECT users.name AS "user",
-           COUNT(user_feeds."user") as "feeds",
+    SELECT "user",
+           COUNT(DISTINCT slug) as "feeds",
            ARRAY_AGG(DISTINCT "lang") AS langs,
            ARRAY_AGG(DISTINCT "type") AS types
-      FROM users
-      JOIN user_feeds ON (users.name=user_feeds."user")
+      FROM user_feeds
       JOIN (SELECT "url", "lang", "type"
               FROM feeds
               JOIN feed_types ON (feeds.url=feed_types.feed)) AS lang_type
            ON (user_feeds.feed=lang_type.url)
      WHERE user_feeds."public"=true
-  GROUP BY users.name
-  ORDER BY users.name ASC;
+  GROUP BY "user"
+  ORDER BY "user" ASC;
 
 CREATE OR REPLACE VIEW directory AS
     SELECT users.name AS "user",
