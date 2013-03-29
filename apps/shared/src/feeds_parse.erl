@@ -426,7 +426,8 @@ item_enclosures(ItemEl) ->
     lists:reverse(
 	lists:foldl(fun(#xmlel{name="enclosure"}=El, URLs) ->
 			    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
-			    Type = exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined),
+			    Type = normalize_type(
+				     exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined)),
 			    case exmpp_xml:get_attribute_as_binary(El, <<"url">>, undefined) of
 				URL when is_binary(URL) ->
 				    [{URL, Type, Title} | URLs];
@@ -444,7 +445,8 @@ item_enclosures(ItemEl) ->
 				    case exmpp_xml:get_attribute_as_binary(El, <<"href">>, undefined) of
 					URL when is_binary(URL), size(URL) > 6 ->
 					    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
-					    Type = exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined),
+					    Type = normalize_type(
+						     exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined)),
 					    [{URL, Type, Title} | URLs];
 					_ ->
 					    URLs
@@ -499,3 +501,18 @@ replace_item_enclosures(#xmlel{children = ItemChildren1} = ItemEl, MapFun) ->
 
 replace_item_enclosures(Child, _) ->
     Child.
+
+
+%% Drop MIME Type parameters ";..."
+normalize_type(B) when is_binary(B) ->
+    L1 = binary_to_list(B),
+    case lists:takewhile(fun(C) ->
+				 C =/= $;
+			 end, L1) of
+	L2 when L1 == L2 ->
+	    B;
+	L2 ->
+	    list_to_binary(L2)
+    end;
+normalize_type(A) ->
+    A.
