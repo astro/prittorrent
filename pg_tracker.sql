@@ -9,6 +9,7 @@ CREATE TABLE tracked ("info_hash" BYTEA NOT NULL REFERENCES torrents("info_hash"
                       "upspeed" BIGINT,
                       "left" BIGINT,
                       "last_request" TIMESTAMP NOT NULL,
+                      "completed" BOOL,
                       PRIMARY KEY ("info_hash", "peer_id")
                      );
 
@@ -36,31 +37,33 @@ CREATE OR REPLACE FUNCTION set_peer(
         "old_age" FLOAT;
         "up" BIGINT;
         "down" BIGINT;
-        "p_upspeed" BIGINT;
-        "p_downspeed" BIGINT;
+        "p_upspeed" BIGINT := 0;
+        "p_downspeed" BIGINT := 0;
+        "p_completed" BOOL;
     BEGIN
         SELECT * INTO "old"
           FROM tracked
          WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id"
            FOR UPDATE;
         IF "old" IS NULL THEN
+            p_completed := "p_event" = 'completed';
             BEGIN
                 -- No concurrent data change
                 INSERT INTO tracked ("info_hash", "peer_id", "host", "port",
-                                     "uploaded", "downloaded", "left", "last_request")
+                                     "uploaded", "downloaded", "left", "last_request", "completed")
                     VALUES ("p_info_hash", "p_peer_id", "p_host", "p_port",
                             "p_uploaded", "p_downloaded", "p_left",
-                            now());
+                            now(), "p_completed");
                 IF "p_event" = 'completed' THEN
-		    SELECT * FROM add_counter('complete', "p_info_hash", 1)
-		END IF;
+                    PERFORM add_counter('complete', "p_info_hash", 1);
+                END IF;
             EXCEPTION
                 WHEN integrity_constraint_violation
                 THEN
                     -- Data has appeared in the meantime, retry:
-                    SELECT * FROM set_peer(
+                    SELECT "up", "down" FROM set_peer(
                         p_info_hash, p_host, p_port, p_peer_id,
-                        p_uploaded, p_downloaded, p_left);
+                        p_uploaded, p_downloaded, p_left, p_event);
             END;
         ELSE
             "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
@@ -68,7 +71,7 @@ CREATE OR REPLACE FUNCTION set_peer(
             IF "old_age" <= 30 * 60 AND
                "p_uploaded" >= old.uploaded AND
                "p_downloaded" >= old.downloaded AND
-               "p_left" <= old.left THEN
+               "p_left" <= old."left" THEN
                 "up" := "p_uploaded" - old.uploaded;
                 "down" := "p_downloaded" - old.downloaded;
                 PERFORM add_counter('up', p_info_hash, "up");
@@ -78,17 +81,24 @@ CREATE OR REPLACE FUNCTION set_peer(
                 "p_downspeed" := (down / "old_age")::BIGINT;
             END IF;
 
-	    IF "p_event" = 'completed' OR
-	        -- Try to recognize completed event when it has been
-	        -- sent to a different tracker:
-	        (old.left > 0 AND p_left = 0) THEN
+            -- If this peer hadn't completed before:
+            -- 
+            -- Recognize its "completed" event, or
+            -- 
+            -- try to recognize completed event when it has been
+            -- sent to a different tracker.
+            p_completed := old.completed;
+            IF NOT "p_completed" AND 
+               ("p_event" = 'completed' OR
+                (old."left" > 0 AND "p_left" = 0)) THEN
 
-                SELECT * FROM add_counter('complete', "p_info_hash", 1)
-	    END IF;
+                PERFORM add_counter('complete', "p_info_hash", 1);
+                p_completed := TRUE;
+            END IF;
 
             UPDATE tracked SET "host"="p_host", "port"="p_port",
                                "uploaded"="p_uploaded", "downloaded"="p_downloaded",
-                               "left"="p_left", "last_request"=now(),
+                               "left"="p_left", "last_request"=now(), "completed"="p_completed",
                                "upspeed"="p_upspeed", "downspeed"="p_downspeed"
              WHERE "info_hash"="p_info_hash" AND "peer_id"="p_peer_id";
         END IF;
