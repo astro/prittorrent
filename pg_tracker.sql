@@ -28,6 +28,7 @@ CREATE OR REPLACE VIEW tracker_leechers AS
 CREATE OR REPLACE FUNCTION set_peer(
        "p_info_hash" BYTEA, "p_host" BYTEA, "p_port" INT, "p_peer_id" BYTEA,
        "p_uploaded" BIGINT, "p_downloaded" BIGINT, "p_left" BIGINT,
+       "p_event" TEXT,
        OUT "up" BIGINT, OUT "down" BIGINT
     ) RETURNS RECORD AS $$
     DECLARE
@@ -50,6 +51,9 @@ CREATE OR REPLACE FUNCTION set_peer(
                     VALUES ("p_info_hash", "p_peer_id", "p_host", "p_port",
                             "p_uploaded", "p_downloaded", "p_left",
                             now());
+                IF "p_event" = 'completed' THEN
+		    SELECT * FROM add_counter('complete', "p_info_hash", 1)
+		END IF;
             EXCEPTION
                 WHEN integrity_constraint_violation
                 THEN
@@ -73,6 +77,14 @@ CREATE OR REPLACE FUNCTION set_peer(
                 "p_upspeed" := (up / "old_age")::BIGINT;
                 "p_downspeed" := (down / "old_age")::BIGINT;
             END IF;
+
+	    IF "p_event" = 'completed' OR
+	        -- Try to recognize completed event when it has been
+	        -- sent to a different tracker:
+	        (old.left > 0 AND p_left = 0) THEN
+
+                SELECT * FROM add_counter('complete', "p_info_hash", 1)
+	    END IF;
 
             UPDATE tracked SET "host"="p_host", "port"="p_port",
                                "uploaded"="p_uploaded", "downloaded"="p_downloaded",
