@@ -35,8 +35,6 @@ CREATE OR REPLACE FUNCTION set_peer(
     DECLARE
         "old" RECORD;
         "old_age" FLOAT;
-        "up" BIGINT;
-        "down" BIGINT;
         "p_upspeed" BIGINT := 0;
         "p_downspeed" BIGINT := 0;
         "p_completed" BOOL;
@@ -77,8 +75,8 @@ CREATE OR REPLACE FUNCTION set_peer(
                 PERFORM add_counter('up', p_info_hash, "up");
                 PERFORM add_counter('down', p_info_hash, "down");
 
-                "p_upspeed" := (up / "old_age")::BIGINT;
-                "p_downspeed" := (down / "old_age")::BIGINT;
+                "p_upspeed" := ("up" / "old_age")::BIGINT;
+                "p_downspeed" := ("down" / "old_age")::BIGINT;
             END IF;
 
             -- If this peer hadn't completed before:
