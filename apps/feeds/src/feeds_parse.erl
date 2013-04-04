@@ -5,8 +5,7 @@
 	 title/1, lang/1, summary/1, link/1, image/1,
 	 pick_items/1,
 	 item_id/1, item_title/1, item_lang/1, item_summary/1, item_enclosures/1,
-	 item_published/1, item_link/1, item_payment/1, item_image/1,
-	 replace_item_enclosures/2]).
+	 item_published/1, item_link/1, item_payment/1, item_image/1]).
 
 -include_lib("exmpp/include/exmpp_xml.hrl").
 
@@ -457,50 +456,6 @@ item_enclosures(ItemEl) ->
 		       (_, URLs) ->
 			    URLs
 		    end, [], exmpp_xml:get_child_elements(ItemEl))).
-
-replace_item_enclosures(#xmlel{name = "link"} = LinkEl1, MapFun) ->
-    case {exmpp_xml:get_attribute_as_binary(
-	    LinkEl1, <<"rel">>, undefined),
-	  exmpp_xml:get_attribute_as_binary(
-	    LinkEl1, <<"href">>, undefined)} of
-	{<<"enclosure">>, Href} ->
-	    case MapFun(Href) of
-		NewHref when is_binary (NewHref) ->
-		    LinkEl2 =
-			exmpp_xml:set_attribute(
-			  LinkEl1 , <<"href">>, NewHref),
-		    LinkEl3 =
-			exmpp_xml:set_attribute(
-			  LinkEl2 , <<"type">>, <<"application/x-bittorrent">>),
-		    LinkEl3;
-		_ ->
-		    %% Drop <link/>
-		    exmpp_xml:cdata(<<"">>)
-	    end;
-	{_, _} ->
-	    LinkEl1
-    end;
-
-replace_item_enclosures(#xmlel{name = "enclosure"} = EnclosureEl1, MapFun) ->
-    URL = exmpp_xml:get_attribute_as_binary(
-	    EnclosureEl1, <<"url">>, undefined),
-    NewURL = MapFun(URL),
-    EnclosureEl2 =
-	exmpp_xml:set_attribute(
-	  EnclosureEl1, <<"url">>, NewURL),
-    EnclosureEl3 =
-	exmpp_xml:set_attribute(
-	  EnclosureEl2, <<"type">>, <<"application/x-bittorrent">>),
-    EnclosureEl3;
-    
-replace_item_enclosures(#xmlel{children = ItemChildren1} = ItemEl, MapFun) ->
-    ItemChildren2 =
-	[replace_item_enclosures(ItemChild, MapFun)
-	 || ItemChild <- ItemChildren1],
-    ItemEl#xmlel{children = ItemChildren2};
-
-replace_item_enclosures(Child, _) ->
-    Child.
 
 
 %% Drop MIME Type parameters ";..."
