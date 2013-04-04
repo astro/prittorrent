@@ -86,7 +86,7 @@ CREATE OR REPLACE FUNCTION set_peer(
             -- try to recognize completed event when it has been
             -- sent to a different tracker.
             p_completed := old.completed;
-            IF NOT "p_completed" AND 
+            IF "p_completed" != TRUE AND 
                ("p_event" = 'completed' OR
                 (old."left" > 0 AND "p_left" = 0)) THEN
 
