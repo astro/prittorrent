@@ -41,7 +41,7 @@ recheck(URL) ->
 %% ===================================================================
 
 init([]) ->
-    NWorkers = 2,
+    NWorkers = 4,
     Workers = [{{worker, N}, {hasher_worker, start_link, []},
 		permanent, 5000, worker, [hasher_worker, hasher_hash]}
 	       || N <- lists:seq(1, NWorkers)],
@@ -49,5 +49,5 @@ init([]) ->
     Recheckers = [{{checker, N}, {hasher_recheck, start_link, []},
 		   permanent, 5000, worker, [hasher_recheck]}
 		  || N <- lists:seq(1, NRecheckers)],
-    {ok, { {one_for_one, 5, 10}, Workers ++ Recheckers} }.
+    {ok, { {one_for_one, 100, 1}, Workers ++ Recheckers} }.
 
