@@ -6,6 +6,7 @@
 -include_lib("exmpp/include/exmpp_xml.hrl").
 
 -define(TIMEOUT, 30 * 1000).
+-define(MAX_REDIRECTS, 3).
 
 
 -spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).
@@ -71,6 +72,11 @@ fetch(Url, Etag1, LastModified1) ->
 
 %% TODO: handle pcast://
 http_fold(URL, ReqHeaders1, F, AccIn) ->
+    http_fold(URL, ReqHeaders1, F, AccIn, 0).
+
+http_fold(_, _, _, _, Redirects) when Redirects >= ?MAX_REDIRECTS ->
+    exit({http, too_many_redirects});
+http_fold(URL, ReqHeaders1, F, AccIn, Redirects) ->
     %% Compose request
     ReqHeaders2 =
         [{"User-Agent", "PritTorrent/0.1"}
@@ -94,11 +100,19 @@ http_fold(URL, ReqHeaders1, F, AccIn) ->
 	    %% Strrream:
 	    {ok, AccOut } = http_fold1(Pid, F, AccIn),
 	    {ok, {Etag, LastModified}, AccOut};
-	{ok, {{Status, _}, _Headers, Pid}} ->
+	{ok, {{Status, _}, Headers, Pid}} ->
 	    %% Finalize this response:
-	    http_fold1(Pid, F, AccIn),
+	    http_fold1(Pid, fun(_, _) ->
+				    ok
+			    end, undefined),
 
-	    exit({http, Status});
+	    case get_header("location", Headers) of
+		undefined ->
+		    exit({http, Status});
+		Location ->
+		    io:format("HTTP ~B: ~s redirects to ~s~n", [Status, URL, Location]),
+		    http_fold(Location, ReqHeaders1, F, AccIn, Redirects + 1)
+	    end;
 
 	{error, Reason} ->
 	    exit(Reason)
