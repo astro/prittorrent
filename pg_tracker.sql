@@ -59,9 +59,7 @@ CREATE OR REPLACE FUNCTION set_peer(
                 WHEN integrity_constraint_violation
                 THEN
                     -- Data has appeared in the meantime, retry:
-                    SELECT "up", "down" FROM set_peer(
-                        p_info_hash, p_host, p_port, p_peer_id,
-                        p_uploaded, p_downloaded, p_left, p_event);
+                    RAISE WARNING 'set_peer insert conflict';
             END;
         ELSE
             "old_age" := EXTRACT(EPOCH FROM (now() - old.last_request));
