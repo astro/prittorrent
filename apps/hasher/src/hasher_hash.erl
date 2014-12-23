@@ -45,7 +45,6 @@ make_torrent(URL) ->
 extract_name_from_url(URL) ->
     {Parts, _, _} =
 	cowboy_dispatcher:split_path(URL, fun cowboy_http:urldecode/1),
-    io:format("Parts: ~p~n", [Parts]),
     lists:foldl(fun(Part, R) ->
 			if
 			    is_binary(Part),
