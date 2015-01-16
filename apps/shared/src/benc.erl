@@ -114,6 +114,6 @@ to_iolist(String) when is_binary(String) ->
 
 hash(Dict) ->
     crypto:start(),
-    crypto:sha(to_binary(Dict)).
+    crypto:hash(sha, to_binary(Dict)).
 
 

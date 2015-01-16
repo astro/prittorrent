@@ -92,10 +92,10 @@ hash_piece(Storage, Offset, Length) ->
     {Sha, ActualLength} =
 	storage:fold(Storage, Offset, Length,
 		     fun({Sha, ActualLength}, Data) ->
-			     {crypto:sha_update(Sha, Data),
+			     {crypto:hash_update(Sha, Data),
 			      ActualLength + size(Data)}
-		     end, {crypto:sha_init(), 0}),
-    Digest = crypto:sha_final(Sha),
+		     end, {crypto:hash_init(sha), 0}),
+    Digest = crypto:crypto_final(Sha),
     if
 	ActualLength == Length ->
 	    Digest;
