@@ -43,8 +43,7 @@ make_torrent(URL) ->
     {ok, InfoHash, Name, Size, benc:to_binary(Torrent), ETag, LastModified}.
 
 extract_name_from_url(URL) ->
-    {Parts, _, _} =
-	cowboy_dispatcher:split_path(URL, fun cowboy_http:urldecode/1),
+    Parts = split_path(URL),
     lists:foldl(fun(Part, R) ->
 			if
 			    is_binary(Part),
@@ -54,6 +53,34 @@ extract_name_from_url(URL) ->
 				R
 			end
 		end, undefined, Parts).
+
+%% split_path has been bluntly copied from cowboy_router. The function
+%% was previously exported. :-( Its license applies.
+%%
+%% Following RFC2396, this function may return path segments containing any
+%% character, including <em>/</em> if, and only if, a <em>/</em> was escaped
+%% and part of a path segment.
+-spec split_path(binary()) -> [binary()] | badrequest.
+split_path(<< $/, Path/bits >>) ->
+	split_path(Path, []);
+split_path(_) ->
+	badrequest.
+
+split_path(Path, Acc) ->
+	try
+		case binary:match(Path, <<"/">>) of
+			nomatch when Path =:= <<>> ->
+				lists:reverse([cow_qs:urldecode(S) || S <- Acc]);
+			nomatch ->
+				lists:reverse([cow_qs:urldecode(S) || S <- [Path|Acc]]);
+			{Pos, _} ->
+				<< Segment:Pos/binary, _:8, Rest/bits >> = Path,
+				split_path(Rest, [Segment|Acc])
+		end
+	catch
+		error:badarg ->
+			badrequest
+	end.
 
 
 -spec(hash_torrent/1 :: (binary()) -> {ok, integer(), binary(), binary(), binary()}).
