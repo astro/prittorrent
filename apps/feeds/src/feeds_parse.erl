@@ -428,13 +428,14 @@ item_enclosures(ItemEl) ->
 			    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
 			    Type = normalize_type(
 				     exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined)),
+			    GUID = exmpp_xml:get_attribute_as_binary(El, ?NS_BITLOVE, <<"guid">>, undefined),
 			    case exmpp_xml:get_attribute_as_binary(El, <<"url">>, undefined) of
 				URL when is_binary(URL) ->
-				    [{URL, Type, Title} | URLs];
+				    [{URL, Type, Title, GUID} | URLs];
 				_ ->
 				    case exmpp_xml:get_cdata(El) of
 					URL when is_binary(URL), size(URL) > 6 ->
-					    [{URL, Type, Title} | URLs];
+					    [{URL, Type, Title, GUID} | URLs];
 					_ ->
 					    URLs
 				    end
@@ -447,8 +448,7 @@ item_enclosures(ItemEl) ->
 					    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
 					    Type = normalize_type(
 						     exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined)),
-					    GUID = normalize_type(
-						     exmpp_xml:get_attribute_as_binary(El, ?NS_BITLOVE, <<"guid">>, undefined)),
+					    GUID = exmpp_xml:get_attribute_as_binary(El, ?NS_BITLOVE, <<"guid">>, undefined),
 					    [{URL, Type, Title, GUID} | URLs];
 					_ ->
 					    URLs
