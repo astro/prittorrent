@@ -22,7 +22,7 @@ register(Name, Email) ->
 			   ?Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
 			      [Name, Email, generate_salt()]),
 		       ok;
-		   {ok, _, _} = R ->
+		   {ok, _, _} ->
 		       {error, exists}
 	       end
        end).
