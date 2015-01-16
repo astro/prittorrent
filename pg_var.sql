@@ -29,11 +29,13 @@ CREATE TABLE enclosures ("feed" TEXT NOT NULL,
                          "url" TEXT NOT NULL,
                          "type" TEXT,
                          "title" TEXT,
+                         "guid" TEXT,
                          PRIMARY KEY ("feed", "item", "url"),
                          FOREIGN KEY ("feed", "item")
                              REFERENCES "feed_items" ("feed", "id")
                              ON DELETE CASCADE);
 CREATE INDEX enclosures_url ON enclosures ("url");
+CREATE INDEX enclosures_guid ON enclosures ("guid");
 
 -- Materialized distinct content types per feed
 CREATE TABLE feed_types (

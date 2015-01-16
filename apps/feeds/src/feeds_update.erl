@@ -163,8 +163,13 @@ xml_to_feed_item(Feed, NormalizeURL, Xml) ->
     Payment = NormalizeURL(feeds_parse:item_payment(Xml)),
     Image = NormalizeURL(feeds_parse:item_image(Xml)),
     Enclosures = lists:map(
-		   fun({Enclosure, EnclosureType, EnclosureTitle}) ->
-			   {NormalizeURL(Enclosure), EnclosureType, EnclosureTitle}
+		   fun({Enclosure, EnclosureType, EnclosureTitle, EnclosureGUID1}) ->
+                           EnclosureGUID2 =
+                               if
+                                   is_binary(EnclosureGUID1) -> EnclosureGUID1;
+                                   true -> Id  %% Fallback to item id
+                               end,
+			   {NormalizeURL(Enclosure), EnclosureType, EnclosureTitle, EnclosureGUID2}
 		   end,
 		   feeds_parse:item_enclosures(Xml)),
     if

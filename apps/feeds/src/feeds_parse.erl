@@ -10,6 +10,7 @@
 -include_lib("exmpp/include/exmpp_xml.hrl").
 
 -define(NS_ATOM, "http://www.w3.org/2005/Atom").
+-define(NS_BITLOVE, "http://bitlove.org").
 
 -define(DEFAULT_XMLNS, [{"http://www.w3.org/XML/1998/namespace", "xml"}]).
 
@@ -446,7 +447,9 @@ item_enclosures(ItemEl) ->
 					    Title = exmpp_xml:get_attribute_as_binary(El, <<"title">>, undefined),
 					    Type = normalize_type(
 						     exmpp_xml:get_attribute_as_binary(El, <<"type">>, undefined)),
-					    [{URL, Type, Title} | URLs];
+					    GUID = normalize_type(
+						     exmpp_xml:get_attribute_as_binary(El, ?NS_BITLOVE, <<"guid">>, undefined)),
+					    [{URL, Type, Title, GUID} | URLs];
 					_ ->
 					    URLs
 				    end;

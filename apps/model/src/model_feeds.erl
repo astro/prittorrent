@@ -135,10 +135,10 @@ write_update(FeedURL, {Etag, LastModified},
 			 %% Hrm, ToDelete is not worth the sets overhead 99.9% of the time
 			 ToDelete =
 			     lists:foldl(
-			       fun({Enclosure, EnclosureType, EnclosureTitle}, ToDelete) ->
+			       fun({Enclosure, EnclosureType, EnclosureTitle, EnclosureGUID}, ToDelete) ->
 				       case sets:is_element(Enclosure, ToDelete) of
 					   true ->
-					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5, \"guid\"=$6 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
 						 [FeedURL, Item#feed_item.id, Enclosure,
 						  if
 						      is_binary(EnclosureType),
@@ -146,12 +146,15 @@ write_update(FeedURL, {Etag, LastModified},
 							  EnclosureType;
 						      true ->
 							  null
-						  end, enforce_string(EnclosureTitle)]),
+						  end,
+                                                  enforce_string(EnclosureTitle),
+                                                  enforce_string(EnclosureGUID)
+                                                 ]),
 					       sets:del_element(Enclosure, ToDelete);
 					   false ->
-					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\") VALUES ($1, $2, $3, $4, $5)",
+					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\", \"guid\") VALUES ($1, $2, $3, $4, $5, $6)",
 						 [FeedURL, Item#feed_item.id, Enclosure,
-						  enforce_string(EnclosureType), enforce_string(EnclosureTitle)]),
+						  enforce_string(EnclosureType), enforce_string(EnclosureTitle), enforce_string(EnclosureGUID)]),
 					       ToDelete
 				       end
 			       end,
