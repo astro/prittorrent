@@ -122,7 +122,7 @@ hash_piece(Storage, Offset, Length) ->
 			     {crypto:hash_update(Sha, Data),
 			      ActualLength + size(Data)}
 		     end, {crypto:hash_init(sha), 0}),
-    Digest = crypto:crypto_final(Sha),
+    Digest = crypto:hash_final(Sha),
     if
 	ActualLength == Length ->
 	    Digest;
