@@ -12,12 +12,12 @@ start_link() ->
 	 end,
     ranch:start_listener(
       seeder_wire_listener, 32,
-      cowboy_tcp_transport, [{ip, IP},
-			     {port, 6881},
-			     {max_connections, 768},
-			     %% Not so many but long-lived connections
-			     {backlog, 16}
-			    ],
+      ranch_tcp, [{ip, IP},
+                  {port, 6881},
+                  {max_connections, 768},
+                  %% Not so many but long-lived connections
+                  {backlog, 16}
+                 ],
       seeder_wire_protocol, []
      ).
 
