@@ -53,7 +53,7 @@
 %% to finish.
 -spec start_link(pid(), inet:socket(), module(), any()) -> {ok, pid()}.
 start_link(Ref, Socket, Transport, Opts) ->
-    proc_lib:start_link(?MODULE, init, [Ref, Socket, Transport, Opts], ?HANDSHAKE_TIMEOUT).
+    proc_lib:start_link(?MODULE, init, [[Ref, Socket, Transport, Opts]], ?HANDSHAKE_TIMEOUT).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -64,7 +64,7 @@ init([Ref, Socket, Transport, _Opts]) ->
     ranch:accept_ack(Ref),
     gen_server:cast(self(), handshake),
     gen_server:enter_loop(?MODULE, [], #state{socket = Socket, 
-                                              transport = Transport}, ?ACTIVITY_TIMEOUT).
+                                              transport = Transport}, ?HANDSHAKE_TIMEOUT).
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
