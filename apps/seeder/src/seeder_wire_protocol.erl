@@ -1,6 +1,6 @@
 -module(seeder_wire_protocol).
 
--behaviour(cowboy_protocol).
+-behaviour(ranch_protocol).
 -behaviour(gen_server).
 
 %% API
@@ -20,6 +20,7 @@
 	 terminate/2, code_change/3]).
 
 -record(state, {socket,
+                transport,
 		info_hash,
 		data_length,
 		piece_length,
@@ -51,23 +52,26 @@
 %% Don't block when invoking start_link/4, it waits for peer handshake
 %% to finish.
 -spec start_link(pid(), inet:socket(), module(), any()) -> {ok, pid()}.
-start_link(_ListenerPid, Socket, _Transport, Opts) ->
-    gen_server:start_link(?MODULE, [Socket, Opts],
-			  [{timeout, ?HANDSHAKE_TIMEOUT}]).
+start_link(Ref, Socket, Transport, Opts) ->
+    proc_lib:start_link(?MODULE, init, [Ref, Socket, Transport, Opts], ?HANDSHAKE_TIMEOUT).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
-init([Socket, _Opts]) ->
+init([Ref, Socket, Transport, _Opts]) ->
+    proc_lib:init_ack({ok, self()}),
+    ranch:accept_ack(Ref),
     gen_server:cast(self(), handshake),
-    {ok, #state{socket = Socket}, ?ACTIVITY_TIMEOUT}.
+    gen_server:enter_loop(?MODULE, [], #state{socket = Socket, 
+                                              transport = Transport}, ?ACTIVITY_TIMEOUT).
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State, ?ACTIVITY_TIMEOUT}.
 
-handle_cast(handshake, #state{socket = Socket} = State) ->
+handle_cast(handshake, #state{socket = Socket,
+                              transport = Transport} = State) ->
     {ok, Peername} = inet:peername(Socket),
     io:format("Peer ~p connected~n", [Peername]),
 
@@ -92,7 +96,7 @@ handle_cast(handshake, #state{socket = Socket} = State) ->
 
     %% All following messages will be length-prefixed.
     %% Also, we don't download at all:
-    inet:setopts(Socket, [{active, once} | ?PACKET_OPTS]),
+    Transport:setopts(Socket, [{active, once} | ?PACKET_OPTS]),
 
     %% Initial Bitfield
     send_bitfield(Socket, Length, PieceLength),
@@ -105,10 +109,11 @@ handle_cast(handshake, #state{socket = Socket} = State) ->
 			  storage = Storage}, ?ACTIVITY_TIMEOUT}.
 
 handle_info({tcp, Socket, Data}, 
-	    #state{socket = Socket} = State1) ->
+	    #state{socket = Socket,
+                   transport = Transport} = State1) ->
     case handle_message(Data, State1) of
 	{ok, State2} ->
-	    inet:setopts(Socket, [{active, once}]),
+            Transport:setopts(Socket, [{active, once} | ?PACKET_OPTS]),
 	    {noreply, State2, ?ACTIVITY_TIMEOUT};
 	{close, State2} ->
 	    {stop, normal, State2}

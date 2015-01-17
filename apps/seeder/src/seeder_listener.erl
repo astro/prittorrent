@@ -10,7 +10,7 @@ start_link() ->
 		 {ok, IP2} = inet_parse:address(IP1),
 		 IP2
 	 end,
-    cowboy:start_listener(
+    ranch:start_listener(
       seeder_wire_listener, 32,
       cowboy_tcp_transport, [{ip, IP},
 			     {port, 6881},
@@ -22,4 +22,4 @@ start_link() ->
      ).
 
 stop() ->
-    cowboy:stop_listener(seeder_wire_listener).
+    ranch:stop_listener(seeder_wire_listener).

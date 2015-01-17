@@ -9,7 +9,7 @@
 		  sasl,
 		  lhttpc,
 		  model,
-		  cowboy,
+		  ranch,
 		  shared
                  ]},
   {mod, { seeder_app, []}},
