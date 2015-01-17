@@ -43,7 +43,7 @@ make_torrent(URL) ->
     {ok, InfoHash, Name, Size, benc:to_binary(Torrent), ETag, LastModified}.
 
 extract_name_from_url(URL) ->
-    Parts = split_path(URL),
+    Parts = split_path(URL, []),
     lists:foldl(fun(Part, R) ->
 			if
 			    is_binary(Part),
