@@ -103,7 +103,7 @@ write_update(FeedURL, {Etag, LastModified},
 				[FeedURL, Item#feed_item.id]) of
 			     {ok, _, [{0}]} ->
 				 io:format("New feed item:~n~p~n", [Item#feed_item.title]),
-				 lists:foreach(fun({Enclosure, EnclosureType, _}) ->
+				 lists:foreach(fun({Enclosure, EnclosureType, _, _}) ->
 						       io:format("  e (~s) ~s~n", [EnclosureType, Enclosure])
 					       end, Item#feed_item.enclosures),
 				 {ok, 1} =
