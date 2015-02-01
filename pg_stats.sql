@@ -7,11 +7,7 @@ CREATE TABLE gauges (
        "info_hash" BYTEA,
        "value" BIGINT DEFAULT 1
 );
-CREATE INDEX gauges_kind_info_hash_time ON gauges ("kind","info_hash","time");
-CREATE INDEX gauges_kind_info_hash_time3600 ON gauges ("kind","info_hash",align_timestamp("time", 3600));
-CREATE INDEX gauges_kind_info_hash_time21600 ON gauges ("kind","info_hash",align_timestamp("time", 21600));
-CREATE INDEX gauges_kind_info_hash_time86400 ON gauges ("kind","info_hash",align_timestamp("time", 86400));
-CREATE INDEX gauges_kind_info_hash_time604800 ON gauges ("kind","info_hash",align_timestamp("time", 604800));
+CREATE INDEX gauges_kind_info_hash_time_value ON gauges ("kind","info_hash","time","value");
 
 CREATE OR REPLACE FUNCTION set_gauge(
        "e_kind" TEXT,
@@ -76,11 +72,7 @@ CREATE TABLE counters (
        "value" BIGINT NOT NULL
 );
 
-CREATE INDEX counters_kind_info_hash_time ON counters ("kind","info_hash","time");
-CREATE INDEX counters_kind_info_hash_time3600 ON counters ("kind","info_hash",align_timestamp("time", 3600));
-CREATE INDEX counters_kind_info_hash_time21600 ON counters ("kind","info_hash",align_timestamp("time", 21600));
-CREATE INDEX counters_kind_info_hash_time86400 ON counters ("kind","info_hash",align_timestamp("time", 86400));
-CREATE INDEX counters_kind_info_hash_time604800 ON counters ("kind","info_hash",align_timestamp("time", 604800));
+CREATE INDEX counters_kind_info_hash_time_value ON counters ("kind","info_hash","time","value");
 
 CREATE INDEX counters_get
           ON counters ("info_hash", "time")
@@ -94,6 +86,7 @@ CREATE OR REPLACE FUNCTION add_counter(
 ) RETURNS void AS $$
     DECLARE
         period_length BIGINT := 600;
+        -- TODO: reuse align_timestamp()
         period TIMESTAMP := TO_TIMESTAMP(
             FLOOR(
                 EXTRACT(EPOCH FROM NOW())
