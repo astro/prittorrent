@@ -25,9 +25,17 @@ handle_call({transaction, Fun}, _From, #state{conn=Conn}=State) ->
     {reply,
      pgsql:with_transaction(Conn,
 			    fun(Conn2) ->
-				    Fun(fun(Stmt, Params) ->
-						pgsql:equery(Conn2, Stmt, Params)
-					end)
+				    Result = (catch Fun(fun(Stmt, Params) ->
+                                                                pgsql:equery(Conn2, Stmt, Params)
+                                                        end)),
+                                    case Result of
+                                        %% Manually rethrow before the
+                                        %% wrapping
+                                        %% pgsql:with_transaction/2
+                                        %% swallows the stack trace.
+                                        {'EXIT', Reason} -> exit(Reason);
+                                        _ -> Result
+                                    end
 			    end), State};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
