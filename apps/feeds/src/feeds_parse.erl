@@ -382,18 +382,18 @@ bin_to_int(B) ->
 month_to_int(M) ->
     month_to_int1(string:to_lower(binary_to_list(M))).
 
-month_to_int1(<<"jan">>) -> 1;
-month_to_int1(<<"feb">>) -> 2;
-month_to_int1(<<"mar">>) -> 3;
-month_to_int1(<<"apr">>) -> 4;
-month_to_int1(<<"may">>) -> 5;
-month_to_int1(<<"jun">>) -> 6;
-month_to_int1(<<"jul">>) -> 7;
-month_to_int1(<<"aug">>) -> 8;
-month_to_int1(<<"sep">>) -> 9;
-month_to_int1(<<"oct">>) -> 10;
-month_to_int1(<<"nov">>) -> 11;
-month_to_int1(<<"dec">>) -> 12.
+month_to_int1("jan") -> 1;
+month_to_int1("feb") -> 2;
+month_to_int1("mar") -> 3;
+month_to_int1("apr") -> 4;
+month_to_int1("may") -> 5;
+month_to_int1("jun") -> 6;
+month_to_int1("jul") -> 7;
+month_to_int1("aug") -> 8;
+month_to_int1("sep") -> 9;
+month_to_int1("oct") -> 10;
+month_to_int1("nov") -> 11;
+month_to_int1("dec") -> 12.
 
 
 item_link(ItemEl) ->
