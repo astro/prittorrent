@@ -19,18 +19,19 @@ start_link(Pools) ->
     supervisor:start_link(?MODULE, [Pools]).
 
 equery(PoolId, Stmt, Params) ->
-	Worker = poolboy:checkout(PoolId),
-	%% TODO: catch?
-	Reply = gen_server:call(Worker, {equery, Stmt, Params}),
-	poolboy:checkin(PoolId, Worker),
-	Reply.
+    Worker = poolboy:checkout(PoolId),
+    Reply = gen_server:call(Worker, {equery, Stmt, Params}),
+    poolboy:checkin(PoolId, Worker),
+    Reply.
 
 transaction(PoolId, Fun) ->
-	Worker = poolboy:checkout(PoolId),
-	%% TODO: catch?
-	Reply = gen_server:call(Worker, {transaction, Fun}),
-	poolboy:checkin(PoolId, Worker),
-	Reply.
+    Worker = poolboy:checkout(PoolId),
+    Reply = gen_server:call(Worker, {transaction, Fun}),
+    poolboy:checkin(PoolId, Worker),
+    case Reply of
+        {rollback, Why} -> exit(Why);
+	_ -> Reply
+    end.
 
 %% ===================================================================
 %% Supervisor callbacks
