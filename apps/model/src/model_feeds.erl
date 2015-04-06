@@ -160,7 +160,7 @@ write_update(FeedURL, {Etag, LastModified},
 			       end,
 			       sets:from_list([Enclosure || {Enclosure} <- ToDeleteRows]),
 			       list_uniq_by(Item#feed_item.enclosures,
-					    fun({E1, _, _}, {E2, _, _}) ->
+					    fun({E1, _, _, _}, {E2, _, _, _}) ->
 						    E1 == E2
 					    end)),
 			 lists:foreach(
