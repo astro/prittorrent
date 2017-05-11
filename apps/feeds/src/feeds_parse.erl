@@ -34,7 +34,7 @@ get_channel(Xml) ->
     end.
 
 %% Just look for 1st title element
--spec(title/1 :: (xmlel()) -> binary() | undefined).
+-spec title(xmlel()) -> binary() | undefined.
 title(Xml) ->
     case exmpp_xml:get_name_as_list(Xml) of
 	"title" ->
@@ -115,7 +115,7 @@ summary(Xml) ->
 	    end
     end.
 
--spec(image/1 :: (xmlel()) -> binary() | undefined).
+-spec image(xmlel()) -> binary() | undefined.
 image(Xml) ->
     image1(Xml, ["image", "logo", "icon", "itunes:image"]).
 %% TODO: "itunes:"? What happened to XML namespaces?
@@ -163,7 +163,7 @@ image1(Xml, [ChildName | ChildNames]) ->
 
 
 %% Separates items from the feed metadata
--spec(pick_items/1 :: (xmlel()) -> {ok, xmlel(), [xmlel()]}).
+-spec pick_items(xmlel()) -> {ok, xmlel(), [xmlel()]}.
 pick_items(#xmlel{} = RootEl) ->
     case exmpp_xml:get_name_as_list(RootEl) of
 	%% Handle ATOM
@@ -419,11 +419,11 @@ item_payment(ItemEl) ->
 item_image(ItemEl) ->
     image(ItemEl).
 
--spec(item_enclosures/1 :: (xmlel())
-			   -> [{binary(),
-				(binary() | undefined),
-				(binary() | undefined)
-			       }]).
+-spec item_enclosures(xmlel())
+                     -> [{binary(),
+                          (binary() | undefined),
+                          (binary() | undefined)
+                         }].
 item_enclosures(ItemEl) ->
     lists:reverse(
 	lists:foldl(fun(#xmlel{name="enclosure"}=El, URLs) ->

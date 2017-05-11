@@ -38,17 +38,17 @@ prepare_update(FeedURL) ->
 	    {ok, undefined, undefined}
     end.
 
--spec(write_update/10 :: (string(),
-			  {binary() | null, binary() | null},
-			  binary() | null,
-			  binary() | null,
-			  binary() | null,
-			  binary() | null,
-			  binary() | null,
-			  binary() | null,
-			  binary() | null,
-			  [#feed_item{}])
-			 -> ok).
+-spec write_update(string(),
+                   {binary() | null, binary() | null},
+                   binary() | null,
+                   binary() | null,
+                   binary() | null,
+                   binary() | null,
+                   binary() | null,
+                   binary() | null,
+                   binary() | null,
+                   [#feed_item{}]
+                  ) -> ok.
 write_update(FeedURL, {Etag, LastModified},
 	     Error, Xml,
 	     Title, Lang, Summary, Homepage, Image, Items)
@@ -203,9 +203,9 @@ user_feed_details(UserName, Slug) ->
 	    {error, Reason}
     end.
 
--spec(feed_data/2 :: (binary(), integer())
-		     -> ({ok, binary(), [binary()], [{binary(), binary()}]} |
-			 {error, not_found})).
+-spec feed_data(binary(), integer()
+               ) -> {ok, binary(), [binary()], [{binary(), binary()}]}
+                  | {error, not_found}.
 feed_data(FeedURL, MaxEnclosures) ->
     case ?Q("SELECT \"xml\" FROM feeds WHERE \"url\"=$1",
 	    [FeedURL]) of
