@@ -6,7 +6,7 @@
 
 update_torrent(URL, OldTorrent) ->
     OldInfo = benc:parse(OldTorrent),
-    OldURLList = lists:keysearch(<<"url-list">>, 1, OldInfo),
+    {value, {<<"url-list">>, OldURLList}} = lists:keysearch(<<"url-list">>, 1, OldInfo),
     case lists:member(URL, OldURLList) of
 	true ->
 	    io:format("update_torrent ~s didn't add a new URL~n", [URL]),
