@@ -9,7 +9,8 @@
 -define(MAX_REDIRECTS, 3).
 
 
--spec(fetch/3 :: (string(), string() | undefined, string() | undefined) -> {ok, {string(), string()}, xmlel()}).
+-spec fetch(string(), string() | undefined, string() | undefined)
+       -> {ok, {string(), string()}, xmlel()}.
 fetch(Url, Etag1, LastModified1) ->
     Headers =
 	if

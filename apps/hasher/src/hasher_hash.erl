@@ -83,8 +83,8 @@ split_path(Path, Acc) ->
 	end.
 
 
--spec(hash_torrent/1 :: (binary()) -> {ok, integer(), binary(), binary(), binary()}).
-
+-spec hash_torrent(binary())
+      -> {ok, integer(), binary(), binary(), binary()}.
 hash_torrent(URL) ->
     case storage:resource_info(URL) of
 	{ok, _, Size, ETag, LastModified}

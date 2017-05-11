@@ -19,8 +19,8 @@ scrape(InfoHash) ->
     end.
 
 %% List
--spec(get_peers/3 :: (binary(), binary(), true | false)
-		     -> {ok, [{binary(), binary(), integer()}]}).
+-spec get_peers(binary(), binary(), true | false)
+               -> {ok, [{binary(), binary(), integer()}]}.
 get_peers(InfoHash, ReqPeerId, LeechersOnly) ->
     View = if
 	       LeechersOnly -> "tracker_leechers";
