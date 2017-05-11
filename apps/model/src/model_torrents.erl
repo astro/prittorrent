@@ -12,11 +12,11 @@ add_torrent(InfoHash, Name, Size, Torrent, Updater) ->
     case ?Q("INSERT INTO torrents (\"info_hash\", \"name\", \"size\", \"torrent\") VALUES ($1, $2, $3, $4)",
 	    [InfoHash, Name, Size, Torrent]) of
 	{error, {error, _, _, <<"duplicate key", _/binary>>, _}} ->
-	    ?T(fun() ->
+	    ?T(fun(Q) ->
 		       {ok, _, [{Torrent1}]} =
-			   ?Q("SELECT torrent FROM torrents WHERE info_hash=$1", [InfoHash]),
+			   Q("SELECT torrent FROM torrents WHERE info_hash=$1", [InfoHash]),
 		       Torrent2 = Updater(Torrent1),
-		       ?Q("UPDATE torrents SET torrent=$2 WHERE info_hash=$1", [InfoHash, Torrent2])
+		       Q("UPDATE torrents SET torrent=$2 WHERE info_hash=$1", [InfoHash, Torrent2])
 	       end);
 	{ok, 1} ->
 	    ok

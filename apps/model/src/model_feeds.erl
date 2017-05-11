@@ -165,8 +165,8 @@ write_update(FeedURL, {Etag, LastModified},
 					    end)),
 			 lists:foreach(
 			   fun(Enclosure) ->
-				   ?Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
-				      [FeedURL, Item#feed_item.id, Enclosure])
+				   Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+                                     [FeedURL, Item#feed_item.id, Enclosure])
 			   end, sets:to_list(ToDelete))
 		 end, Items),
 

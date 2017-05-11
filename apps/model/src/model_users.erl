@@ -19,8 +19,8 @@ register(Name, Email) ->
 		      [Name]) of
 		   {ok, _, [{0}]} ->
 		       {ok, 1} =
-			   ?Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
-			      [Name, Email, generate_salt()]),
+			   Q("INSERT INTO users (\"name\", \"email\", \"salt\") VALUES ($1, $2, $3)",
+                             [Name, Email, generate_salt()]),
 		       ok;
 		   {ok, _, _} ->
 		       {error, exists}
