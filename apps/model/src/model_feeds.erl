@@ -129,45 +129,38 @@ write_update(FeedURL, {Etag, LastModified},
 				       ])
 			 end,
 			 %% Update enclosures
-			 {ok, _, ToDeleteRows} =
+			 {ok, _, OldRows} =
 			     Q("SELECT \"url\" FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2",
 			       [FeedURL, Item#feed_item.id]),
-			 %% Hrm, ToDelete is not worth the sets overhead 99.9% of the time
-			 ToDelete =
-			     lists:foldl(
-			       fun({Enclosure, EnclosureType, EnclosureTitle, EnclosureGUID}, ToDelete) ->
-				       case sets:is_element(Enclosure, ToDelete) of
-					   true ->
-					       Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5, \"guid\"=$6 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
-						 [FeedURL, Item#feed_item.id, Enclosure,
-						  if
-						      is_binary(EnclosureType),
-						      size(EnclosureType) > 0 ->
-							  EnclosureType;
-						      true ->
-							  null
-						  end,
-                                                  enforce_string(EnclosureTitle),
-                                                  enforce_string(EnclosureGUID)
-                                                 ]),
-					       sets:del_element(Enclosure, ToDelete);
-					   false ->
-					       Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\", \"guid\") VALUES ($1, $2, $3, $4, $5, $6)",
-						 [FeedURL, Item#feed_item.id, Enclosure,
-						  enforce_string(EnclosureType), enforce_string(EnclosureTitle), enforce_string(EnclosureGUID)]),
-					       ToDelete
-				       end
-			       end,
-			       sets:from_list([Enclosure || {Enclosure} <- ToDeleteRows]),
-			       list_uniq_by(Item#feed_item.enclosures,
-					    fun({E1, _, _, _}, {E2, _, _, _}) ->
-						    E1 == E2
-					    end)),
-			 lists:foreach(
-			   fun(Enclosure) ->
-				   Q("DELETE FROM \"enclosures\" WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
-                                     [FeedURL, Item#feed_item.id, Enclosure])
-			   end, sets:to_list(ToDelete))
+                         lists:foldl(
+                           fun({Enclosure, EnclosureType, EnclosureTitle, EnclosureGUID}, Old) ->
+                                   case sets:is_element(Enclosure, Old) of
+                                       true ->
+                                           Q("UPDATE \"enclosures\" SET \"type\"=COALESCE($4, \"type\"), \"title\"=$5, \"guid\"=$6 WHERE \"feed\"=$1 AND \"item\"=$2 AND \"url\"=$3",
+                                             [FeedURL, Item#feed_item.id, Enclosure,
+                                              if
+                                                  is_binary(EnclosureType),
+                                                  size(EnclosureType) > 0 ->
+                                                      EnclosureType;
+                                                  true ->
+                                                      null
+                                              end,
+                                              enforce_string(EnclosureTitle),
+                                              enforce_string(EnclosureGUID)
+                                             ]),
+                                           sets:del_element(Enclosure, Old);
+                                       false ->
+                                           Q("INSERT INTO \"enclosures\" (\"feed\", \"item\", \"url\", \"type\", \"title\", \"guid\") VALUES ($1, $2, $3, $4, $5, $6)",
+                                             [FeedURL, Item#feed_item.id, Enclosure,
+                                              enforce_string(EnclosureType), enforce_string(EnclosureTitle), enforce_string(EnclosureGUID)]),
+                                           Old
+                                   end
+                           end,
+                           sets:from_list([Enclosure || {Enclosure} <- OldRows]),
+                           list_uniq_by(Item#feed_item.enclosures,
+                                        fun({E1, _, _, _}, {E2, _, _, _}) ->
+                                                E1 == E2
+                                        end))
 		 end, Items),
 
 	       ok
