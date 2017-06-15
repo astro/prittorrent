@@ -206,3 +206,61 @@ CREATE OR REPLACE FUNCTION update_all_downloaded_stats() RETURNS void AS $$
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
+
+
+-- Compaction code
+CREATE OR REPLACE FUNCTION compact_counters(
+    "p_start" TIMESTAMP,
+    "p_end" TIMESTAMP
+) RETURNS void AS $$
+    DECLARE
+        "t_info_hash" BYTEA;
+        "t_kind" TEXT;
+        "t_total" BIGINT;
+        "t_start" TIMESTAMP;
+    BEGIN
+        FOR t_kind, t_info_hash, t_total, t_start IN
+            SELECT kind, info_hash, SUM("value"), MIN("time")
+              FROM counters
+             WHERE "time" >= p_start
+               AND "time" < p_end
+          GROUP BY kind, info_hash
+        LOOP
+            DELETE FROM counters
+                  WHERE "kind" = t_kind
+                    AND "info_hash" = t_info_hash
+                    AND "time" >= p_start
+                    AND "time" < p_end;
+            INSERT INTO counters ("kind", "time", "info_hash", "value")
+                 VALUES (t_kind, t_start, t_info_hash, t_total);
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION compact_gauges(
+    "p_start" TIMESTAMP,
+    "p_end" TIMESTAMP
+) RETURNS void AS $$
+    DECLARE
+        "t_info_hash" BYTEA;
+        "t_kind" TEXT;
+        "t_total" BIGINT;
+        "t_start" TIMESTAMP;
+    BEGIN
+        FOR t_kind, t_info_hash, t_total, t_start IN
+            SELECT kind, info_hash, AVG("value"), MIN("time")
+              FROM gauges
+             WHERE "time" >= p_start
+               AND "time" < p_end
+          GROUP BY kind, info_hash
+        LOOP
+            DELETE FROM gauges
+                  WHERE "kind" = t_kind
+                    AND "info_hash" = t_info_hash
+                    AND "time" >= p_start
+                    AND "time" < p_end;
+            INSERT INTO counters ("kind", "time", "info_hash", "value")
+                 VALUES (t_kind, t_start, t_info_hash, t_total);
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
