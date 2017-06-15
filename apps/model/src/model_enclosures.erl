@@ -14,14 +14,17 @@
 -define(T(Fun), model_sup:transaction(?POOL, Fun)).
 
 to_hash() ->
-    case ?Q("SELECT \"enclosure_url\" FROM enclosure_to_hash()", []) of
-	{ok, _, [{URL}]}
-	  when is_binary(URL),
-	       size(URL) > 0 ->
-	    {ok, URL};
-	{ok, _, [{null}]} ->
-	    nothing
-    end.
+    ?T(fun(Q) ->
+               Q("LOCK TABLE \"enclosure_torrents\" IN EXCLUSIVE MODE", []),
+               case Q("SELECT \"enclosure_url\" FROM enclosure_to_hash()", []) of
+                   {ok, _, [{URL}]}
+                     when is_binary(URL),
+                          size(URL) > 0 ->
+                       {ok, URL};
+                   {ok, _, [{null}]} ->
+                       nothing
+               end
+       end).
 
 to_recheck() ->
     case ?Q("SELECT e_url, e_length, e_etag, e_last_modified FROM enclosure_to_recheck()", []) of
