@@ -1,0 +1,12 @@
+## Name of the node
+-sname feeds
+
+# Heartbeat management
+-heart
+
+# Kernel poll
++K true
+# Async threads
++A 32
+
+-env ERL_MAX_PORTS 4096
