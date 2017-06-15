@@ -14,9 +14,14 @@ init(Args) ->
     Database = proplists:get_value(database, Args),
     User = proplists:get_value(user, Args),
     Password = proplists:get_value(password, Args),
-    {ok, Conn} = pgsql:connect(Host, User, Password, [
-        {database, Database}
-    ]),
+    Opts = [{database, Database}],
+    PortOpts = case proplists:get_value(port, Args) of
+                   undefined ->
+                       [];
+                   Port when is_integer(Port) ->
+                       [{port, Port}]
+               end,
+    {ok, Conn} = pgsql:connect(Host, User, Password, Opts ++ PortOpts),
     {ok, #state{conn=Conn}}.
 
 handle_call({equery, Stmt, Params}, _From, #state{conn=Conn}=State) ->
