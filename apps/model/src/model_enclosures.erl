@@ -15,7 +15,7 @@
 
 to_hash() ->
     ?T(fun(Q) ->
-               Q("LOCK TABLE \"enclosure_torrents\" IN EXCLUSIVE MODE", []),
+               Q("LOCK TABLE \"enclosure_torrents\" IN SHARE ROW EXCLUSIVE MODE", []),
                case Q("SELECT \"enclosure_url\" FROM enclosure_to_hash()", []) of
                    {ok, _, [{URL}]}
                      when is_binary(URL),
