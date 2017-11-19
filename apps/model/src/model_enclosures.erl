@@ -15,27 +15,38 @@
 
 to_hash() ->
     ?T(fun(Q) ->
-               Q("LOCK TABLE \"enclosure_torrents\" IN SHARE ROW EXCLUSIVE MODE", []),
-               case Q("SELECT \"enclosure_url\" FROM enclosure_to_hash()", []) of
-                   {ok, _, [{URL}]}
-                     when is_binary(URL),
-                          size(URL) > 0 ->
-                       {ok, URL};
-                   {ok, _, [{null}]} ->
+               LockResult = Q("LOCK TABLE \"enclosure_torrents\" IN SHARE ROW EXCLUSIVE MODE", []),
+               case LockResult of
+                   {ok, [], []} ->
+                       case Q("SELECT \"enclosure_url\" FROM enclosure_to_hash()", []) of
+                           {ok, _, [{URL}]}
+                             when is_binary(URL),
+                                  size(URL) > 0 ->
+                               {ok, URL};
+                           {ok, _, [{null}]} ->
+                               nothing
+                       end;
+                   {error, timeout} ->
                        nothing
                end
        end).
 
 to_recheck() ->
-    case ?Q("SELECT e_url, e_length, e_etag, e_last_modified FROM enclosure_to_recheck()", []) of
-	{ok, _, [{URL, Length, ETag, LastModified}]}
-	  when is_binary(URL),
-	       size(URL) > 0 ->
-	    {ok, URL, Length, ETag, LastModified};
-	{ok, _, [{null, null, null, null}]} ->
-	    nothing
+    LockResult = Q("LOCK TABLE \"enclosure_torrents\" IN SHARE ROW EXCLUSIVE MODE", []),
+    case LockResult of
+        {ok, [], []} ->
+            case ?Q("SELECT e_url, e_length, e_etag, e_last_modified FROM enclosure_to_recheck()", []) of
+                {ok, _, [{URL, Length, ETag, LastModified}]}
+                  when is_binary(URL),
+                       size(URL) > 0 ->
+                    {ok, URL, Length, ETag, LastModified};
+                {ok, _, [{null, null, null, null}]} ->
+                    nothing
+            end;
+        {error, timeout} ->
+            nothing
     end.
-    
+
 
 set_torrent(URL, Error, InfoHash, Length, undefined, LastModified) ->
     set_torrent(URL, Error, InfoHash, Length, null, LastModified);
