@@ -53,6 +53,14 @@ loop() ->
                     model_enclosures:set_torrent(
                       URL, list_to_binary(io_lib:format("HTTP ~B", [HttpStatus])), <<"">>, null, null, null);
 
+		{error, {nxdomain, _Reason}} ->
+		    io:format("Recheck ~s failed on DNS~n", [URL]),
+
+                    %% We've got an HTTP code, meaning the network is
+                    %% up but the URL has disappeared!
+                    model_enclosures:set_torrent(
+                      URL, <<"NXDOMAIN">>, <<"">>, null, null, null);
+
 		{error, E} ->
 		    io:format("Recheck ~s failed:~n~p~n", [URL, E])
 
