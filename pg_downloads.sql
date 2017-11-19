@@ -269,3 +269,13 @@ CREATE OR REPLACE FUNCTION get_guid_downloads(
  LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
      WHERE LENGTH(enclosure_torrents.info_hash)=20;
 $$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION get_torrent_guids(
+    BYTEA
+) RETURNS SETOF TEXT AS $$
+    SELECT DISTINCT enclosures.guid AS "guid"
+      FROM enclosure_torrents
+      JOIN enclosures USING (url)
+     WHERE enclosure_torrents.info_hash=$1
+       AND enclosures.guid IS NOT NULL
+$$ LANGUAGE SQL;
