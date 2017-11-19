@@ -6,6 +6,7 @@
 start_link() ->
     {ok, spawn_link(fun loop/0)}.
 
+%% Perform just HEAD requests, and if needed recheck async.
 loop() ->
     case model_enclosures:to_recheck() of
 	nothing ->
@@ -43,6 +44,14 @@ loop() ->
 		    io:format("\tETag: ~p /= ~p~n", [ETagList, ContentETag]),
 		    io:format("\tLast-Modified: ~p /= ~p~n", [LastModifiedList, ContentLastModified]),
 		    hasher_sup:recheck(URL);
+
+		{error, {http, HttpStatus}} ->
+		    io:format("Recheck ~s resulted in HTTP ~p~n", [URL, HttpStatus]),
+
+                    %% We've got an HTTP code, meaning the network is
+                    %% up but the URL has disappeared!
+                    model_enclosures:set_torrent(
+                      URL, list_to_binary(io_lib:format("HTTP ~B", [HttpStatus])), <<"">>, null, null, null);
 
 		{error, E} ->
 		    io:format("Recheck ~s failed:~n~p~n", [URL, E])
