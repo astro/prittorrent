@@ -2,6 +2,8 @@
 
 -behaviour(supervisor).
 
+-define(TIMEOUT, 120000).
+
 %% API
 -export([start_link/1, equery/3, transaction/2]).
 
@@ -20,13 +22,13 @@ start_link(Pools) ->
 
 equery(PoolId, Stmt, Params) ->
     Worker = poolboy:checkout(PoolId),
-    Reply = gen_server:call(Worker, {equery, Stmt, Params}),
+    Reply = gen_server:call(Worker, {equery, Stmt, Params}, ?TIMEOUT),
     poolboy:checkin(PoolId, Worker),
     Reply.
 
 transaction(PoolId, Fun) ->
     Worker = poolboy:checkout(PoolId),
-    Reply = gen_server:call(Worker, {transaction, Fun}),
+    Reply = gen_server:call(Worker, {transaction, Fun}, ?TIMEOUT),
     poolboy:checkin(PoolId, Worker),
     case Reply of
         {rollback, Why} -> exit(Why);
