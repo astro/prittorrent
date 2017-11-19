@@ -25,6 +25,7 @@ pick_any_worker() ->
     random:seed(erlang:now()),
     lists:nth(random:uniform(length(Pids)), Pids).
 
+%% To be used interactively:
 recheck(URL) ->
     Pid = pick_any_worker(),
     link(Pid),
@@ -41,11 +42,11 @@ recheck(URL) ->
 %% ===================================================================
 
 init([]) ->
-    NWorkers = 4,
+    NWorkers = 16,
     Workers = [{{worker, N}, {hasher_worker, start_link, []},
 		permanent, 5000, worker, [hasher_worker, hasher_hash]}
 	       || N <- lists:seq(1, NWorkers)],
-    NRecheckers = 5,
+    NRecheckers = 8,
     Recheckers = [{{checker, N}, {hasher_recheck, start_link, []},
 		   permanent, 5000, worker, [hasher_recheck]}
 		  || N <- lists:seq(1, NRecheckers)],
