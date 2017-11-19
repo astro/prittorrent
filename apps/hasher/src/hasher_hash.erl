@@ -13,7 +13,7 @@ update_torrent(URL, OldTorrent) ->
 	    OldTorrent;
 	false ->
 	    io:format("update_torrent: new url ~s~n", [URL]),
-	    NewInfo = lists:keystore(<<"url-list">>, 1, OldInfo, [URL | OldURLList]),
+	    NewInfo = lists:keystore(<<"url-list">>, 1, OldInfo, {<<"url-list">>, [URL | OldURLList]}),
 	    benc:to_binary(NewInfo)
     end.
 
