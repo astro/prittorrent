@@ -181,10 +181,10 @@ fold_resource1(Pid, F, {Size, AccIn} = A) ->
 	    A;
 	{'EXIT', Reason} ->
 	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
-	    A;
+	    exit(Reason);
 	{error, Reason} ->
 	    error_logger:error_msg("storage fold interrupted: ~p~n", [Reason]),
-	    A
+	    exit(Reason)
     end.
 
 extract_header(Name1, Headers) ->
