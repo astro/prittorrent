@@ -37,10 +37,6 @@ CREATE TYPE download AS (
     "homepage" TEXT,
     "payment" TEXT,
     "image" TEXT,
-    "seeders" INT,
-    "leechers" INT,
-    "upspeed" BIGINT,
-    "downspeed" BIGINT,
     "downloaded" BIGINT
 );
 
@@ -105,8 +101,8 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
 $$ LANGUAGE SQL;
 
  
-CREATE OR REPLACE FUNCTION get_popular_downloads(
-    INT, INT
+CREATE OR REPLACE FUNCTION get_torrent_download(
+    BYTEA
 ) RETURNS SETOF download AS $$
     SELECT *
       FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
@@ -114,24 +110,20 @@ CREATE OR REPLACE FUNCTION get_popular_downloads(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
-                   COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM (SELECT info_hash, seeders, leechers, upspeed, downspeed
-                      FROM scraped
-                     ORDER BY (seeders + leechers) DESC
-                     LIMIT $1 OFFSET $2
-                   ) AS scraped
-              JOIN torrents USING (info_hash)
+                   -- TODO: delete this
+                   0 as "seeders", 0 as "leechers", 0 :: bigint as "upspeed", 0 :: bigint as "downspeed",
+                   COALESCE(downloaded_stats.downloaded :: bigint, 0) :: bigint AS "downloaded"
+              FROM torrents
               JOIN downloaded_stats USING (info_hash)
-              JOIN enclosure_torrents ON (scraped.info_hash=enclosure_torrents.info_hash AND LENGTH(enclosure_torrents.info_hash)=20)
+              JOIN enclosure_torrents USING (info_hash)
               JOIN enclosures USING (url)
               JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
               JOIN feeds ON (feed_items.feed=feeds.url)
               JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
-             WHERE user_feeds."public"
+             WHERE torrents.info_hash=$1
+               AND user_feeds."public"
            ) AS s
-    ORDER BY (seeders + leechers) DESC, downloaded DESC;
+    ORDER BY downloaded DESC;
 $$ LANGUAGE SQL;
  
 
