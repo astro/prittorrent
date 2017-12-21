@@ -146,24 +146,24 @@ CREATE OR REPLACE FUNCTION update_downloaded_stats(
         SELECT COALESCE(SUM("value"), 0)
           INTO "t_downloaded"
           FROM counters
-         WHERE "kind"='complete' OR "kind"='complete_w'
+         WHERE ("kind"='complete' OR "kind"='complete_w')
            AND "info_hash"=t_info_hash;
         SELECT COALESCE(SUM("value"), 0)
           INTO "t_downloaded30"
           FROM counters
-         WHERE "kind"='complete' OR "kind"='complete_w'
+         WHERE ("kind"='complete' OR "kind"='complete_w')
            AND "info_hash"=t_info_hash
            AND "time" > (NOW() - '30 days'::INTERVAL);
         SELECT COALESCE(SUM("value"), 0)
           INTO "t_downloaded7"
           FROM counters
-         WHERE "kind"='complete' OR "kind"='complete_w'
+         WHERE ("kind"='complete' OR "kind"='complete_w')
            AND "info_hash"=t_info_hash
            AND "time" > (NOW() - '7 days'::INTERVAL);
         SELECT COALESCE(SUM("value"), 0)
           INTO "t_downloaded1"
           FROM counters
-         WHERE "kind"='complete' OR "kind"='complete_w'
+         WHERE ("kind"='complete' OR "kind"='complete_w')
            AND "info_hash"=t_info_hash
            AND "time" > (NOW() - '1 day'::INTERVAL);
 
@@ -198,7 +198,7 @@ CREATE OR REPLACE FUNCTION update_all_downloaded_stats() RETURNS void AS $$
         FOR t_info_hash IN
             SELECT DISTINCT "info_hash"
               FROM counters
-             WHERE kind = 'complete' OR "kind"='complete_w'
+             WHERE (kind = 'complete' OR "kind"='complete_w')
                AND time >= (NOW() - '31 days'::INTERVAL)
                AND time <= (NOW() - '1 day'::INTERVAL)
         LOOP
@@ -206,6 +206,8 @@ CREATE OR REPLACE FUNCTION update_all_downloaded_stats() RETURNS void AS $$
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
+
+CREATE index counters_completes ON counters (kind, time, info_hash) WHERE kind = 'complete' OR kind = 'complete_w';
 
 
 -- Compaction code
