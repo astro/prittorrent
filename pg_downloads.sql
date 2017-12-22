@@ -114,7 +114,7 @@ CREATE OR REPLACE FUNCTION get_torrent_download(
                    0 as "seeders", 0 as "leechers", 0 :: bigint as "upspeed", 0 :: bigint as "downspeed",
                    COALESCE(downloaded_stats.downloaded :: bigint, 0) :: bigint AS "downloaded"
               FROM torrents
-              JOIN downloaded_stats USING (info_hash)
+         LEFT JOIN downloaded_stats USING (info_hash)
               JOIN enclosure_torrents USING (info_hash)
               JOIN enclosures USING (url)
               JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
