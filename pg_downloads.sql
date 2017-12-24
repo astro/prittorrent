@@ -40,36 +40,8 @@ CREATE TYPE download AS (
     "downloaded" BIGINT
 );
 
-CREATE OR REPLACE FUNCTION get_popular_downloads(
-    INT, INT
-) RETURNS SETOF download AS $$
-    SELECT *
-      FROM (SELECT user_feeds."user", user_feeds."slug", user_feeds."feed",
-                   enclosures.item, enclosures.url AS enclosure,
-                   COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
-                   torrents.info_hash, torrents.name, torrents.size, enclosures.type,
-                   feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
-                   COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
-              FROM (SELECT info_hash, seeders, leechers, upspeed, downspeed
-                      FROM scraped
-                     ORDER BY (seeders + leechers) DESC
-                     LIMIT $1 OFFSET $2
-                   ) AS scraped
-              JOIN torrents USING (info_hash)
-              JOIN downloaded_stats USING (info_hash)
-              JOIN enclosure_torrents ON (scraped.info_hash=enclosure_torrents.info_hash AND LENGTH(enclosure_torrents.info_hash)=20)
-              JOIN enclosures USING (url)
-              JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
-              JOIN feeds ON (feed_items.feed=feeds.url)
-              JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
-             WHERE user_feeds."public"
-           ) AS s
-    ORDER BY (seeders + leechers) DESC, downloaded DESC;
-$$ LANGUAGE SQL;
- 
 
+-- TODO: rm dups
 CREATE OR REPLACE FUNCTION get_most_downloaded(
     INT, INT, INT
 ) RETURNS SETOF download AS $$
@@ -78,8 +50,6 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
            COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
            torrents.info_hash, torrents.name, torrents.size, enclosures.type,
            feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-           COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-           COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
       FROM (SELECT info_hash, downloaded
               FROM downloaded_stats
@@ -96,7 +66,6 @@ CREATE OR REPLACE FUNCTION get_most_downloaded(
       JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
       JOIN feeds ON (feed_items.feed=feeds.url)
       JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
- LEFT JOIN scraped USING (info_hash)
      WHERE user_feeds."public";
 $$ LANGUAGE SQL;
 
@@ -110,9 +79,7 @@ CREATE OR REPLACE FUNCTION get_torrent_download(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   -- TODO: delete this
-                   0 as "seeders", 0 as "leechers", 0 :: bigint as "upspeed", 0 :: bigint as "downspeed",
-                   COALESCE(downloaded_stats.downloaded :: bigint, 0) :: bigint AS "downloaded"
+                   COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM torrents
          LEFT JOIN downloaded_stats USING (info_hash)
               JOIN enclosure_torrents USING (info_hash)
@@ -136,8 +103,6 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
@@ -149,7 +114,6 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
              JOIN torrents ON (enclosure_torrents.info_hash=torrents.info_hash)
              JOIN feeds ON (feed_items.feed=feeds.url)
              JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
-        LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
             WHERE user_feeds."public"
       ) AS s
@@ -165,8 +129,6 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
@@ -179,7 +141,6 @@ CREATE OR REPLACE FUNCTION get_recent_downloads(
              JOIN torrents ON (enclosure_torrents.info_hash=torrents.info_hash)
              JOIN feeds ON (feed_items.feed=feeds.url)
              JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
-        LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
       ) AS s
     ORDER BY published DESC;
@@ -194,8 +155,6 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT feed, id, title, lang, summary, published, homepage, payment, image
                     FROM feed_items
@@ -208,7 +167,6 @@ CREATE OR REPLACE FUNCTION get_user_recent_downloads(
              JOIN torrents ON (enclosure_torrents.info_hash=torrents.info_hash)
              JOIN feeds ON (feed_items.feed=feeds.url)
              JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
-        LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
         LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
             WHERE user_feeds."public"
       ) AS s
@@ -223,8 +181,6 @@ CREATE OR REPLACE FUNCTION get_enclosure_downloads(
            COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
            torrents.info_hash, torrents.name, torrents.size, enclosures.type,
            feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-           COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-           COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
       FROM (SELECT url, info_hash FROM enclosure_torrents
              WHERE url=$1 AND LENGTH(info_hash)=20
@@ -234,7 +190,6 @@ CREATE OR REPLACE FUNCTION get_enclosure_downloads(
       JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
       JOIN feeds ON (feed_items.feed=feeds.url)
       JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
- LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
  LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash);
 $$ LANGUAGE SQL;
 
@@ -246,8 +201,6 @@ CREATE OR REPLACE FUNCTION get_guid_downloads(
            COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
            torrents.info_hash, torrents.name, torrents.size, enclosures.type,
            feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-           COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-           COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
            COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
       FROM (SELECT feed, item, url, type FROM enclosures
              WHERE guid=$1
@@ -257,7 +210,6 @@ CREATE OR REPLACE FUNCTION get_guid_downloads(
       JOIN feed_items ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
       JOIN feeds ON (feed_items.feed=feeds.url)
       JOIN user_feeds ON (feed_items.feed=user_feeds.feed)
- LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
  LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
      WHERE LENGTH(enclosure_torrents.info_hash)=20;
 $$ LANGUAGE SQL;

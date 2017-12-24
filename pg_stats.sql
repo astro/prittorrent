@@ -34,34 +34,6 @@ CREATE OR REPLACE FUNCTION set_gauge(
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION scraped_set_gauges() RETURNS trigger AS $$
-    DECLARE
-        s_info_hash BYTEA;
-        s_seeders INT;
-        s_leechers INT;
-    BEGIN
-        IF TG_OP != 'DELETE' THEN
-            s_info_hash := NEW.info_hash;
-            s_seeders := NEW.seeders;
-            s_leechers := NEW.leechers;
-        ELSE
-            s_info_hash := OLD.info_hash;
-            s_seeders := 0;
-            s_leechers := 0;
-        END IF;
-
-        PERFORM set_gauge('seeders', s_info_hash, s_seeders);
-        PERFORM set_gauge('leechers', s_info_hash, s_leechers);
-
-        RETURN NEW;
-    END;
-$$ LANGUAGE plpgsql;
-
--- Obtain up/down deltas when a tracked peer is updated
-CREATE TRIGGER scraped_set_gauges AFTER INSERT OR UPDATE OR DELETE ON scraped
-       FOR EACH ROW EXECUTE PROCEDURE scraped_set_gauges();
-
-
 -- Counters
 --
 -- For adding values (up, down, up_seeder)

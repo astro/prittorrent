@@ -99,8 +99,6 @@ CREATE OR REPLACE FUNCTION search_feed_items(
                    COALESCE(user_feeds.title, feeds.title) AS feed_title, user_feeds."public" AS feed_public,
                    torrents.info_hash, torrents.name, torrents.size, enclosures.type,
                    feed_items.title, feed_items.lang, feed_items.summary, feed_items.published, feed_items.homepage, feed_items.payment, feed_items.image,
-                   COALESCE(scraped.seeders, 0) AS "seeders", COALESCE(scraped.leechers, 0) AS "leechers",
-                   COALESCE(scraped.upspeed, 0) AS "upspeed", COALESCE(scraped.downspeed, 0) AS "downspeed",
                    COALESCE(downloaded_stats.downloaded, 0) AS "downloaded"
               FROM (SELECT * FROM feed_items
                      WHERE "search" @@ "query"
@@ -112,7 +110,6 @@ CREATE OR REPLACE FUNCTION search_feed_items(
               JOIN enclosures ON (enclosures.feed=feed_items.feed AND enclosures.item=feed_items.id)
               JOIN enclosure_torrents ON (enclosure_torrents.url=enclosures.url)
               JOIN torrents USING (info_hash)
-         LEFT JOIN scraped ON (enclosure_torrents.info_hash=scraped.info_hash)
          LEFT JOIN downloaded_stats ON (enclosure_torrents.info_hash=downloaded_stats.info_hash)
              WHERE user_feeds."public";
     END;
