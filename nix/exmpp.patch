@@ -1,0 +1,15 @@
+--- a/compile_hook.mk.old	2019-01-20 03:23:09.769524699 +0100
++++ b/compile_hook.mk	2019-01-20 03:23:20.655541075 +0100
+@@ -5,10 +5,10 @@
+ compile: $(TARGETS)
+ 
+ include/internal/exmpp_known_%.hrl: include/internal/exmpp_known_%.in
+-	./include/internal/exmpp_known_$*.hrl.es $< > $@
++	escript ./include/internal/exmpp_known_$*.hrl.es $< > $@
+ 
+ src/core/exmpp_known_%.erl: include/internal/exmpp_known_%.in
+-	./src/core/exmpp_known_$*.erl.es $< > $@
++	escript ./src/core/exmpp_known_$*.erl.es $< > $@
+ 
+ clean:
+ 	$(RM) $(TARGETS)
